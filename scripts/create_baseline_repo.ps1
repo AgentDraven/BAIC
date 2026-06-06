@@ -34,7 +34,7 @@ function Create-BaselineRepository {
         Write-Host "[STEP 2/9] Setting up .env.local and cfg directory..."
         New-Item -ItemType Directory -Path $CfgPath -Force | Out-Null
         New-Item -ItemType File -Path $EnvFilePath -Force | Out-Null
-        if (-not (Get-Content (Join-Path $NewRepoPath ".gitignore") -Raw -ErrorAction SilentlyContinue) -match ".env.local")) {
+        if (-not ((Get-Content (Join-Path $NewRepoPath ".gitignore") -Raw -ErrorAction SilentlyContinue) -match ".env.local")) {
             Add-Content -Path (Join-Path $NewRepoPath ".gitignore") -Value ".env.local"
             Write-Host "[INFO] Added .env.local to .gitignore."
         }
