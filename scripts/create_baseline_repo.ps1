@@ -2,23 +2,33 @@
 
 function Create-BaselineRepository {
     param (
-        [string]$RepoName = $(Read-Host -Prompt "Enter the name for the new repository (e.g., MyNewProject)"),
-        [string]$ParentDirectory = $(Read-Host -Prompt "Enter the full path of the parent directory where the new repository should be created (press Enter for parent of current workspace)" -Default (Split-Path (Get-Location).Path))
+        [string]$RepoName = "",
+        [string]$ParentDirectory = ""
     )
 
+    $CurrentPath = (Get-Location).Path
+    $DefaultRepoName = Split-Path $CurrentPath -Leaf
+    $DefaultParentDir = Split-Path $CurrentPath -Parent
+
+    # Prompt for Repository Name with a dynamic default based on current directory
     if ([string]::IsNullOrWhiteSpace($RepoName)) {
-        Write-Host -ForegroundColor Red "[ERROR] Repository name cannot be empty." -ErrorAction Stop
-        return
+        $RepoName = Read-Host -Prompt "Enter the name for the repository [Default: $DefaultRepoName]"
+        if ([string]::IsNullOrWhiteSpace($RepoName)) {
+            $RepoName = $DefaultRepoName
+        }
     }
 
+    # Prompt for Parent Directory with a dynamic default based on parent of current directory
     if ([string]::IsNullOrWhiteSpace($ParentDirectory)) {
-        Write-Host -ForegroundColor Red "[ERROR] Parent directory cannot be empty." -ErrorAction Stop
-        return
+        $ParentDirectory = Read-Host -Prompt "Enter the full path of the parent directory where the repository folder lives [Default: $DefaultParentDir]"
+        if ([string]::IsNullOrWhiteSpace($ParentDirectory)) {
+            $ParentDirectory = $DefaultParentDir
+        }
     }
 
     $NewRepoPath = Join-Path $ParentDirectory $RepoName
     
-    # Check if target path would result in creating a nested repository inside the current project root (C:\Users\balap\AgentDraven\BAIC)
+    # Check if target path would result in creating an unintended nested repository inside the current project root (C:\Users\balap\AgentDraven\BAIC)
     $CurrentProjectRoot = "C:\Users\balap\AgentDraven\BAIC"
     if ($NewRepoPath.StartsWith($CurrentProjectRoot, [System.StringComparison]::OrdinalIgnoreCase) -and $NewRepoPath -ne $CurrentProjectRoot) {
         Write-Host -ForegroundColor Yellow "`n[WARNING] You are attempting to create the new repository inside the current project root:"
@@ -31,31 +41,24 @@ function Create-BaselineRepository {
         }
     }
 
-    $OriginalPath = (Get-Location).Path
+    $OriginalPath = $CurrentPath
 
     try {
-        Write-Host "`n--- Starting New Repository Bootstrapping ---" -ForegroundColor Blue
+        Write-Host "`n--- Starting Repository Bootstrapping & Sync ---" -ForegroundColor Blue
         Write-Host "Target Repository Name: $RepoName" -ForegroundColor Blue
         Write-Host "Parent Directory: $ParentDirectory" -ForegroundColor Blue
         Write-Host "Full Path: $NewRepoPath`n" -ForegroundColor Blue
 
         # Check if the target directory already exists
         if (Test-Path $NewRepoPath) {
-            Write-Host -ForegroundColor Yellow "[WARNING] The directory '$NewRepoPath' already exists."
-            $ConfirmOverwrite = Read-Host -Prompt "[INPUT REQUIRED] Do you want to overwrite it? (Y/N)"
-            if ($ConfirmOverwrite -ne "Y" -and $ConfirmOverwrite -ne "y") {
-                Write-Host -ForegroundColor Red "[ERROR] Operation cancelled by user. Exiting."
-                return
-            }
-            Write-Host "[INFO] Overwriting existing directory as confirmed by user." -ForegroundColor DarkCyan
+            Write-Host -ForegroundColor DarkCyan "[INFO] Directory already exists: $NewRepoPath. Accommodating existing files and environment."
+        } else {
+            Write-Host "[STEP 1/10] Creating directory..." -ForegroundColor Cyan
+            New-Item -ItemType Directory -Path $NewRepoPath -Force | Out-Null
+            Write-Host "[SUCCESS] Directory created.`n" -ForegroundColor Green
         }
 
-        Write-Host "[STEP 1/10] Creating directory..." -ForegroundColor Cyan
-        # Use -Force to overwrite if confirmed, or create if not existing
-        New-Item -ItemType Directory -Path $NewRepoPath -Force | Out-Null
-        Write-Host "[SUCCESS] Directory created.`n" -ForegroundColor Green
-
-        # Change to the new repository directory for subsequent Git operations
+        # Change to the target repository directory for subsequent operations
         Set-Location $NewRepoPath
         Write-Host "[INFO] Working directory set to: $NewRepoPath`n" -ForegroundColor DarkCyan
 
@@ -64,8 +67,12 @@ function Create-BaselineRepository {
         $GitIgnorePath = Join-Path $NewRepoPath ".gitignore"
 
         Write-Host "[STEP 2/10] Setting up .env.local, cfg/, and .gitignore..." -ForegroundColor Cyan
-        New-Item -ItemType Directory -Path $CfgPath -Force | Out-Null
-        New-Item -ItemType File -Path $EnvFilePath -Force | Out-Null
+        if (-not (Test-Path $CfgPath)) {
+            New-Item -ItemType Directory -Path $CfgPath -Force | Out-Null
+        }
+        if (-not (Test-Path $EnvFilePath)) {
+            New-Item -ItemType File -Path $EnvFilePath -Force | Out-Null
+        }
 
         # Ensure .gitignore exists
         if (-not (Test-Path $GitIgnorePath)) {
@@ -121,23 +128,40 @@ function Create-BaselineRepository {
         }
         
         Write-Host "[STEP 5/10] Initializing Git repository locally..." -ForegroundColor Cyan
-        git init | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "Git init failed." }
-        Write-Host "[SUCCESS] Git repository initialized locally.`n" -ForegroundColor Green
+        if (-not (Test-Path (Join-Path $NewRepoPath ".git"))) {
+            git init | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "Git init failed." }
+            Write-Host "[SUCCESS] Git repository initialized locally.`n" -ForegroundColor Green
+        } else {
+            Write-Host "[INFO] Existing local Git repository found. Accommodating current Git state.`n" -ForegroundColor DarkCyan
+        }
 
         $DocsPath = Join-Path $NewRepoPath "docs"
-        Write-Host "[STEP 6/10] Creating docs/ and copying BOOTSTRAPPING.md..." -ForegroundColor Cyan
-        New-Item -ItemType Directory -Path $DocsPath -Force | Out-Null
-        Copy-Item -Path "C:\\Users\\balap\\AgentDraven\\BAIC\\docs\\BOOTSTRAPPING.md" -Destination $DocsPath -Force | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "Copying BOOTSTRAPPING.md failed." }
-        Write-Host "[SUCCESS] BOOTSTRAPPING.md copied to '$DocsPath'.`n" -ForegroundColor Green
+        Write-Host "[STEP 6/10] Checking docs/ and BOOTSTRAPPING.md..." -ForegroundColor Cyan
+        if (-not (Test-Path $DocsPath)) {
+            New-Item -ItemType Directory -Path $DocsPath -Force | Out-Null
+        }
+        
+        $SourceFile = "C:\Users\balap\AgentDraven\BAIC\docs\BOOTSTRAPPING.md"
+        if ($NewRepoPath -eq $CurrentProjectRoot) {
+            Write-Host "[INFO] Already in current workspace root. Skipping self-copy of BOOTSTRAPPING.md.`n" -ForegroundColor DarkCyan
+        } else {
+            Copy-Item -Path $SourceFile -Destination $DocsPath -Force | Out-Null
+            Write-Host "[SUCCESS] BOOTSTRAPPING.md copied to '$DocsPath'.`n" -ForegroundColor Green
+        }
 
         Write-Host "[STEP 7/10] Staging and committing initial files locally..." -ForegroundColor Cyan
         git add . | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "Git add failed." }
-        git commit -m "feat: Initial repository setup with bootstrapping instructions" | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "Git commit failed." }
-        Write-Host "[SUCCESS] Initial commit created locally.`n" -ForegroundColor Green
+        
+        $gitStatus = git status --porcelain
+        if ([string]::IsNullOrWhiteSpace($gitStatus)) {
+            Write-Host "[INFO] No unstaged/untracked changes to commit locally.`n" -ForegroundColor DarkCyan
+        } else {
+            git commit -m "feat: Initial repository setup with bootstrapping instructions" | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "Git commit failed." }
+            Write-Host "[SUCCESS] Staged changes committed locally.`n" -ForegroundColor Green
+        }
         
         Write-Host "[STEP 8/10] Checking for GitHub CLI (gh) and creating remote repository..." -ForegroundColor Cyan
         $ghResult = (gh --version 2>&1)
@@ -147,25 +171,37 @@ function Create-BaselineRepository {
         }
         Write-Host "[INFO] GitHub CLI (gh) found." -ForegroundColor DarkCyan
 
-        # Create remote repository on GitHub
-        $createRepoResult = gh repo create "${GitUserName}/${RepoName}" --public --source=. --description "Initial repository for ${RepoName}" 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host -ForegroundColor Red "[ERROR] Failed to create remote GitHub repository: $($createRepoResult -join "`n"). This might be due to a duplicate repository name, insufficient permissions, or gh CLI authentication issues. Please check the error." -ErrorAction Stop
-            return
+        # Check if the repository already exists on GitHub
+        $repoCheck = (gh repo view "${GitUserName}/${RepoName}" 2>&1)
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[INFO] Remote GitHub repository '${GitUserName}/${RepoName}' already exists. Skipping remote creation.`n" -ForegroundColor DarkCyan
+        } else {
+            Write-Host "[INFO] Creating remote GitHub repository '${GitUserName}/${RepoName}'..." -ForegroundColor DarkCyan
+            $createRepoResult = gh repo create "${GitUserName}/${RepoName}" --public --source=. --description "Initial repository for ${RepoName}" 2>&1
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host -ForegroundColor Red "[ERROR] Failed to create remote GitHub repository: $($createRepoResult -join "`n")." -ErrorAction Stop
+                return
+            }
+            Write-Host "[SUCCESS] Remote GitHub repository '${GitUserName}/${RepoName}' created.`n" -ForegroundColor Green
         }
-        Write-Host "[SUCCESS] Remote GitHub repository '${GitUserName}/${RepoName}' created.`n" -ForegroundColor Green
 
         $RemoteUrl = "https://github.com/${GitUserName}/${RepoName}.git"
-        Write-Host "[STEP 9/10] Adding remote origin..." -ForegroundColor Cyan
-        git remote add origin $RemoteUrl | Out-Null
-        if ($LASTEXITCODE -ne 0) { throw "Git remote add origin failed." }
-        Write-Host "[SUCCESS] Remote origin added: $RemoteUrl`n" -ForegroundColor Green
+        Write-Host "[STEP 9/10] Adding/updating remote origin..." -ForegroundColor Cyan
+        $existingRemote = git remote get-url origin 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            git remote set-url origin $RemoteUrl | Out-Null
+            Write-Host "[SUCCESS] Remote origin URL updated to: $RemoteUrl`n" -ForegroundColor Green
+        } else {
+            git remote add origin $RemoteUrl | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "Git remote add origin failed." }
+            Write-Host "[SUCCESS] Remote origin added: $RemoteUrl`n" -ForegroundColor Green
+        }
 
         Write-Host "[STEP 10/10] Pushing initial commit to remote..." -ForegroundColor Cyan
         git branch -M main | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "Git branch -M main failed." }
         
-        Write-Host "[INFO] Attempting push..." -ForegroundColor DarkCyan
+        Write-Host "[INFO] Attempting push to remote origin main..." -ForegroundColor DarkCyan
         $pushResult = git push -u origin main 2>&1
         if ($LASTEXITCODE -ne 0) { 
             Write-Host -ForegroundColor Red "[ERROR] Git push failed: $($pushResult -join "`n"). Please check the output above for details." -ErrorAction Stop
@@ -174,8 +210,8 @@ function Create-BaselineRepository {
 
         Write-Host "[SUCCESS] Pushed initial commit to remote.`n" -ForegroundColor Green
 
-        Write-Host "--- Repository '$RepoName' created, bootstrapped, and pushed successfully! ---`n" -ForegroundColor Green
-        Write-Host "You can access your new repository on GitHub at: https://github.com/${GitUserName}/${RepoName}" -ForegroundColor Green
+        Write-Host "--- Repository '$RepoName' bootstrapped and synchronized successfully! ---`n" -ForegroundColor Green
+        Write-Host "You can access your repository on GitHub at: https://github.com/${GitUserName}/${RepoName}" -ForegroundColor Green
         Write-Host "Local path: $NewRepoPath" -ForegroundColor Green
         Write-Host "Ensure '.env.local' is kept secure and not committed to version control." -ForegroundColor Yellow
     } catch {
