@@ -18,7 +18,7 @@ All operator commands run through **one script**: `scripts/merit.ps1`.
 ```powershell
 .\scripts\merit.ps1 help          # list actions
 .\scripts\merit.ps1 bootstrap     # first-time setup
-.\scripts\merit.ps1 mXout -Path docs\BAIC_theme.md
+.\scripts\merit.ps1 mXout -Path "BAIC docs\BAIC_theme.md"
 .\scripts\merit.ps1 mXin
 ```
 
@@ -30,7 +30,7 @@ All operator commands run through **one script**: `scripts/merit.ps1`.
 
 | Expectation | Required? | Notes |
 |-------------|-----------|-------|
-| `core/`, `scripts/`, `tests/`, `cfg/`, `docs/` (or `{Name} docs/`), `output/` | **Yes** | Directory skeleton |
+| `core/`, `scripts/`, `tests/`, `cfg/`, **`BAIC docs/`** (`{Name} docs/`), `output/` | **Yes** | Directory skeleton |
 | `README.md`, `VERSION`, `CHANGELOG.md` | Recommended | `-ScaffoldMissing` can create placeholders |
 | `AGENTS.md`, `.env.example` | Recommended | L1/L2 pointer and secrets template |
 | `run_[project].py`, `test_[project].py` | Recommended | Two-entry-point pattern |
@@ -60,20 +60,23 @@ All operator commands run through **one script**: `scripts/merit.ps1`.
 ### mXout — check-out (lock + pull)
 
 ```powershell
-.\scripts\merit.ps1 mXout -Path docs\BAIC_theme.md
-.\scripts\merit.ps1 mXout -Path docs                 # recursive
+.\scripts\merit.ps1 mXout -Path "BAIC docs\BAIC_theme.md"
+.\scripts\merit.ps1 mXout -Path "BAIC docs"
 .\scripts\merit.ps1 mXout -List
 ```
 
 **Parameters:** `-Path` / `-Target`, `-RepoPath`, `-Branch`, `-List`, `-NonInteractive`, `-Force`
 
-### mXin — check-in (commit + push + unlock)
+### mXin — check-in (commit + tag + push + unlock)
+
+Per MERIT §VIII.F, mXin **creates an annotated `vX.Y.Z` tag from `VERSION`**, pushes the branch, and pushes the tag (default **ya**). Use **`-SkipTag`** to opt out.
 
 ```powershell
 .\scripts\merit.ps1 mXin
-.\scripts\merit.ps1 mXin -Path docs\BAIC_theme.md
+.\scripts\merit.ps1 mXin -Path "BAIC docs\BAIC_theme.md"
 .\scripts\merit.ps1 mXin -All
-.\scripts\merit.ps1 mXin -Message 'feat: your free text + quotes -- OK' -PushTag
+.\scripts\merit.ps1 mXin -Message 'feat: your free text + quotes -- OK'
+.\scripts\merit.ps1 mXin -SkipTag
 .\scripts\merit.ps1 mXin -MultilineMessage
 .\scripts\merit.ps1 mXin -List
 ```
@@ -117,10 +120,39 @@ Manual VERSION bump, CHANGELOG entry, annotated tag, and push (MERIT section VII
 ## 5. Typical Workflow
 
 ```
-1. Create MERIT folder structure
+1. Create MERIT folder structure (use BAIC docs/ not bare docs/)
 2. .\scripts\merit.ps1 bootstrap
-3. .\scripts\merit.ps1 mXout -Path docs\somefile.md
+3. .\scripts\merit.ps1 mXout -Path "BAIC docs\somefile.md"
 4. [edit locally]
-5. .\scripts\merit.ps1 mXin
-6. .\scripts\merit.ps1 bootstrap -Status
+5. Phase closeout hygiene (section 6)
+6. .\scripts\merit.ps1 mXin
+7. .\scripts\merit.ps1 bootstrap -Status
 ```
+
+---
+
+## 6. Phase closeout hygiene (lint before tests)
+
+Before `mXin` or `release`, run static analysis **before** pytest (fast fail):
+
+```powershell
+python -m ruff check core bridge db tests run_baic.py test_baic.py
+python -m compileall -q core bridge db tests run_baic.py test_baic.py
+python test_baic.py
+```
+
+When the web UI changed, also:
+
+```powershell
+cd web
+npm run lint
+npx tsc --noEmit
+npm test
+npm run build
+cd ..
+```
+
+Then update `VERSION` + `CHANGELOG.md` and run `.\scripts\merit.ps1 mXin`.
+
+**Ruff** is the Python linter (style, imports, many bug classes). **compileall** confirms syntax. TypeScript phases use **tsc --noEmit**.
+

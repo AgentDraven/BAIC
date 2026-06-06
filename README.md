@@ -2,41 +2,44 @@
 
 ## Welcome to the TokenMaxxing2Zero Tracker (T2Z)!
 
-This project is part of the **Bay Area Inference Club (BAIC)** initiative, focused on optimizing token usage and minimizing operational costs for AI-driven workflows.
+**BAIC Control Plane** — Hub-and-Spoke UI for multi-cloud token arbitrage, quota routing, and provider management.
+
+## Quick start (3 commands)
+
+```powershell
+python -m pip install -r requirements.txt
+cd web; npm install; npm run build; cd ..
+python run_baic.py
+```
+
+Open **http://127.0.0.1:8765/** · Tests: `python test_baic.py` (22 tests)
 
 ## Getting Started
 
-Full setup and git workflow: **[Bootstrapping Guide](docs/BOOTSTRAPPING.md)**
+Full setup and git workflow: **[Bootstrapping Guide](BAIC%20docs/BOOTSTRAPPING.md)**
 
 ### Operator script (single entry point)
 
-All git/bootstrap operations use **`scripts/merit.ps1`**:
-
 | Command | When to use |
 |---------|-------------|
-| `.\scripts\merit.ps1 bootstrap` | First-time Git + GitHub setup; add `-Status` to verify |
-| `.\scripts\merit.ps1 mXout -Path <file-or-dir>` | Lock path (recursive) and pull from remote |
-| `.\scripts\merit.ps1 mXin` | Commit, push, and release locks |
-| `.\scripts\merit.ps1 release` | Bump VERSION (patch/minor/major), tag, push |
-| `.\scripts\merit.ps1 help` | Show available actions |
-
-```powershell
-.\scripts\merit.ps1 bootstrap
-.\scripts\merit.ps1 mXout -Path docs\BAIC_theme.md
-# ... edit ...
-.\scripts\merit.ps1 mXin
-.\scripts\merit.ps1 release -Bump minor   # when Human Bala approves
-```
+| `python run_baic.py` | Start control plane (API + UI) |
+| `python test_baic.py` | Run all unit + integration tests |
+| `.\scripts\merit.ps1 bootstrap` | First-time Git + GitHub setup |
+| `.\scripts\merit.ps1 mXout -Path <file>` | Lock path and pull |
+| `.\scripts\merit.ps1 mXin` | Commit, tag, push, release locks |
+| `.\scripts\merit.ps1 release` | VERSION bump (patch/minor/major) |
 
 ## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [Bootstrapping Guide](docs/BOOTSTRAPPING.md) | Structure, bootstrap, mXout/mXin workflow, parameters |
-| [PRD / HLD / LLD](docs/input/BAIC_PRD.md) | Product requirements and architecture |
-| [BAIC Theme](docs/BAIC_theme.md) | Brand strategy and voice |
-| [CHANGELOG](CHANGELOG.md) | Release history |
-| [VERSION](VERSION) | Current baseline version |
+| [BAIC docs/INDEX.md](BAIC%20docs/INDEX.md) | **Start here** — persona routes + diagram |
+| [USER_GUIDE.md](BAIC%20docs/USER_GUIDE.md) | Operator UI tour |
+| [TECHNICAL_HLD_LLD.md](BAIC%20docs/TECHNICAL_HLD_LLD.md) | ER, OID, API, modular DB |
+| [CONCEPTS_GUIDE.md](BAIC%20docs/CONCEPTS_GUIDE.md) | Concepts + bibliography |
+| [COMPLETION_REPORT.md](BAIC%20docs/COMPLETION_REPORT.md) | Alpha implementation sign-off |
+| [PRD / HLD / LLD](BAIC%20docs/input/BAIC_PRD.md) | Product requirements |
+| [AGENTS.md](AGENTS.md) | Cursor agent bootstrap |
 
 ## Project Structure
 
@@ -44,20 +47,24 @@ All git/bootstrap operations use **`scripts/merit.ps1`**:
 BAIC/
 ├── run_baic.py             # Main entry (operations)
 ├── test_baic.py            # Test entry (unified test runner)
-├── README.md
-├── VERSION
-├── CHANGELOG.md
-│
-├── core/                   # Business logic
-├── scripts/
-│   └── merit.ps1           # bootstrap | mXout | mXin (single operator script)
-├── tests/
-├── ops/
-│   └── locks/              # mXout lock registry (tracked in git)
-├── cfg/
-├── docs/
-│   ├── BOOTSTRAPPING.md
-│   ├── input/BAIC_PRD.md
-│   └── BAIC_theme.md
-└── output/
+├── core/                   # Arbitrage, API, hub service
+├── db/                     # Modular DatabasePort → SQLite
+├── bridge/<provider>/      # Per-vendor integration
+├── web/                    # React Hub + Spoke UI
+├── cfg/                    # config.json, provider_registry.json
+├── tests/                  # pytest harness
+├── scripts/merit.ps1       # Git lifecycle
+└── BAIC docs/              # INDEX, guides, diagrams (MERIT {Name} docs/)
 ```
+
+## Architecture (at a glance)
+
+```mermaid
+flowchart LR
+  UI[React UI] --> API[FastAPI]
+  API --> CORE[core/]
+  CORE --> DB[(SQLite)]
+  CORE --> BR[bridge/]
+```
+
+See [TECHNICAL_HLD_LLD.md](BAIC%20docs/TECHNICAL_HLD_LLD.md) for full diagrams.

@@ -1,7 +1,7 @@
 ﻿# merit.ps1 - MERIT operator script (bootstrap | mXin | mXout | release)
 #   .\scripts\merit.ps1 bootstrap [-Status] [-Sync] [-ScaffoldMissing]
 #   .\scripts\merit.ps1 mXout  [-Path <file-or-dir>] [-List]
-#   .\scripts\merit.ps1 mXin   [-All] [-Message <text>] [-PushTag] [-List]
+#   .\scripts\merit.ps1 mXin   [-All] [-Message <text>] [-SkipTag] [-List]
 #   .\scripts\merit.ps1 release [-Bump patch|minor|major] [-Message <notes>]
 
 param(
@@ -26,6 +26,7 @@ param(
     [ValidateSet('patch', 'minor', 'major', '')]
     [string]$Bump = '',
     [switch]$PushTag,
+    [switch]$SkipTag,
     [switch]$NonInteractive,
     [switch]$All,
     [switch]$List,
@@ -39,7 +40,7 @@ function Show-MeritUsage {
     Write-Host ''
     Write-Host '  .\scripts\merit.ps1 bootstrap   First-time Git + GitHub setup (-Status, -Sync)'
     Write-Host '  .\scripts\merit.ps1 mXout       Lock path + pull from remote (-Path, -List)'
-    Write-Host '  .\scripts\merit.ps1 mXin        Commit + push + release locks (-All, -Message)'
+    Write-Host '  .\scripts\merit.ps1 mXin        Commit + push + tag + release locks (-All, -Message, -SkipTag)'
     Write-Host '  .\scripts\merit.ps1 release     Bump VERSION, CHANGELOG, tag, push (-Bump patch|minor|major)'
     Write-Host ''
 }
@@ -190,7 +191,8 @@ function Invoke-GitAnnotatedTag {
         [string]$TagName,
         [Parameter(Mandatory = $true)]
         [string]$Message,
-        [string]$RepoPath = ""
+        [string]$RepoPath = "",
+        [switch]$Force
     )
 
     if ([string]::IsNullOrWhiteSpace($Message)) {
@@ -207,7 +209,11 @@ function Invoke-GitAnnotatedTag {
     }
 
     try {
-        & git tag -a $TagName -F $msgFile
+        if ($Force) {
+            & git tag -a -f $TagName -F $msgFile
+        } else {
+            & git tag -a $TagName -F $msgFile
+        }
         if ($LASTEXITCODE -ne 0) { throw "Git tag failed." }
     } finally {
         if ($pushed) { Pop-Location }
@@ -366,7 +372,7 @@ function Invoke-MeritScaffoldMissing {
     }
 
     $placeholders = @{
-        "README.md" = "# $($Preflight.RepoName)`n`nSee docs/BOOTSTRAPPING.md for setup.`n"
+        "README.md" = "# $($Preflight.RepoName)`n`nSee $($Preflight.RepoName) docs/BOOTSTRAPPING.md for setup.`n"
         "VERSION" = "0.0.1`n"
         "CHANGELOG.md" = @"
 # CHANGELOG
@@ -964,6 +970,7 @@ function Invoke-MeritMxin {
         [string]$Message = "",
         [string]$Branch = "main",
         [switch]$PushTag,
+        [switch]$SkipTag,
         [switch]$NonInteractive,
         [switch]$All,
         [switch]$List,
@@ -980,7 +987,7 @@ function Invoke-MeritMxin {
         return
     }
 
-    Write-MeritHeader "mXin - Check-In (commit + push + release locks)"
+    Write-MeritHeader "mXin - Check-In (commit + tag + push + release locks)"
     Write-Host "Repository: $RepoPath" -ForegroundColor Cyan
     Write-Host "Branch: $Branch`n" -ForegroundColor Cyan
 
@@ -1057,10 +1064,14 @@ function Invoke-MeritMxin {
                 Push-Location $RepoPath
                 git add ops/locks 2>$null | Out-Null
                 Invoke-GitCommit -Message "chore(mXin): release locks without content changes" -RepoPath $RepoPath 2>$null | Out-Null
-                git push origin $Branch 2>&1 | Out-Null
                 Pop-Location
                 Write-Host "[SUCCESS] Released locks: $($removed -join ', ')" -ForegroundColor Green
+                Invoke-MeritVersionTagCloseout -RepoPath $RepoPath -Branch $Branch -TagMessage $Message `
+                    -NonInteractive:$NonInteractive -SkipTag:$SkipTag
             }
+        } else {
+            Invoke-MeritVersionTagCloseout -RepoPath $RepoPath -Branch $Branch -TagMessage $Message `
+                -NonInteractive:$NonInteractive -SkipTag:$SkipTag
         }
         return
     }
@@ -1122,44 +1133,8 @@ function Invoke-MeritMxin {
         }
     }
 
-    $pending = Get-GitPendingChanges -RepoPath $RepoPath
-    if ($pending.Ahead -gt 0) {
-        if (-not $NonInteractive) {
-            $pushConfirm = Read-MeritConfirm -Prompt "Push $($pending.Ahead) commit(s) to origin/$Branch" -Default "ya"
-            if ($pushConfirm -eq "na") {
-                Write-Host "[INFO] Push skipped." -ForegroundColor Yellow
-                return
-            }
-        }
-        Push-Location $RepoPath
-        try {
-            $pushResult = git push origin $Branch 2>&1
-            if ($LASTEXITCODE -ne 0) { throw "Git push failed: $($pushResult -join "`n")" }
-            Write-Host "[SUCCESS] Pushed to origin/$Branch." -ForegroundColor Green
-        } finally {
-            Pop-Location
-        }
-    }
-
-    if ($PushTag) {
-        $versionFile = Join-Path $RepoPath "VERSION"
-        if (Test-Path $versionFile) {
-            $version = (Get-Content $versionFile -Raw).Trim()
-            if ($version -match '^\d+\.\d+\.\d+$') {
-                Push-Location $RepoPath
-                try {
-                    $tag = "v$version"
-                    git tag -a $tag -m "$tag - mXin release" 2>$null
-                    git push origin $tag 2>&1 | Out-Null
-                    if ($LASTEXITCODE -eq 0) {
-                        Write-Host "[SUCCESS] Tag $tag pushed." -ForegroundColor Green
-                    }
-                } finally {
-                    Pop-Location
-                }
-            }
-        }
-    }
+    Invoke-MeritVersionTagCloseout -RepoPath $RepoPath -Branch $Branch -TagMessage $Message `
+        -NonInteractive:$NonInteractive -SkipTag:$SkipTag
 
     Write-Host "`nResult: mXin check-in complete." -ForegroundColor Green
 }
@@ -1494,12 +1469,15 @@ function Invoke-MeritBootstrap {
         } else {
             Join-Path $NewRepoPath "docs"
         }
-        Write-Host "[STEP 6/10] Ensuring docs/ and BOOTSTRAPPING.md..." -ForegroundColor Cyan
+        Write-Host "[STEP 6/10] Ensuring {Name} docs/ and BOOTSTRAPPING.md..." -ForegroundColor Cyan
         if (-not (Test-Path $DocsPath)) { New-Item -ItemType Directory -Path $DocsPath -Force | Out-Null }
 
         $bootstrapDoc = Join-Path $DocsPath "BOOTSTRAPPING.md"
         if (-not (Test-Path $bootstrapDoc)) {
-            $template = Join-Path $PSScriptRoot "..\docs\BOOTSTRAPPING.md"
+            $template = Join-Path $PSScriptRoot "..\BAIC docs\BOOTSTRAPPING.md"
+            if (-not (Test-Path $template)) {
+                $template = Join-Path $PSScriptRoot "..\docs\BOOTSTRAPPING.md"
+            }
             if (Test-Path $template) {
                 Copy-Item -Path $template -Destination $bootstrapDoc -Force
                 Write-Host "[SUCCESS] BOOTSTRAPPING.md copied.`n" -ForegroundColor Green
@@ -1585,6 +1563,129 @@ function Get-MeritVersionFromFile {
         throw "Invalid VERSION '$raw' (expected MAJOR.MINOR.PATCH)."
     }
     return $raw
+}
+
+# MERIT §VIII.F closeout: annotated tag from VERSION + push branch and tag.
+function Invoke-MeritVersionTagCloseout {
+    param(
+        [string]$RepoPath,
+        [string]$Branch = 'main',
+        [string]$TagMessage = '',
+        [switch]$NonInteractive,
+        [switch]$SkipTag
+    )
+
+    if ($SkipTag) {
+        return
+    }
+
+    $tagName = $null
+    try {
+        $tagName = "v$(Get-MeritVersionFromFile -RepoPath $RepoPath)"
+    } catch {
+        Write-Host "[INFO] $($_.Exception.Message) Skipping version tag." -ForegroundColor DarkCyan
+        return
+    }
+
+    $msg = if ($TagMessage) { "$tagName - $TagMessage" } else { "$tagName - mXin checkpoint" }
+
+    Push-Location $RepoPath
+    try {
+        $head = (git rev-parse HEAD).Trim()
+        $tagExists = $false
+        $tagCommit = ''
+        git rev-parse "refs/tags/$tagName^{commit}" 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            $tagExists = $true
+            $tagCommit = (git rev-parse "refs/tags/$tagName^{commit}").Trim()
+        }
+
+        if ($tagExists -and $tagCommit -ne $head) {
+            Write-Host "[WARNING] Tag $tagName points at $($tagCommit.Substring(0, 7)), HEAD is $($head.Substring(0, 7))." -ForegroundColor Yellow
+            if ($NonInteractive) {
+                Write-Host '[INFO] Tag not moved. Bump VERSION or run merit.ps1 release for a new baseline.' -ForegroundColor Yellow
+                $tagName = $null
+            } else {
+                $move = Read-MeritConfirm -Prompt "Move tag $tagName to HEAD" -Default 'na'
+                if ($move -eq 'ya') {
+                    Pop-Location
+                    Invoke-GitAnnotatedTag -TagName $tagName -Message $msg -Force -RepoPath $RepoPath
+                    Push-Location $RepoPath
+                    Write-Host "[SUCCESS] Moved tag $tagName to HEAD." -ForegroundColor Green
+                } else {
+                    Write-Host '[INFO] Tag left unchanged.' -ForegroundColor Yellow
+                    $tagName = $null
+                }
+            }
+        } elseif (-not $tagExists) {
+            Pop-Location
+            Invoke-GitAnnotatedTag -TagName $tagName -Message $msg -RepoPath $RepoPath
+            Push-Location $RepoPath
+            Write-Host "[SUCCESS] Created annotated tag $tagName." -ForegroundColor Green
+        } else {
+            Write-Host "[INFO] Tag $tagName already on HEAD." -ForegroundColor DarkCyan
+        }
+
+        $pending = Get-GitPendingChanges -RepoPath $RepoPath
+        $pushCommits = $pending.Ahead -gt 0
+        $needsTagPush = $false
+        $forceTagPush = $false
+        if ($tagName) {
+            $peeledRef = "refs/tags/${tagName}^{}"
+            $remoteTagLine = git ls-remote --tags origin $peeledRef 2>$null | Select-Object -First 1
+            if ([string]::IsNullOrWhiteSpace($remoteTagLine)) {
+                $needsTagPush = $true
+            } else {
+                $remoteCommit = ($remoteTagLine -split '\s+')[0]
+                if ($remoteCommit -ne $head) {
+                    $needsTagPush = $true
+                    $forceTagPush = $true
+                }
+            }
+        }
+
+        if (-not $pushCommits -and -not $needsTagPush) {
+            return
+        }
+
+        $promptParts = @()
+        if ($pushCommits) { $promptParts += "$($pending.Ahead) commit(s)" }
+        if ($needsTagPush) { $promptParts += "tag $tagName" }
+        $pushPrompt = "Push $($promptParts -join ' and ') to origin/$Branch"
+
+        if (-not $NonInteractive) {
+            $confirm = Read-MeritConfirm -Prompt $pushPrompt -Default 'ya'
+            if ($confirm -eq 'na') {
+                Write-Host '[INFO] Push skipped. Local commit and tag remain local only.' -ForegroundColor Yellow
+                return
+            }
+        }
+
+        if ($pushCommits) {
+            $pushResult = git push origin $Branch 2>&1
+            if ($LASTEXITCODE -ne 0) { throw "Git push failed: $($pushResult -join "`n")" }
+            Write-Host "[SUCCESS] Pushed to origin/$Branch." -ForegroundColor Green
+        }
+
+        if ($needsTagPush -and $tagName) {
+            if ($forceTagPush -and -not $NonInteractive) {
+                $forceConfirm = Read-MeritConfirm -Prompt "Force-push tag $tagName to origin (remote differs from HEAD)" -Default 'na'
+                if ($forceConfirm -eq 'na') {
+                    Write-Host '[INFO] Tag push skipped.' -ForegroundColor Yellow
+                    return
+                }
+            }
+            if ($forceTagPush) {
+                $tagPushResult = git push origin $tagName --force 2>&1
+            } else {
+                $tagPushResult = git push origin $tagName 2>&1
+            }
+            if ($LASTEXITCODE -ne 0) { throw "Tag push failed: $($tagPushResult -join "`n")" }
+            Write-Host "[SUCCESS] Pushed tag $tagName to origin." -ForegroundColor Green
+        }
+    } finally {
+        Pop-Location
+    }
 }
 
 function Get-MeritNextVersion {
@@ -1814,7 +1915,7 @@ switch ($Action) {
     }
     'mXin' {
         Invoke-MeritMxin -Path $Path -RepoPath $RepoPath -Message $Message -Branch $Branch `
-            -PushTag:$PushTag -NonInteractive:$NonInteractive -All:$All -List:$List -MultilineMessage:$MultilineMessage
+            -PushTag:$PushTag -SkipTag:$SkipTag -NonInteractive:$NonInteractive -All:$All -List:$List -MultilineMessage:$MultilineMessage
     }
     'mXout' {
         Invoke-MeritMxout -Path $Path -RepoPath $RepoPath -Branch $Branch `

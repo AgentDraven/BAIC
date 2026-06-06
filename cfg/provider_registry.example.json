@@ -1,0 +1,70 @@
+{
+  "$schema": "./provider_registry.schema.json",
+  "_comment": "Example only — copy to provider_registry.json (gitignored if it holds secrets). Admin edits hierarchy; Developer adds bridge/<provider> when code is required.",
+  "default_hierarchy": ["billing_account", "project", "byok"],
+  "providers": {
+    "google_cloud": {
+      "display_name": "Google Ecosystem",
+      "kind": "hyperscaler",
+      "console_screen": "GOOGLE_CONSOLE",
+      "hierarchy": ["billing_account", "project", "byok"],
+      "hierarchy_notes": "AI Studio keys and Vertex OAuth profiles both hang under project nodes; two product blocks in UI (Block A / Block B).",
+      "bridge_module": "bridge/google",
+      "metrics_profile": "token_and_promo_cash",
+      "products": ["ai_studio", "vertex_ai"]
+    },
+    "microsoft_azure": {
+      "display_name": "Microsoft Azure (Founders Hub)",
+      "kind": "hyperscaler",
+      "console_screen": "AZURE_CONSOLE",
+      "hierarchy": ["billing_account", "project", "byok"],
+      "hierarchy_notes": "Founders Hub grant maps to billing_account; resource group ≈ project; Azure OpenAI deployment endpoint + key ≈ byok.",
+      "bridge_module": "bridge/azure",
+      "metrics_profile": "token_and_promo_cash"
+    },
+    "amazon_aws": {
+      "display_name": "Amazon Web Services (Bedrock)",
+      "kind": "hyperscaler",
+      "console_screen": "AWS_CONSOLE",
+      "hierarchy": ["billing_account", "project", "byok"],
+      "hierarchy_notes": "AWS Activate credits → billing_account; account/workspace → project; IAM access key pair → byok.",
+      "bridge_module": "bridge/aws",
+      "metrics_profile": "token_and_promo_cash"
+    },
+    "oracle_oci": {
+      "display_name": "Oracle Cloud Infrastructure",
+      "kind": "hyperscaler",
+      "console_screen": "OCI_CONSOLE",
+      "hierarchy": ["billing_account", "compartment", "compute_pool"],
+      "hierarchy_notes": "Always Free tier has no API token BYOK chain — third tier is compute_pool (Ampere CPUs, RAM) not byok. UI shows utilization not $ liquidity.",
+      "bridge_module": "bridge/oci",
+      "metrics_profile": "compute_capacity"
+    },
+    "cursor_pro": {
+      "display_name": "Cursor Pro",
+      "kind": "consumer_frontend",
+      "console_screen": "CONSUMER_CONSOLE",
+      "hierarchy": ["subscription", "seat", "routing_profile"],
+      "hierarchy_notes": "Retail subscription — no GCP-style projects. routing_profile captures API-disabled vs custom endpoint.",
+      "bridge_module": "bridge/cursor",
+      "metrics_profile": "allowance_percent"
+    },
+    "github_copilot": {
+      "display_name": "GitHub Copilot",
+      "kind": "consumer_frontend",
+      "console_screen": "CONSUMER_CONSOLE",
+      "hierarchy": ["subscription", "seat", "routing_profile"],
+      "bridge_module": "bridge/github_copilot",
+      "metrics_profile": "allowance_tokens"
+    },
+    "google_one_ai": {
+      "display_name": "Google One AI Premium",
+      "kind": "consumer_frontend",
+      "console_screen": "CONSUMER_CONSOLE",
+      "hierarchy": ["subscription", "credit_pool", "routing_profile"],
+      "hierarchy_notes": "Consumer credits deposit — middle tier is credit_pool not project.",
+      "bridge_module": "bridge/google_one",
+      "metrics_profile": "consumer_credits"
+    }
+  }
+}

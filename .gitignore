@@ -1,6 +1,26 @@
 
-# .env.local for secrets
-.env.local
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
 
-# .env.local for secrets
+# Secrets
 .env.local
+cfg/secrets.json
+
+# Database (local state)
+output/*.db
+
+# Node / UI
+web/node_modules/
+web/dist/
+
+# IDE
+.codex/
+.pytest_cache/

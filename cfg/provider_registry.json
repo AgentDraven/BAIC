@@ -1,0 +1,71 @@
+{
+  "default_hierarchy": ["billing_account", "project", "byok"],
+  "providers": {
+    "google_cloud": {
+      "display_name": "Google Ecosystem",
+      "kind": "hyperscaler",
+      "console_screen": "GOOGLE_CONSOLE",
+      "hierarchy": ["billing_account", "project", "byok"],
+      "hierarchy_notes": "AI Studio and Vertex AI share project tier; two Spoke blocks.",
+      "bridge_module": "bridge.google",
+      "metrics_profile": "token_and_promo_cash",
+      "enabled": true,
+      "products": ["ai_studio", "vertex_ai"]
+    },
+    "microsoft_azure": {
+      "display_name": "Microsoft Azure (Founders Hub)",
+      "kind": "hyperscaler",
+      "console_screen": "AZURE_CONSOLE",
+      "hierarchy": ["billing_account", "project", "byok"],
+      "bridge_module": "bridge.azure",
+      "metrics_profile": "token_and_promo_cash",
+      "enabled": true
+    },
+    "amazon_aws": {
+      "display_name": "Amazon Web Services (Bedrock)",
+      "kind": "hyperscaler",
+      "console_screen": "AWS_CONSOLE",
+      "hierarchy": ["billing_account", "project", "byok"],
+      "bridge_module": "bridge.aws",
+      "metrics_profile": "token_and_promo_cash",
+      "enabled": true
+    },
+    "oracle_oci": {
+      "display_name": "Oracle Cloud Infrastructure",
+      "kind": "hyperscaler",
+      "console_screen": "OCI_CONSOLE",
+      "hierarchy": ["billing_account", "compartment", "compute_pool"],
+      "hierarchy_notes": "Always Free tier uses compute_pool not BYOK.",
+      "bridge_module": "bridge.oci",
+      "metrics_profile": "compute_capacity",
+      "enabled": true
+    },
+    "cursor_pro": {
+      "display_name": "Cursor Pro",
+      "kind": "consumer_frontend",
+      "console_screen": "CONSUMER_CONSOLE",
+      "hierarchy": ["subscription", "seat", "routing_profile"],
+      "bridge_module": "bridge.cursor",
+      "metrics_profile": "allowance_percent",
+      "enabled": true
+    },
+    "github_copilot": {
+      "display_name": "GitHub Copilot Education",
+      "kind": "consumer_frontend",
+      "console_screen": "CONSUMER_CONSOLE",
+      "hierarchy": ["subscription", "seat", "routing_profile"],
+      "bridge_module": "bridge.github_copilot",
+      "metrics_profile": "allowance_tokens",
+      "enabled": true
+    },
+    "google_one_ai": {
+      "display_name": "Google One AI Premium",
+      "kind": "consumer_frontend",
+      "console_screen": "CONSUMER_CONSOLE",
+      "hierarchy": ["subscription", "credit_pool", "routing_profile"],
+      "bridge_module": "bridge.google_one",
+      "metrics_profile": "consumer_credits",
+      "enabled": true
+    }
+  }
+}

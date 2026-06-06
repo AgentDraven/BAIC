@@ -1,0 +1,19 @@
+{
+  "app_name": "BAIC TokenMaxxing Control Plane",
+  "api_host": "127.0.0.1",
+  "api_port": 8765,
+  "database": {
+    "engine": "sqlite",
+    "path": "output/baic_state.db",
+    "echo": false
+  },
+  "ui": {
+    "dev_port": 5173,
+    "api_base_url": "http://127.0.0.1:8765"
+  },
+  "branding": {
+    "broadcast_channel": "Bay Area Inference Club (BAIC)",
+    "series_title": "TokenMaxxing to Zero$",
+    "engine_identity": "DIRT"
+  }
+}

@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## [0.1.2] - 2026-06-06
+
+### Changed
+- Renamed `docs/` → **`BAIC docs/`** per MERIT `{Name} docs/` convention (Obsidian-unique vault folders).
+- Updated README, AGENTS.md, bridge README, and all internal doc cross-links.
+- Documented **lint-before-test** closeout hygiene in AGENTS.md and `BAIC docs/BOOTSTRAPPING.md` §6.
+- `merit.ps1` scaffold README and bootstrap template path prefer branded docs folder.
+
+## [0.1.1] - 2026-06-05
+
+### Added
+- **Control plane Alpha:** FastAPI backend, modular SQLite (`db/DatabasePort`), eNAT schema + seed data.
+- **Seven provider bridges:** `bridge/google`, `azure`, `aws`, `oci`, `cursor`, `github_copilot`, `google_one`.
+- **React UI:** Global Ledger Hub + Google Spoke with Recharts cost gauge (`web/`).
+- **Entry points:** `run_baic.py`, `test_baic.py` — 22 pytest tests (unit + integration).
+- **Docs:** `INDEX`, `USER_GUIDE`, `TECHNICAL_HLD_LLD`, `CONCEPTS_GUIDE`, `COMPLETION_REPORT`, `AGENTS.md`.
+- **Cfg SSOT:** `cfg/config.json`, `cfg/provider_registry.json`.
+
+### Changed
+- `merit.ps1 mXin` tags and pushes by default (MERIT §VIII.F closeout).
+
 ## [0.1.0] - 2026-06-05
 
 ### Added

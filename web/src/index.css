@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "JetBrains Mono", Consolas, monospace;
+}
+
+.card-grid {
+  @apply grid gap-4 md:grid-cols-2 xl:grid-cols-3;
+}
+
+.panel {
+  @apply rounded-lg border border-baic-border bg-baic-panel p-4 shadow-lg;
+}
+
+.badge-active {
+  @apply rounded border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-xs text-green-400;
+}
+
+.badge-canceled {
+  @apply rounded border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-400;
+}
+
+.badge-unclaimed {
+  @apply rounded border border-slate-500/20 bg-slate-500/10 px-2 py-0.5 text-xs text-slate-400;
+}
+
+.btn-primary {
+  @apply rounded border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-sm text-cyan-300 transition hover:bg-cyan-500/20;
+}
