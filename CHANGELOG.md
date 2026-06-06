@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [0.1.6] - 2026-06-06
+
+### Added (Phases 2–5)
+- **P×M matrix:** `cfg/model_capability_matrix.json`, `/api/v1/capability/*`, Hub family chips, Spoke Block C UI.
+- **`--stub` / `--validate-config`:** MERIT §II.G strict stub mode; demo seed only with `--stub`.
+- **Config scaffold:** `cfg/secrets.example.json`, `.env.local.example`, `core/config_scaffold.py` validator.
+- **MERIT X-Ray:** `/api/v1/xray/runtime`, `/api/v1/xray/event`, HTTP middleware logging, `XRayTerminal` UI.
+- **Mobile-First shell:** hot-dot non-blocking overlays + desktop 3-rail `lg+`; `ConfigRail`.
+- **`BAIC.instructions` L3** at repo root.
+- **37 pytest tests** (stub, matrix, scaffold, x-ray).
+
+### Changed
+- Live mode fails closed without credentials; hub KPIs from `cfg/config.json` `hub` section.
+- Integration tests use `--stub` semantics via test fixtures.
+
 ## [0.1.2] - 2026-06-06
 
 ### Changed

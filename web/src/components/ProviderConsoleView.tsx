@@ -1,4 +1,5 @@
 import { CostGauge } from "./CostGauge";
+import { ModelMatrixBlock } from "./ModelMatrixBlock";
 import type { ProviderConsole } from "../api";
 
 type Props = {
@@ -90,6 +91,8 @@ export function ProviderConsoleView({ data, onBack, onAction }: Props) {
       )}
 
       {guard && <CostGauge currentCost={guard.current_cost} spendCap={guard.spend_cap} />}
+
+      <ModelMatrixBlock providerId={data.provider_id} />
 
       {!studio && data.blocks[0] && (
         <section className="panel">

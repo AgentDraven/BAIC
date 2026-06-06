@@ -2,22 +2,30 @@ import { useCallback, useEffect, useState } from "react";
 import {
   fetchConsole,
   fetchHub,
+  fetchMeta,
+  fetchModelFamilies,
   runOp,
   type HubSummary,
   type ProviderConsole,
 } from "./api";
 import { ProviderCardView } from "./components/ProviderCardView";
 import { ProviderConsoleView } from "./components/ProviderConsoleView";
+import { MobileFirstShell } from "./layouts/MobileFirstShell";
 
 export default function App() {
   const [hub, setHub] = useState<HubSummary | null>(null);
   const [console, setConsole] = useState<ProviderConsole | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [stubMode, setStubMode] = useState(false);
+  const [familyFilter, setFamilyFilter] = useState<string | null>(null);
+  const [families, setFamilies] = useState<string[]>([]);
 
   const loadHub = useCallback(async () => {
     try {
-      setHub(await fetchHub());
+      const [h, meta] = await Promise.all([fetchHub(), fetchMeta()]);
+      setHub(h);
+      setStubMode(meta.stub_mode || h.stub_mode || false);
       setError(null);
     } catch (e) {
       setError(String(e));
@@ -26,6 +34,9 @@ export default function App() {
 
   useEffect(() => {
     loadHub();
+    fetchModelFamilies()
+      .then((f) => setFamilies(f.families.map((x) => x.family)))
+      .catch(() => setFamilies([]));
     const t = setInterval(loadHub, 30000);
     return () => clearInterval(t);
   }, [loadHub]);
@@ -45,49 +56,53 @@ export default function App() {
     loadHub();
   };
 
-  if (console) {
-    return (
-      <>
-        {toast && <Toast message={toast} />}
-        <ProviderConsoleView
-          data={console}
-          onBack={() => setConsole(null)}
-          onAction={(op) => handleAction(console.provider_id, op)}
-        />
-      </>
-    );
-  }
+  const filterCard = (c: { provider_id: string; title: string }) => {
+    if (!familyFilter) return true;
+    return c.title.toLowerCase().includes(familyFilter) || c.provider_id.includes(familyFilter);
+  };
 
-  return (
-    <div className="min-h-screen bg-baic-bg">
-      {toast && <Toast message={toast} />}
+  const center = console ? (
+    <ProviderConsoleView
+      data={console}
+      onBack={() => setConsole(null)}
+      onAction={(op) => handleAction(console.provider_id, op)}
+    />
+  ) : (
+    <>
       {error && (
         <div className="bg-red-900/40 p-2 text-center text-sm text-red-200">{error}</div>
       )}
-
-      <header className="border-b border-baic-border bg-baic-panel px-4 py-3">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
-          <h1 className="text-sm font-bold tracking-wide text-cyan-300">
-            BAIC CONTROL PLANE · GLOBAL LIQUIDITY POOL
-          </h1>
-          <span className="badge-active">{hub?.portfolio_status ?? "LOADING…"}</span>
-        </div>
-      </header>
-
       {hub && (
         <main className="mx-auto max-w-6xl space-y-6 p-4">
           <KpiStrip hub={hub} />
 
+          {families.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={`rounded px-2 py-1 text-xs ${!familyFilter ? "bg-cyan-500/30 text-cyan-200" : "bg-gray-800 text-gray-400"}`}
+                onClick={() => setFamilyFilter(null)}
+              >
+                ALL
+              </button>
+              {families.map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className={`rounded px-2 py-1 text-xs capitalize ${familyFilter === f ? "bg-cyan-500/30 text-cyan-200" : "bg-gray-800 text-gray-400"}`}
+                  onClick={() => setFamilyFilter(f === familyFilter ? null : f)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          )}
+
           <section>
             <h2 className="mb-3 text-xs font-semibold text-gray-500">CONSUMER FRONTENDS & SUBSCRIPTIONS</h2>
             <div className="card-grid">
-              {hub.consumer_cards.map((c) => (
-                <ProviderCardView
-                  key={c.provider_id}
-                  card={c}
-                  onOpen={openProvider}
-                  onAction={handleAction}
-                />
+              {hub.consumer_cards.filter(filterCard).map((c) => (
+                <ProviderCardView key={c.provider_id} card={c} onOpen={openProvider} onAction={handleAction} />
               ))}
             </div>
           </section>
@@ -95,13 +110,8 @@ export default function App() {
           <section>
             <h2 className="mb-3 text-xs font-semibold text-gray-500">INFRASTRUCTURE EXTRACTION NODES</h2>
             <div className="card-grid md:grid-cols-2">
-              {hub.infra_cards.map((c) => (
-                <ProviderCardView
-                  key={c.provider_id}
-                  card={c}
-                  onOpen={openProvider}
-                  onAction={handleAction}
-                />
+              {hub.infra_cards.filter(filterCard).map((c) => (
+                <ProviderCardView key={c.provider_id} card={c} onOpen={openProvider} onAction={handleAction} />
               ))}
             </div>
           </section>
@@ -118,7 +128,16 @@ export default function App() {
           </section>
         </main>
       )}
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {toast && <Toast message={toast} />}
+      <MobileFirstShell title="BAIC CONTROL PLANE · GLOBAL LIQUIDITY POOL" stubMode={stubMode}>
+        {center}
+      </MobileFirstShell>
+    </>
   );
 }
 

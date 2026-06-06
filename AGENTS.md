@@ -14,7 +14,9 @@
 | Script | Purpose |
 |--------|---------|
 | `python run_baic.py` | Start API + built UI (port 8765) |
-| `python test_baic.py` | Unified pytest harness |
+| `python test_baic.py` | Unified pytest harness (37 tests) |
+| `python run_baic.py --stub` | Demo mode with synthetic data |
+| `python run_baic.py --validate-config` | Config scaffold validator |
 | `.\scripts\merit.ps1 mXin` | MERIT check-in closeout |
 
 ## Key paths

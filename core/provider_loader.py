@@ -29,9 +29,15 @@ def _import_bridge_class(module_path: str) -> type[ProviderBridge]:
 
 
 class ProviderRegistry:
-    def __init__(self, registry: dict[str, Any], secrets: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        registry: dict[str, Any],
+        secrets: dict[str, Any] | None = None,
+        stub_mode: bool = False,
+    ) -> None:
         self._registry = registry
         self._secrets = secrets or {}
+        self._stub_mode = stub_mode
         self._bridges: dict[str, ProviderBridge] = {}
         self._load_all()
 
@@ -45,8 +51,18 @@ class ProviderRegistry:
                 continue
             cls = _import_bridge_class(module_path if module_path.startswith("bridge") else f"bridge.{module_path}")
             instance = cls()
+            instance.set_stub_mode(self._stub_mode)
             instance.load_config(entry, self._secrets.get(provider_id, {}))
             self._bridges[provider_id] = instance
+
+    @property
+    def stub_mode(self) -> bool:
+        return self._stub_mode
+
+    def stub_manifests(self) -> list[dict[str, Any]]:
+        if not self._stub_mode:
+            return []
+        return [b.stub_manifest() for b in self._bridges.values()]
 
     def get(self, provider_id: str) -> ProviderBridge:
         if provider_id not in self._bridges:

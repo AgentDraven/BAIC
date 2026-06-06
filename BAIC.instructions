@@ -1,0 +1,28 @@
+# BAIC L3 — TokenMaxxing Control Plane
+
+**Inherits:** MERIT L1 1.2.0 · AgentDraven L2 1.0.2
+
+## Layout
+
+- **Mobile-First native** — hot-dot non-blocking overlays for Config (left) and X-Ray (right); center = Hub/Spoke.
+- **Desktop `lg+`:** simultaneous Config | Main | X-Ray rails.
+
+## Stub mode (MERIT §II.G)
+
+```powershell
+python run_baic.py --stub
+```
+
+Opt-in only. Live mode requires `cfg/secrets.json` or env credentials.
+
+## Config scaffold
+
+```powershell
+python run_baic.py --validate-config
+```
+
+SSOT: `cfg/model_capability_matrix.json`, `cfg/secrets.example.json`, `.env.local.example`.
+
+## Docs
+
+Product SSOT: [BAIC docs/INDEX.md](BAIC%20docs/INDEX.md)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -47,6 +48,12 @@ class AppConfig:
             raw=data,
         )
 
+    def hub_defaults(self) -> dict[str, Any]:
+        return dict(self.raw.get("hub", {}))
+
+    def ui_config(self) -> dict[str, Any]:
+        return dict(self.raw.get("ui", {}))
+
 
 def load_provider_registry(path: Path | None = None) -> dict[str, Any]:
     file_path = path or cfg_path("provider_registry.json")
@@ -55,6 +62,43 @@ def load_provider_registry(path: Path | None = None) -> dict[str, Any]:
     if not file_path.is_file():
         raise BaicError(ErrorCode.CONFIG_NOT_FOUND, "provider_registry.json not found")
     return json.loads(file_path.read_text(encoding="utf-8"))
+
+
+def load_capability_matrix(path: Path | None = None) -> dict[str, Any]:
+    file_path = path or cfg_path("model_capability_matrix.json")
+    if not file_path.is_file():
+        file_path = cfg_path("model_capability_matrix.json.example")
+    if not file_path.is_file():
+        raise BaicError(ErrorCode.CONFIG_NOT_FOUND, "model_capability_matrix.json not found")
+    return json.loads(file_path.read_text(encoding="utf-8"))
+
+
+def load_secrets(path: Path | None = None) -> dict[str, Any]:
+    file_path = path or cfg_path("secrets.json")
+    if not file_path.is_file():
+        return {"providers": {}}
+    return json.loads(file_path.read_text(encoding="utf-8"))
+
+
+def load_env_secrets() -> dict[str, str]:
+    """Merge relevant env vars (does not load .env.local — operator exports or uses secrets.json)."""
+    keys = [
+        "GOOGLE_APPLICATION_CREDENTIALS",
+        "GOOGLE_CLOUD_PROJECT",
+        "AZURE_OPENAI_ENDPOINT",
+        "AZURE_OPENAI_API_KEY",
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "AWS_DEFAULT_REGION",
+        "OCI_TENANCY_OCID",
+        "OCI_USER_OCID",
+        "OCI_FINGERPRINT",
+        "OCI_PRIVATE_KEY_PATH",
+        "CURSOR_API_TOKEN",
+        "GITHUB_TOKEN",
+        "GOOGLE_ONE_CLIENT_ID",
+    ]
+    return {k: os.environ.get(k, "") for k in keys if os.environ.get(k)}
 
 
 def resolve_db_file(config: AppConfig) -> Path:

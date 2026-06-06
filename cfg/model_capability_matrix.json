@@ -1,0 +1,78 @@
+{
+  "metadata": { "version": "1.0.0", "updated": "2026-06-06" },
+  "model_catalog": {
+    "gemini-2.5-flash": {
+      "family": "google",
+      "display_name": "Gemini 2.5 Flash",
+      "modalities": ["text"]
+    },
+    "gpt-4o": {
+      "family": "openai",
+      "display_name": "GPT-4o",
+      "modalities": ["text", "vision"]
+    },
+    "claude-sonnet-4": {
+      "family": "anthropic",
+      "display_name": "Claude Sonnet 4",
+      "modalities": ["text"]
+    },
+    "grok-3": {
+      "family": "xai",
+      "display_name": "Grok 3",
+      "modalities": ["text"]
+    },
+    "llama-3.3-70b": {
+      "family": "meta",
+      "display_name": "Llama 3.3 70B",
+      "modalities": ["text"]
+    }
+  },
+  "platforms": {
+    "google_cloud": {
+      "provider_id": "google_cloud",
+      "routing_surface": "vertex_ai | ai_studio",
+      "models": {
+        "gemini-2.5-flash": {
+          "available": true,
+          "endpoint_key": "vertex:gemini-2.5-flash",
+          "pricing_ref": "google/gemini-2.5-flash"
+        }
+      }
+    },
+    "microsoft_azure": {
+      "provider_id": "microsoft_azure",
+      "models": {
+        "gpt-4o": {
+          "available": true,
+          "endpoint_key": "azure:gpt-4o",
+          "deployment_required": true
+        },
+        "claude-sonnet-4": {
+          "available": true,
+          "endpoint_key": "azure:claude-sonnet-4",
+          "deployment_required": true
+        }
+      }
+    },
+    "amazon_aws": {
+      "provider_id": "amazon_aws",
+      "models": {
+        "claude-sonnet-4": {
+          "available": true,
+          "endpoint_key": "bedrock:anthropic.claude-sonnet-4"
+        },
+        "llama-3.3-70b": {
+          "available": true,
+          "endpoint_key": "bedrock:meta.llama3-3-70b"
+        }
+      }
+    },
+    "cursor_pro": {
+      "provider_id": "cursor_pro",
+      "models": {
+        "gpt-4o": { "available": true, "notes": "Cursor routing profile" },
+        "claude-sonnet-4": { "available": true }
+      }
+    }
+  }
+}

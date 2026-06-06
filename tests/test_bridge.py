@@ -10,6 +10,7 @@ from core.provider_loader import ProviderRegistry
 def test_google_bridge_operations():
     reg = load_provider_registry()
     bridge = GoogleBridge()
+    bridge.set_stub_mode(True)
     bridge.load_config(reg["providers"]["google_cloud"], {})
     assert "enter_provider_console" in bridge.supported_operations()
     result = bridge.run_operation("claim_dev_voucher", {})

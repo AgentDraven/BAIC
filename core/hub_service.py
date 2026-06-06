@@ -8,6 +8,7 @@ from db.models import MetricSnapshot
 from db.ports import DatabasePort
 from db.repository import EnatRepository
 
+from core.config_loader import AppConfig
 from core.provider_loader import ProviderRegistry
 
 
@@ -29,9 +30,16 @@ def _snap_to_dict(s: MetricSnapshot) -> dict[str, Any]:
 
 
 class HubService:
-    def __init__(self, db: DatabasePort, registry: ProviderRegistry) -> None:
+    def __init__(
+        self,
+        db: DatabasePort,
+        registry: ProviderRegistry,
+        config: AppConfig | None = None,
+    ) -> None:
         self._db = db
         self._registry = registry
+        self._config = config
+        self._hub_cfg = config.hub_defaults() if config else {}
 
     def get_hub_summary(self) -> dict[str, Any]:
         with self._db.session() as session:
@@ -41,6 +49,7 @@ class HubService:
 
         consumer_kinds = {"consumer_frontend"}
         providers_cfg = self._registry.all_provider_configs()
+        stub = self._registry.stub_mode
 
         consumer_cards: list[dict[str, Any]] = []
         infra_cards: list[dict[str, Any]] = []
@@ -64,14 +73,18 @@ class HubService:
             else:
                 infra_cards.append(card)
 
+        status_key = "portfolio_status_stub" if stub else "portfolio_status_live"
+        default_status = "ACTIVE ARBITRAGE (STUB)" if stub else "INITIALIZING"
+
         return {
-            "portfolio_status": "ACTIVE ARBITRAGE",
-            "global_runway_months": 14,
-            "out_of_pocket_monthly": 19.99,
+            "portfolio_status": self._hub_cfg.get(status_key, default_status),
+            "global_runway_months": int(self._hub_cfg.get("global_runway_months", 0 if not stub else 14)),
+            "out_of_pocket_monthly": float(self._hub_cfg.get("out_of_pocket_monthly", 0.0 if not stub else 19.99)),
             "total_liquidity_usd": round(usd_liquidity, 2),
             "consumer_cards": consumer_cards,
             "infra_cards": infra_cards,
             "dirt_events": [{"level": e.level, "message": e.message} for e in dirt],
+            "stub_mode": stub,
         }
 
     def get_provider_console(self, provider_id: str) -> dict[str, Any]:
@@ -110,41 +123,42 @@ class HubService:
     ) -> list[dict[str, Any]]:
         if provider_id == "google_cloud":
             projects = [e.name for e in entities if e.tier == "project"]
+            if not projects and self._registry.stub_mode:
+                projects = ["M4O-Venture", "Merit-SWDAR"]
             return [
                 {
                     "id": "ai_studio",
                     "title": "BLOCK A: GOOGLE AI STUDIO (PUBLIC DEVELOPER SANDBOX)",
-                    "status": "ACTIVE",
+                    "status": "ACTIVE" if metrics.get("status") or self._registry.stub_mode else "UNCONFIGURED",
                     "projects": projects,
-                    "tpm_ceiling": metrics.get("tpm_ceiling", 1_000_000),
-                    "pricing_matrix": {
-                        "gemini_2_5_flash_input": 0.30,
-                        "gemini_2_5_flash_output": 2.50,
-                        "gemini_2_5_pro_input": 1.25,
-                        "gemini_2_5_pro_output": 10.00,
-                    },
+                    "tpm_ceiling": metrics.get("tpm_ceiling") or (1_000_000 if self._registry.stub_mode else 0),
                 },
                 {
                     "id": "vertex_ai",
                     "title": "BLOCK B: GCP VERTEX AI (ENTERPRISE CORE POOL)",
-                    "status": "ACTIVE",
+                    "status": "ACTIVE" if metrics.get("promo_balance") or self._registry.stub_mode else "UNCONFIGURED",
                     "promo_pools": [
-                        {"name": "MAIN POOL", "balance": metrics.get("promo_balance", 1000), "expires": metrics.get("promo_expires")},
-                        {"name": "DEV CODE VOUCHER", "balance": 40.0, "expires": "2026-06-18"},
+                        {
+                            "name": "MAIN POOL",
+                            "balance": metrics.get("promo_balance") or (1000.0 if self._registry.stub_mode else 0),
+                            "expires": metrics.get("promo_expires"),
+                        },
                     ],
                     "guardrails": {
-                        "current_cost": metrics.get("accumulated_cost", 3.77),
-                        "spend_cap": metrics.get("spend_cap", 15.0),
+                        "current_cost": metrics.get("accumulated_cost") or 0.0,
+                        "spend_cap": metrics.get("spend_cap") or 15.0,
                         "auto_swap_at_tpm_pct": 95,
                     },
                 },
+                {"id": "capability_matrix", "title": "BLOCK C: PLATFORM × MODEL MATRIX", "status": "ACTIVE"},
             ]
         return [
             {
                 "id": "default",
                 "title": f"{cfg.get('display_name', provider_id)} Console",
                 "metrics": metrics,
-            }
+            },
+            {"id": "capability_matrix", "title": "BLOCK C: PLATFORM × MODEL MATRIX", "status": "ACTIVE"},
         ]
 
     def run_operation(self, provider_id: str, op_id: str, context: dict[str, Any] | None = None) -> dict[str, Any]:

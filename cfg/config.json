@@ -7,9 +7,26 @@
     "path": "output/baic_state.db",
     "echo": false
   },
+  "hub": {
+    "portfolio_status_live": "INITIALIZING",
+    "portfolio_status_stub": "ACTIVE ARBITRAGE (STUB)",
+    "global_runway_months": 14,
+    "out_of_pocket_monthly": 19.99
+  },
   "ui": {
     "dev_port": 5173,
-    "api_base_url": "http://127.0.0.1:8765"
+    "api_base_url": "http://127.0.0.1:8765",
+    "layout": {
+      "mode": "mobile_first",
+      "desktop_breakpoint": 1024,
+      "hot_dots_enabled": true
+    },
+    "xray": {
+      "auto_open_on_error": false,
+      "poll_interval_active_ms": 2000,
+      "poll_interval_idle_ms": 8000,
+      "client_buffer_max": 120
+    }
   },
   "branding": {
     "broadcast_channel": "Bay Area Inference Club (BAIC)",

@@ -36,6 +36,9 @@ def temp_config(tmp_path: Path, repo_root: Path) -> AppConfig:
     (cfg_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
     registry_src = repo_root / "cfg" / "provider_registry.json"
     (cfg_dir / "provider_registry.json").write_text(registry_src.read_text(encoding="utf-8"), encoding="utf-8")
+    matrix_src = repo_root / "cfg" / "model_capability_matrix.json"
+    if matrix_src.is_file():
+        (cfg_dir / "model_capability_matrix.json").write_text(matrix_src.read_text(encoding="utf-8"), encoding="utf-8")
 
     import core.path_resolver as pr
 
@@ -48,14 +51,33 @@ def temp_config(tmp_path: Path, repo_root: Path) -> AppConfig:
 
 
 @pytest.fixture
+def temp_config_stub(temp_config: AppConfig) -> AppConfig:
+    return temp_config
+
+
+@pytest.fixture
 def test_db(temp_config: AppConfig) -> SQLiteBackend:
-    db = SQLiteBackend(temp_config)
+    db = SQLiteBackend(temp_config, stub_mode=False)
     db.initialize()
     yield db
     db.dispose()
 
 
 @pytest.fixture
-def client(temp_config: AppConfig, test_db: SQLiteBackend) -> TestClient:
-    app = create_app(temp_config, test_db)
+def test_db_stub(temp_config: AppConfig) -> SQLiteBackend:
+    db = SQLiteBackend(temp_config, stub_mode=True)
+    db.initialize()
+    yield db
+    db.dispose()
+
+
+@pytest.fixture
+def client(temp_config: AppConfig, test_db_stub: SQLiteBackend) -> TestClient:
+    app = create_app(temp_config, test_db_stub, stub_mode=True)
+    return TestClient(app)
+
+
+@pytest.fixture
+def client_live(temp_config: AppConfig, test_db: SQLiteBackend) -> TestClient:
+    app = create_app(temp_config, test_db, stub_mode=False)
     return TestClient(app)

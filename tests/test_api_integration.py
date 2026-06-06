@@ -12,7 +12,8 @@ def test_hub_summary(client):
     r = client.get("/api/v1/hub/summary")
     assert r.status_code == 200
     body = r.json()
-    assert body["portfolio_status"] == "ACTIVE ARBITRAGE"
+    assert body["portfolio_status"] == "ACTIVE ARBITRAGE (STUB)"
+    assert body["stub_mode"] is True
     assert len(body["consumer_cards"]) >= 3
     assert len(body["infra_cards"]) >= 4
     assert len(body["dirt_events"]) >= 1
@@ -23,9 +24,11 @@ def test_google_console(client):
     assert r.status_code == 200
     body = r.json()
     assert body["provider_id"] == "google_cloud"
-    assert len(body["blocks"]) == 2
+    assert len(body["blocks"]) >= 2
     assert body["blocks"][0]["id"] == "ai_studio"
-    assert body["blocks"][1]["id"] == "vertex_ai"
+    block_ids = [b["id"] for b in body["blocks"]]
+    assert "vertex_ai" in block_ids
+    assert "capability_matrix" in block_ids
 
 
 def test_run_operation(client):

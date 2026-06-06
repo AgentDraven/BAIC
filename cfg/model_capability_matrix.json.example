@@ -1,0 +1,32 @@
+{
+  "metadata": { "version": "1.0.0", "updated": "2026-06-06" },
+  "model_catalog": {
+    "gemini-2.5-flash": {
+      "family": "google",
+      "display_name": "Gemini 2.5 Flash",
+      "modalities": ["text"]
+    },
+    "gpt-4o": {
+      "family": "openai",
+      "display_name": "GPT-4o",
+      "modalities": ["text", "vision"]
+    },
+    "claude-sonnet-4": {
+      "family": "anthropic",
+      "display_name": "Claude Sonnet 4",
+      "modalities": ["text"]
+    }
+  },
+  "platforms": {
+    "google_cloud": {
+      "provider_id": "google_cloud",
+      "models": {
+        "gemini-2.5-flash": {
+          "available": true,
+          "endpoint_key": "vertex:gemini-2.5-flash",
+          "pricing_ref": "google/gemini-2.5-flash"
+        }
+      }
+    }
+  }
+}
