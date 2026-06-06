@@ -8,19 +8,22 @@ This project is part of the **Bay Area Inference Club (BAIC)** initiative, focus
 
 Full setup and git workflow: **[Bootstrapping Guide](docs/BOOTSTRAPPING.md)**
 
-### Operator scripts (run from repo root)
+### Operator script (single entry point)
 
-| Script | When to use |
-|--------|-------------|
-| [`merit_bootstrap.ps1`](scripts/merit_bootstrap.ps1) | First-time Git + GitHub setup; `-Status` to verify |
-| [`mXout.ps1`](scripts/mXout.ps1) | Lock a file or directory (recursive) and pull from remote |
-| [`mXin.ps1`](scripts/mXin.ps1) | Commit, push, and release locks after editing |
+All git/bootstrap operations use **`scripts/merit.ps1`**:
+
+| Command | When to use |
+|---------|-------------|
+| `.\scripts\merit.ps1 bootstrap` | First-time Git + GitHub setup; add `-Status` to verify |
+| `.\scripts\merit.ps1 mXout -Path <file-or-dir>` | Lock path (recursive) and pull from remote |
+| `.\scripts\merit.ps1 mXin` | Commit, push, and release locks |
+| `.\scripts\merit.ps1 help` | Show available actions |
 
 ```powershell
-.\scripts\merit_bootstrap.ps1              # once: bootstrap
-.\scripts\mXout.ps1 -Path docs\BAIC_theme.md  # lock + pull
+.\scripts\merit.ps1 bootstrap
+.\scripts\merit.ps1 mXout -Path docs\BAIC_theme.md
 # ... edit ...
-.\scripts\mXin.ps1                           # push + unlock
+.\scripts\merit.ps1 mXin
 ```
 
 ## Documentation
@@ -44,15 +47,12 @@ BAIC/
 ├── CHANGELOG.md
 │
 ├── core/                   # Business logic
-├── scripts/                # Operator automation
-│   ├── merit_bootstrap.ps1 # First-time repo bootstrap
-│   ├── mXout.ps1           # Check-out: lock + pull
-│   └── mXin.ps1            # Check-in: commit + push + unlock
+├── scripts/
+│   └── merit.ps1           # bootstrap | mXout | mXin (single operator script)
 ├── tests/
 ├── ops/
 │   └── locks/              # mXout lock registry (tracked in git)
-├── cfg/                    # Single source of truth
-│   └── theme.md
+├── cfg/
 ├── docs/
 │   ├── BOOTSTRAPPING.md
 │   ├── input/BAIC_PRD.md

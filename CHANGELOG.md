@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [0.0.14] - 2026-06-05
+
+### Changed
+- Consolidated **7 scripts into 1**: `scripts/merit.ps1` with actions `bootstrap`, `mXout`, `mXin`, `help`.
+- Removed `merit_bootstrap.ps1`, `mXin.ps1`, `mXout.ps1`, `merit_git_common.ps1`, `merit_mxin_mxout.ps1`, and deprecated aliases.
+- Updated `README.md`, `docs/BOOTSTRAPPING.md`, and MERIT §XI.D to document the single-script workflow.
+
 ## [0.0.13] - 2026-06-05
 
 ### Added
