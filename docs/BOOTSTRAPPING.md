@@ -80,11 +80,30 @@ All operator commands run through **one script**: `scripts/merit.ps1`.
 
 Commit messages support free text (quotes, `+`, `--`); you will be prompted with `>` if `-Message` is omitted.
 
-**Parameters:** `-Path`, `-Message`, `-RepoPath`, `-Branch`, `-PushTag`, `-All`, `-List`, `-MultilineMessage`, `-NonInteractive`
+---
+
+## 3. Baseline Release — `merit.ps1 release`
+
+Manual VERSION bump, CHANGELOG entry, annotated tag, and push (MERIT section VIII.A).
+
+```powershell
+.\scripts\merit.ps1 release                  # interactive: pick patch / minor / major
+.\scripts\merit.ps1 release -Bump patch
+.\scripts\merit.ps1 release -Bump minor -Message "Milestone: first operator entry points"
+.\scripts\merit.ps1 release -Bump major -Message "Breaking: new architecture"
+```
+
+| Bump | Result | Who may run (MERIT) |
+|------|--------|---------------------|
+| **patch** | `0.0.14` → `0.0.15` | Routine closeout / validated work |
+| **minor** | `0.0.x` → `0.1.0` | **Human Bala only** — script asks for confirmation |
+| **major** | `0.x.y` → `1.0.0` | **Human Bala only** — script asks for confirmation |
+
+**Parameters:** `-Bump patch|minor|major`, `-Message` (changelog bullets), `-Branch`, `-NonInteractive`
 
 ---
 
-## 3. Confirmation Codes (section II.F)
+## 4. Confirmation Codes (section II.F)
 
 | Answer | Meaning |
 |--------|---------|
@@ -95,7 +114,7 @@ Commit messages support free text (quotes, `+`, `--`); you will be prompted with
 
 ---
 
-## 4. Typical Workflow
+## 5. Typical Workflow
 
 ```
 1. Create MERIT folder structure

@@ -17,6 +17,7 @@ All git/bootstrap operations use **`scripts/merit.ps1`**:
 | `.\scripts\merit.ps1 bootstrap` | First-time Git + GitHub setup; add `-Status` to verify |
 | `.\scripts\merit.ps1 mXout -Path <file-or-dir>` | Lock path (recursive) and pull from remote |
 | `.\scripts\merit.ps1 mXin` | Commit, push, and release locks |
+| `.\scripts\merit.ps1 release` | Bump VERSION (patch/minor/major), tag, push |
 | `.\scripts\merit.ps1 help` | Show available actions |
 
 ```powershell
@@ -24,6 +25,7 @@ All git/bootstrap operations use **`scripts/merit.ps1`**:
 .\scripts\merit.ps1 mXout -Path docs\BAIC_theme.md
 # ... edit ...
 .\scripts\merit.ps1 mXin
+.\scripts\merit.ps1 release -Bump minor   # when Human Bala approves
 ```
 
 ## Documentation

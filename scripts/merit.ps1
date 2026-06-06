@@ -1,11 +1,12 @@
-﻿# merit.ps1 - MERIT operator script (bootstrap | mXin | mXout)
+﻿# merit.ps1 - MERIT operator script (bootstrap | mXin | mXout | release)
 #   .\scripts\merit.ps1 bootstrap [-Status] [-Sync] [-ScaffoldMissing]
 #   .\scripts\merit.ps1 mXout  [-Path <file-or-dir>] [-List]
 #   .\scripts\merit.ps1 mXin   [-All] [-Message <text>] [-PushTag] [-List]
+#   .\scripts\merit.ps1 release [-Bump patch|minor|major] [-Message <notes>]
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('bootstrap', 'mXin', 'mXout', 'help')]
+    [ValidateSet('bootstrap', 'mXin', 'mXout', 'release', 'help')]
     [string]$Action = '',
 
     [string]$RepoName = '',
@@ -22,6 +23,8 @@ param(
     [string]$Branch = 'main',
     [Alias('CommitMessage')]
     [string]$Message = '',
+    [ValidateSet('patch', 'minor', 'major', '')]
+    [string]$Bump = '',
     [switch]$PushTag,
     [switch]$NonInteractive,
     [switch]$All,
@@ -37,6 +40,7 @@ function Show-MeritUsage {
     Write-Host '  .\scripts\merit.ps1 bootstrap   First-time Git + GitHub setup (-Status, -Sync)'
     Write-Host '  .\scripts\merit.ps1 mXout       Lock path + pull from remote (-Path, -List)'
     Write-Host '  .\scripts\merit.ps1 mXin        Commit + push + release locks (-All, -Message)'
+    Write-Host '  .\scripts\merit.ps1 release     Bump VERSION, CHANGELOG, tag, push (-Bump patch|minor|major)'
     Write-Host ''
 }
 function Get-EnvVarsFromFile {
@@ -1537,6 +1541,229 @@ function Invoke-MeritBootstrap {
     }
 }
 
+function Get-MeritVersionFromFile {
+    param([string]$RepoPath)
+
+    $versionFile = Join-Path $RepoPath 'VERSION'
+    if (-not (Test-Path $versionFile)) {
+        throw 'VERSION file not found at repo root.'
+    }
+    $raw = (Get-Content $versionFile -Raw).Trim()
+    if ($raw -notmatch '^\d+\.\d+\.\d+$') {
+        throw "Invalid VERSION '$raw' (expected MAJOR.MINOR.PATCH)."
+    }
+    return $raw
+}
+
+function Get-MeritNextVersion {
+    param(
+        [string]$Current,
+        [ValidateSet('patch', 'minor', 'major')]
+        [string]$Bump
+    )
+
+    $parts = $Current -split '\.'
+    $major = [int]$parts[0]
+    $minor = [int]$parts[1]
+    $patch = [int]$parts[2]
+
+    switch ($Bump) {
+        'patch' { return "$major.$minor.$($patch + 1)" }
+        'minor' { return "$major.$($minor + 1).0" }
+        'major' { return "$($major + 1).0.0" }
+    }
+}
+
+function Get-MeritChangelogSection {
+    param([ValidateSet('patch', 'minor', 'major')] [string]$Bump)
+
+    switch ($Bump) {
+        'major' { return '### Breaking' }
+        'minor' { return '### Added' }
+        'patch' { return '### Changed' }
+    }
+}
+
+function Add-MeritChangelogEntry {
+    param(
+        [string]$RepoPath,
+        [string]$Version,
+        [string]$Bump,
+        [string]$Notes
+    )
+
+    $changelogPath = Join-Path $RepoPath 'CHANGELOG.md'
+    $date = Get-Date -Format 'yyyy-MM-dd'
+    $section = Get-MeritChangelogSection -Bump $Bump
+
+    $bullets = ($Notes -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' } | ForEach-Object {
+        if ($_ -match '^-\s') { $_ } else { "- $_" }
+    }) -join "`n"
+
+    $entry = @"
+
+## [$Version] - $date
+
+$section
+$bullets
+
+"@
+
+    if (Test-Path $changelogPath) {
+        $content = Get-Content $changelogPath -Raw
+        if ($content -match '(?ms)^#\s*CHANGELOG\s*\r?\n') {
+            $content = $content -replace '(?ms)^(#\s*CHANGELOG\s*\r?\n)', "`$1$entry"
+        } else {
+            $content = "# CHANGELOG`n$entry$content"
+        }
+    } else {
+        $content = "# CHANGELOG`n$entry"
+    }
+
+    Set-Content -Path $changelogPath -Value $content.TrimEnd() + [Environment]::NewLine -Encoding UTF8
+}
+
+function Invoke-MeritRelease {
+    param(
+        [string]$RepoPath = '',
+        [string]$BumpKind = '',
+        [string]$Notes = '',
+        [string]$Branch = 'main',
+        [switch]$NonInteractive
+    )
+
+    if ([string]::IsNullOrWhiteSpace($RepoPath)) {
+        $RepoPath = Get-GitRepoRoot
+    } else {
+        $RepoPath = Get-GitRepoRoot -StartPath $RepoPath
+    }
+    if (-not $RepoPath) {
+        Write-Host '[ERROR] Not inside a Git repository.' -ForegroundColor Red
+        return
+    }
+
+    Write-MeritHeader 'release - Baseline VERSION + CHANGELOG + tag'
+    Write-Host "Repository: $RepoPath" -ForegroundColor Cyan
+
+    $current = Get-MeritVersionFromFile -RepoPath $RepoPath
+    Write-Host "Current VERSION: $current" -ForegroundColor Cyan
+
+    if ([string]::IsNullOrWhiteSpace($BumpKind)) {
+        if ($NonInteractive) {
+            Write-Host '[ERROR] -Bump patch|minor|major is required in non-interactive mode.' -ForegroundColor Red
+            return
+        }
+        Write-Host ''
+        Write-Host 'Bump kind:' -ForegroundColor Cyan
+        Write-Host '  [1] patch  - bug fixes / routine closeout (x.y.Z+1)'
+        Write-Host '  [2] minor  - new features / docs milestone (x.Y+1.0)  Human Bala approval'
+        Write-Host '  [3] major  - breaking / architecture shift (X+1.0.0)  Human Bala approval'
+        $pick = Read-Host -Prompt 'Choose 1, 2, or 3'
+        $BumpKind = switch ($pick.Trim()) {
+            '1' { 'patch' }
+            '2' { 'minor' }
+            '3' { 'major' }
+            'patch' { 'patch' }
+            'minor' { 'minor' }
+            'major' { 'major' }
+            default {
+                Write-Host '[ERROR] Invalid bump choice.' -ForegroundColor Red
+                return
+            }
+        }
+    }
+
+    if ($BumpKind -in @('minor', 'major')) {
+        Write-Host "[NOTICE] MERIT section VIII.A: MINOR and MAJOR baselines require Human Bala approval." -ForegroundColor Yellow
+        if (-not $NonInteractive) {
+            $approved = Read-MeritConfirm -Prompt "Confirm you are authorized to set a new $BumpKind baseline" -Default 'na'
+            if ($approved -eq 'na') {
+                Write-Host '[INFO] Release aborted.' -ForegroundColor Yellow
+                return
+            }
+        }
+    }
+
+    $next = Get-MeritNextVersion -Current $current -Bump $BumpKind
+    $tagName = "v$next"
+
+    Push-Location $RepoPath
+    try {
+        git fetch origin 2>$null | Out-Null
+        $tagExists = git rev-parse "refs/tags/$tagName" 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[ERROR] Tag $tagName already exists." -ForegroundColor Red
+            return
+        }
+    } finally {
+        Pop-Location
+    }
+
+    Write-Host "New VERSION:   $next ($BumpKind bump)" -ForegroundColor Green
+    Write-Host "New tag:       $tagName" -ForegroundColor Green
+
+    if ([string]::IsNullOrWhiteSpace($Notes)) {
+        if ($NonInteractive) {
+            $Notes = "Release $next ($BumpKind baseline)"
+        } else {
+            Write-Host ''
+            $Notes = Read-MeritCommitMessage -Default "Release $next ($BumpKind baseline)" -Multiline
+        }
+    }
+
+    if (-not $NonInteractive) {
+        $proceed = Read-MeritConfirm -Prompt "Apply $current -> $next, update CHANGELOG, commit, tag, and push" -Default 'ya'
+        if ($proceed -eq 'na') {
+            Write-Host '[INFO] Release aborted.' -ForegroundColor Yellow
+            return
+        }
+    }
+
+    $versionFile = Join-Path $RepoPath 'VERSION'
+    Set-Content -Path $versionFile -Value "$next`n" -Encoding UTF8 -NoNewline
+    Add-MeritChangelogEntry -RepoPath $RepoPath -Version $next -Bump $BumpKind -Notes $Notes
+
+    Push-Location $RepoPath
+    try {
+        git add VERSION CHANGELOG.md
+        if ($LASTEXITCODE -ne 0) { throw 'Git add failed.' }
+
+        $commitMsg = "release: v$next ($BumpKind baseline)"
+        Pop-Location
+        Invoke-GitCommit -Message $commitMsg -RepoPath $RepoPath
+        Push-Location $RepoPath
+        Write-Host '[SUCCESS] VERSION and CHANGELOG committed.' -ForegroundColor Green
+
+        $tagMsg = "$tagName - $Notes"
+        git tag -a $tagName -m $tagMsg
+        if ($LASTEXITCODE -ne 0) { throw "Failed to create tag $tagName." }
+        Write-Host "[SUCCESS] Created annotated tag $tagName." -ForegroundColor Green
+
+        if (-not $NonInteractive) {
+            $pushConfirm = Read-MeritConfirm -Prompt "Push commit and tag $tagName to origin/$Branch" -Default 'ya'
+            if ($pushConfirm -eq 'na') {
+                Write-Host '[WARNING] Release committed locally only. Push when ready.' -ForegroundColor Yellow
+                return
+            }
+        }
+
+        $pushResult = git push origin $Branch 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "Push failed: $($pushResult -join "`n")" }
+
+        $tagPush = git push origin $tagName 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "Tag push failed: $($tagPush -join "`n")" }
+
+        Write-Host "[SUCCESS] Pushed $Branch and $tagName to origin." -ForegroundColor Green
+    } catch {
+        Write-Host "[ERROR] $($_.Exception.Message)" -ForegroundColor Red
+        throw
+    } finally {
+        Pop-Location
+    }
+
+    Write-Host "`nResult: Baseline $next is live (tag $tagName)." -ForegroundColor Green
+}
+
 
 if ([string]::IsNullOrWhiteSpace($Action)) {
     if ($Status -or $Sync -or $ScaffoldMissing -or $SkipPreflight) {
@@ -1561,6 +1788,9 @@ switch ($Action) {
     }
     'help' {
         Show-MeritUsage
+    }
+    'release' {
+        Invoke-MeritRelease -RepoPath $RepoPath -BumpKind $Bump -Notes $Message -Branch $Branch -NonInteractive:$NonInteractive
     }
     default {
         Write-Host "[ERROR] Unknown action: $Action" -ForegroundColor Red
