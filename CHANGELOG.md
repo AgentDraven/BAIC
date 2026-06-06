@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [0.0.2] - 2026-06-05
+
+### ✨ Added
+- Added `scripts/create_baseline_repo.ps1` to facilitate new repository bootstrapping.
+
 ## [0.0.1] - 2026-06-05
 
 ### ✨ Added
