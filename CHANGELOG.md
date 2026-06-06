@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [0.0.11] - 2026-06-05
+
+### ✨ Updated
+- Replaced dark blue console text with a highly visible `Magenta` color scheme for headers.
+- Implemented interactive, context-aware `.gitignore` and `.env.local` security checks to prompt the operator and automatically secure secrets rather than outputting redundant post-run messages.
+- Completely rewrote `docs/BOOTSTRAPPING.md` to document the automated PowerShell bootstrapping process instead of the laborious manual git commands.
+
 ## [0.0.10] - 2026-06-05
 
 ### ✨ Updated

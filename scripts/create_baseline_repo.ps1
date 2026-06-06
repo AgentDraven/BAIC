@@ -44,10 +44,13 @@ function Create-BaselineRepository {
     $OriginalPath = $CurrentPath
 
     try {
-        Write-Host "`n--- Starting Repository Bootstrapping & Sync ---" -ForegroundColor Blue
-        Write-Host "Target Repository Name: $RepoName" -ForegroundColor Blue
-        Write-Host "Parent Directory: $ParentDirectory" -ForegroundColor Blue
-        Write-Host "Full Path: $NewRepoPath`n" -ForegroundColor Blue
+        Write-Host "`n========================================================" -ForegroundColor Magenta
+        Write-Host "--- Starting Repository Bootstrapping & Sync ---" -ForegroundColor Magenta
+        Write-Host "========================================================" -ForegroundColor Magenta
+        Write-Host "Target Repository Name: $RepoName" -ForegroundColor Cyan
+        Write-Host "Parent Directory: $ParentDirectory" -ForegroundColor Cyan
+        Write-Host "Full Path: $NewRepoPath" -ForegroundColor Cyan
+        Write-Host "========================================================`n" -ForegroundColor Magenta
 
         # Check if the target directory already exists
         if (Test-Path $NewRepoPath) {
@@ -74,19 +77,32 @@ function Create-BaselineRepository {
             New-Item -ItemType File -Path $EnvFilePath -Force | Out-Null
         }
 
-        # Ensure .gitignore exists
+        # Interactive and secure check of .gitignore for .env.local secrets
         if (-not (Test-Path $GitIgnorePath)) {
-            New-Item -ItemType File -Path $GitIgnorePath -Force | Out-Null
-        }
-        # Ensure .env.local is in .gitignore
-        $GitIgnoreContent = Get-Content $GitIgnorePath -Raw -ErrorAction SilentlyContinue
-        if (-not ($GitIgnoreContent -match "^\\s*.env.local\\s*$" -or $GitIgnoreContent -match "^\\s*# .env.local for secrets")) {
-            Add-Content -Path $GitIgnorePath -Value "`n# .env.local for secrets`n.env.local"
-            Write-Host "[INFO] Ensured .env.local is in .gitignore." -ForegroundColor DarkCyan
+            Write-Host "[NOTICE] .gitignore file does not exist in target path." -ForegroundColor Yellow
+            $ConfirmCreateGitIgnore = Read-Host -Prompt "[INPUT REQUIRED] Would you like to create .gitignore and secure your local secrets (.env.local)? (Y/N)"
+            if ($ConfirmCreateGitIgnore -eq "Y" -or $ConfirmCreateGitIgnore -eq "y" -or [string]::IsNullOrWhiteSpace($ConfirmCreateGitIgnore)) {
+                New-Item -ItemType File -Path $GitIgnorePath -Force | Out-Null
+                Add-Content -Path $GitIgnorePath -Value "`n# .env.local for secrets`n.env.local"
+                Write-Host "[SUCCESS] Created .gitignore and secured '.env.local'.`n" -ForegroundColor Green
+            } else {
+                Write-Host "[WARNING] Proceeding without .gitignore. Your local secrets (.env.local) are NOT secured!`n" -ForegroundColor Yellow
+            }
         } else {
-            Write-Host "[INFO] .env.local is already in .gitignore." -ForegroundColor DarkCyan
+            $GitIgnoreContent = Get-Content $GitIgnorePath -Raw -ErrorAction SilentlyContinue
+            if (-not ($GitIgnoreContent -match "^\\s*.env.local\\s*$" -or $GitIgnoreContent -match "^\\s*# .env.local for secrets")) {
+                Write-Host "[NOTICE] .env.local is not currently ignored in your .gitignore." -ForegroundColor Yellow
+                $ConfirmAddGitIgnore = Read-Host -Prompt "[INPUT REQUIRED] Would you like to add '.env.local' to .gitignore to secure your secrets? (Y/N)"
+                if ($ConfirmAddGitIgnore -eq "Y" -or $ConfirmAddGitIgnore -eq "y" -or [string]::IsNullOrWhiteSpace($ConfirmAddGitIgnore)) {
+                    Add-Content -Path $GitIgnorePath -Value "`n# .env.local for secrets`n.env.local"
+                    Write-Host "[SUCCESS] Secured '.env.local' inside .gitignore.`n" -ForegroundColor Green
+                } else {
+                    Write-Host "[WARNING] Local secrets (.env.local) remain unignored and vulnerable to commits.`n" -ForegroundColor Yellow
+                }
+            } else {
+                Write-Host "[SUCCESS] Verified .env.local is fully secured in .gitignore.`n" -ForegroundColor Green
+            }
         }
-        Write-Host "[SUCCESS] .env.local, cfg/, and .gitignore are ready.`n" -ForegroundColor Green
 
         $EnvVars = @{}
         if (Test-Path $EnvFilePath) {
@@ -121,7 +137,6 @@ function Create-BaselineRepository {
         if ([string]::IsNullOrWhiteSpace($GitHubToken)) {
             Write-Host "[NOTICE] GitHub Personal Access Token (PAT) is required for automated remote repository creation and push." -ForegroundColor Yellow
             Write-Host "Please generate one at https://github.com/settings/tokens with 'repo' scope." -ForegroundColor Yellow
-            Write-Host "This token will be saved in .env.local. Ensure .env.local is gitignored.`n" -ForegroundColor Yellow
             $GitHubToken = Read-Host -Prompt "[INPUT REQUIRED] Enter your GitHub PAT (visible during entry, saved to .env.local)" # Allow pasting
             Add-Content -Path $EnvFilePath -Value "`nGITHUB_TOKEN=$GitHubToken"
             Write-Host "[INFO] GitHub PAT saved to .env.local." -ForegroundColor DarkCyan
@@ -210,10 +225,11 @@ function Create-BaselineRepository {
 
         Write-Host "[SUCCESS] Pushed initial commit to remote.`n" -ForegroundColor Green
 
-        Write-Host "--- Repository '$RepoName' bootstrapped and synchronized successfully! ---`n" -ForegroundColor Green
+        Write-Host "========================================================" -ForegroundColor Magenta
+        Write-Host "--- Repository '$RepoName' bootstrapped and synchronized successfully! ---" -ForegroundColor Green
+        Write-Host "========================================================" -ForegroundColor Magenta
         Write-Host "You can access your repository on GitHub at: https://github.com/${GitUserName}/${RepoName}" -ForegroundColor Green
-        Write-Host "Local path: $NewRepoPath" -ForegroundColor Green
-        Write-Host "Ensure '.env.local' is kept secure and not committed to version control." -ForegroundColor Yellow
+        Write-Host "Local path: $NewRepoPath`n" -ForegroundColor Green
     } catch {
         Write-Host -ForegroundColor Red "[ERROR] Failed during bootstrapping: $($_.Exception.Message)" -ErrorAction Stop
     } finally {
