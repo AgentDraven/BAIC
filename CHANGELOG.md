@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [0.1.0] - 2026-06-05
+
+### Added
+- baseline: Bootstrap and initial setup in prestine condition
+
 ## [0.0.14] - 2026-06-05
 
 ### Changed

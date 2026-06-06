@@ -183,6 +183,38 @@ function Invoke-GitCommit {
     }
 }
 
+# Pass tag message to git without shell splitting (handles colons, quotes, etc.).
+function Invoke-GitAnnotatedTag {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TagName,
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+        [string]$RepoPath = ""
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Message)) {
+        throw "Tag message cannot be empty."
+    }
+
+    $msgFile = Join-Path ([System.IO.Path]::GetTempPath()) ("merit-tag-$([guid]::NewGuid().ToString('n')).txt")
+    [System.IO.File]::WriteAllText($msgFile, $Message, (New-Object System.Text.UTF8Encoding $false))
+
+    $pushed = $false
+    if ($RepoPath) {
+        Push-Location $RepoPath
+        $pushed = $true
+    }
+
+    try {
+        & git tag -a $TagName -F $msgFile
+        if ($LASTEXITCODE -ne 0) { throw "Git tag failed." }
+    } finally {
+        if ($pushed) { Pop-Location }
+        Remove-Item -LiteralPath $msgFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Test-MeritStructurePreflight {
     param(
         [string]$RepoPath,
@@ -1620,7 +1652,7 @@ $bullets
         $content = "# CHANGELOG`n$entry"
     }
 
-    Set-Content -Path $changelogPath -Value $content.TrimEnd() + [Environment]::NewLine -Encoding UTF8
+    Set-Content -Path $changelogPath -Value ($content.TrimEnd() + [Environment]::NewLine) -Encoding UTF8
 }
 
 function Invoke-MeritRelease {
@@ -1629,7 +1661,8 @@ function Invoke-MeritRelease {
         [string]$BumpKind = '',
         [string]$Notes = '',
         [string]$Branch = 'main',
-        [switch]$NonInteractive
+        [switch]$NonInteractive,
+        [switch]$MultilineMessage
     )
 
     if ([string]::IsNullOrWhiteSpace($RepoPath)) {
@@ -1707,7 +1740,7 @@ function Invoke-MeritRelease {
             $Notes = "Release $next ($BumpKind baseline)"
         } else {
             Write-Host ''
-            $Notes = Read-MeritCommitMessage -Default "Release $next ($BumpKind baseline)" -Multiline
+            $Notes = Read-MeritCommitMessage -Default "Release $next ($BumpKind baseline)" -Multiline:$MultilineMessage
         }
     }
 
@@ -1735,8 +1768,9 @@ function Invoke-MeritRelease {
         Write-Host '[SUCCESS] VERSION and CHANGELOG committed.' -ForegroundColor Green
 
         $tagMsg = "$tagName - $Notes"
-        git tag -a $tagName -m $tagMsg
-        if ($LASTEXITCODE -ne 0) { throw "Failed to create tag $tagName." }
+        Pop-Location
+        Invoke-GitAnnotatedTag -TagName $tagName -Message $tagMsg -RepoPath $RepoPath
+        Push-Location $RepoPath
         Write-Host "[SUCCESS] Created annotated tag $tagName." -ForegroundColor Green
 
         if (-not $NonInteractive) {
@@ -1790,7 +1824,8 @@ switch ($Action) {
         Show-MeritUsage
     }
     'release' {
-        Invoke-MeritRelease -RepoPath $RepoPath -BumpKind $Bump -Notes $Message -Branch $Branch -NonInteractive:$NonInteractive
+        Invoke-MeritRelease -RepoPath $RepoPath -BumpKind $Bump -Notes $Message -Branch $Branch `
+            -NonInteractive:$NonInteractive -MultilineMessage:$MultilineMessage
     }
     default {
         Write-Host "[ERROR] Unknown action: $Action" -ForegroundColor Red
