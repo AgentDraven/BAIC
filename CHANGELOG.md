@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## [0.0.13] - 2026-06-05
+
+### Added
+- **`scripts/mXin.ps1`** — check-in: commit, push to remote, release exclusive locks.
+- **`scripts/mXout.ps1`** — check-out: lock file/directory (recursive on tracked files), pull from remote.
+- **`ops/locks/`** — collaborative lock registry pushed to git so others cannot mXout overlapping paths.
+- **`scripts/merit_mxin_mxout.ps1`** — shared mXin/mXout implementation.
+
+### Updated
+- `docs/BOOTSTRAPPING.md` — full mXout/mXin flow, parameters, quick-reference table.
+- `README.md` — operator script index and documentation table.
+- MERIT §XI.D — documents mXin/mXout instead of merit_xin_xout.ps1.
+- `merit_xin_xout.ps1` — deprecated alias forwarding to mXin/mXout.
+
+## [0.0.12] - 2026-06-05
+
+### ✨ Added
+- **`scripts/merit_bootstrap.ps1`** — canonical MERIT first-time bootstrap (replaces `create_baseline_repo.ps1` as primary entry).
+- **`scripts/merit_xin_xout.ps1`** — Xin (check-in) and XOut (check-out) closeout with ya/na/ay/an per-file staging.
+- **`scripts/merit_git_common.ps1`** — shared preflight, confirmation, and git helpers.
+- MERIT §I.A.1 pre-bootstrap checklist, §II.D.1 YA/NA/AY/AN codes, §XI.D lifecycle scripts in vault `MERIT.instructions`.
+
+### ✨ Updated
+- `docs/BOOTSTRAPPING.md` — documents pre-bootstrap expectations, Option B (Xin/XOut), and verify-only mode.
+- `create_baseline_repo.ps1` — deprecated alias forwarding to `merit_bootstrap.ps1`.
+
 ## [0.0.11] - 2026-06-05
 
 ### ✨ Updated

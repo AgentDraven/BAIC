@@ -6,12 +6,32 @@ This project is part of the **Bay Area Inference Club (BAIC)** initiative, focus
 
 ## Getting Started
 
-For initial setup and Git repository initialization, please refer to the [Bootstrapping Guide](docs/BOOTSTRAPPING.md).
+Full setup and git workflow: **[Bootstrapping Guide](docs/BOOTSTRAPPING.md)**
+
+### Operator scripts (run from repo root)
+
+| Script | When to use |
+|--------|-------------|
+| [`merit_bootstrap.ps1`](scripts/merit_bootstrap.ps1) | First-time Git + GitHub setup; `-Status` to verify |
+| [`mXout.ps1`](scripts/mXout.ps1) | Lock a file or directory (recursive) and pull from remote |
+| [`mXin.ps1`](scripts/mXin.ps1) | Commit, push, and release locks after editing |
+
+```powershell
+.\scripts\merit_bootstrap.ps1              # once: bootstrap
+.\scripts\mXout.ps1 -Path docs\BAIC_theme.md  # lock + pull
+# ... edit ...
+.\scripts\mXin.ps1                           # push + unlock
+```
 
 ## Documentation
 
-- [Product Requirements Document (PRD), High-Level Design (HLD), Low-Level Design (LLD)](docs/input/BAIC_PRD.md)
-- [BAIC Theme and Brand Strategy](docs/BAIC_theme.md)
+| Document | Description |
+|----------|-------------|
+| [Bootstrapping Guide](docs/BOOTSTRAPPING.md) | Structure, bootstrap, mXout/mXin workflow, parameters |
+| [PRD / HLD / LLD](docs/input/BAIC_PRD.md) | Product requirements and architecture |
+| [BAIC Theme](docs/BAIC_theme.md) | Brand strategy and voice |
+| [CHANGELOG](CHANGELOG.md) | Release history |
+| [VERSION](VERSION) | Current baseline version |
 
 ## Project Structure
 
@@ -23,34 +43,19 @@ BAIC/
 ├── VERSION
 ├── CHANGELOG.md
 │
-├── core/
-│   ├── path_resolver.py
-│   ├── error_codes.py
-│   ├── admin_console.py
-│   └── *.py                # Support modules
-│
-├── scripts/
-│   └── *.py                # Utilities
-│
+├── core/                   # Business logic
+├── scripts/                # Operator automation
+│   ├── merit_bootstrap.ps1 # First-time repo bootstrap
+│   ├── mXout.ps1           # Check-out: lock + pull
+│   └── mXin.ps1            # Check-in: commit + push + unlock
 ├── tests/
-│   ├── conftest.py
-│   └── *.py                # General tests
-│
+├── ops/
+│   └── locks/              # mXout lock registry (tracked in git)
 ├── cfg/                    # Single source of truth
-│   ├── theme.md            # Brand voice & strategy
-│   ├── llm_providers.json  # API configuration
-│   └── paths.json          # Optional path config
-│
+│   └── theme.md
 ├── docs/
-│   ├── BOOTSTRAPPING.md    # Initial setup guide
-│   ├── BAIC_theme.md       # BAIC-specific theme and brand strategy
-│   ├── CONFIG_REFERENCE.md
-│   ├── TECHNICAL_HLD_LLD.md
-│   ├── guides/
-│   ├── architecture/
-│   │   └── mermaid/
-│   └── research/
-│
+│   ├── BOOTSTRAPPING.md
+│   ├── input/BAIC_PRD.md
+│   └── BAIC_theme.md
 └── output/
-    └── analytics/          # Performance reports
 ```
