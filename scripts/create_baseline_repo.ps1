@@ -71,7 +71,7 @@ function Create-BaselineRepository {
     Write-Host "Copied BOOTSTRAPPING.md to \'$DocsPath\'."
 
     # Add remote repository
-    $RemoteUrl = "https://$GitUserName:$GitHubToken@github.com/$GitUserName/$RepoName.git"
+    $RemoteUrl = "https://${GitUserName}:${GitHubToken}@github.com/${GitUserName}/${RepoName}.git"
     git remote add origin $RemoteUrl | Out-Null
     Write-Host "Added remote repository: $RemoteUrl"
 

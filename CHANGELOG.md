@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [0.0.4] - 2026-06-05
+
+### 🐛 Fixed
+- Resolved PowerShell variable interpolation error in `scripts/create_baseline_repo.ps1` for remote URL construction.
+
 ## [0.0.3] - 2026-06-05
 
 ### ✨ Updated
@@ -7,11 +12,6 @@
 - Integrated saving sensitive information (Git email, GitHub token/password) to `.env.local`.
 
 ## [0.0.2] - 2026-06-05
-
-### ✨ Added
-- Added `scripts/create_baseline_repo.ps1` to facilitate new repository bootstrapping.
-
-## [0.0.1] - 2026-06-05
 
 ### ✨ Added
 - Added `scripts/create_baseline_repo.ps1` to facilitate new repository bootstrapping.
