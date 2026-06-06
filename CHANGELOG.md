@@ -1,6 +1,17 @@
 # CHANGELOG
 
+## [0.0.3] - 2026-06-05
+
+### ✨ Updated
+- Automated Git user configuration, remote setup, and push in `scripts/create_baseline_repo.ps1`.
+- Integrated saving sensitive information (Git email, GitHub token/password) to `.env.local`.
+
 ## [0.0.2] - 2026-06-05
+
+### ✨ Added
+- Added `scripts/create_baseline_repo.ps1` to facilitate new repository bootstrapping.
+
+## [0.0.1] - 2026-06-05
 
 ### ✨ Added
 - Added `scripts/create_baseline_repo.ps1` to facilitate new repository bootstrapping.
