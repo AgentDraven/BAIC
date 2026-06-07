@@ -202,13 +202,13 @@ def create_app(
             repo = EnatRepository(session)
             dirt = [{"level": e.level, "message": e.message} for e in repo.list_dirt_events(limit=50)]
         payload = xray.snapshot(dirt_events=dirt)
+        payload["stub_mode"] = stub_mode
         if stub_mode:
             payload["stub_manifest"] = {
                 "stub_mode": True,
                 "bridges": registry.stub_manifests(),
                 "scaffold": validate_scaffold().errors or ["ok"],
             }
-        payload["stub_mode"] = stub_mode
         return payload
 
     @app.post("/api/v1/xray/event")

@@ -25,7 +25,7 @@ export function XRayTerminal({ enabled = true }: Props) {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      {runtime?.stub_manifest && (
+      {runtime?.stub_mode && runtime?.stub_manifest && (
         <pre className="mb-2 max-h-24 overflow-auto rounded bg-amber-900/20 p-2 text-[10px] text-amber-200">
           {JSON.stringify(runtime.stub_manifest, null, 2)}
         </pre>

@@ -4,16 +4,20 @@ import { FullScreenOverlay } from "../components/FullScreenOverlay";
 import { HotDotButton } from "../components/HotDotButton";
 import { XRayTerminal } from "../components/XRayTerminal";
 import { nextOverlay, type ActiveWindow } from "../hooks/useActiveWindow";
+import { useRailLayout } from "../hooks/useRailLayout";
+import { RailResizer } from "../components/RailResizer";
 
 type Props = {
   title: string;
+  portfolioStatus?: string;
   stubMode?: boolean;
   children: ReactNode;
 };
 
-export function MobileFirstShell({ title, stubMode, children }: Props) {
+export function MobileFirstShell({ title, portfolioStatus, stubMode, children }: Props) {
   const [desktop, setDesktop] = useState(false);
   const [active, setActive] = useState<ActiveWindow>("center");
+  const rails = useRailLayout();
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -23,21 +27,44 @@ export function MobileFirstShell({ title, stubMode, children }: Props) {
     return () => mq.removeEventListener("change", apply);
   }, []);
 
+  const headerSubtitle = portfolioStatus ? `PORTFOLIO STATUS: ${portfolioStatus}` : undefined;
+
   if (desktop) {
     return (
       <div className="flex h-screen min-h-0 flex-col bg-baic-bg">
-        <header className="border-b border-baic-border bg-baic-panel px-4 py-2 text-sm font-bold text-cyan-300">
-          {title}
-          {stubMode && <span className="ml-2 text-xs text-amber-400">STUB MODE</span>}
+        <header className="flex items-center justify-between gap-2 border-b border-baic-border bg-baic-panel px-2 py-2">
+          <HotDotButton side="left" open={rails.leftOpen} onToggle={rails.toggleLeft} />
+          <div className="min-w-0 flex-1 text-center">
+            <div className="truncate text-sm font-bold text-cyan-300">{title}</div>
+            {headerSubtitle && <div className="truncate text-[10px] text-gray-500">{headerSubtitle}</div>}
+            {stubMode && <div className="text-[10px] text-amber-400">STUB MODE</div>}
+          </div>
+          <HotDotButton side="right" open={rails.rightOpen} onToggle={rails.toggleRight} />
         </header>
-        <div className="grid min-h-0 flex-1 grid-cols-[minmax(220px,288px)_1fr_minmax(320px,460px)]">
-          <aside className="overflow-auto border-r border-baic-border bg-baic-panel/50 p-3">
-            <ConfigRail />
-          </aside>
-          <main className="min-w-0 overflow-auto">{children}</main>
-          <aside className="overflow-auto border-l border-baic-border bg-black/40 p-2">
-            <XRayTerminal enabled />
-          </aside>
+        <div className="flex min-h-0 flex-1">
+          {rails.leftOpen && (
+            <aside
+              className="shrink-0 overflow-auto border-r border-baic-border bg-baic-panel/50 p-3"
+              style={{ width: rails.leftWidth }}
+            >
+              <ConfigRail />
+            </aside>
+          )}
+          {rails.leftOpen && (
+            <RailResizer onMouseDown={(x) => rails.startResize("left", x)} />
+          )}
+          <main className="min-w-0 flex-1 overflow-auto">{children}</main>
+          {rails.rightOpen && (
+            <RailResizer onMouseDown={(x) => rails.startResize("right", x)} />
+          )}
+          {rails.rightOpen && (
+            <aside
+              className="shrink-0 overflow-auto border-l border-baic-border bg-black/40 p-2"
+              style={{ width: rails.rightWidth }}
+            >
+              <XRayTerminal enabled />
+            </aside>
+          )}
         </div>
       </div>
     );
@@ -50,8 +77,9 @@ export function MobileFirstShell({ title, stubMode, children }: Props) {
     <div className="relative min-h-screen bg-baic-bg">
       <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-baic-border bg-baic-panel px-2 py-2">
         <HotDotButton side="left" open={active === "left"} onToggle={toggleLeft} />
-        <div className="truncate text-center text-xs font-bold text-cyan-300">
+        <div className="min-w-0 truncate text-center text-xs font-bold text-cyan-300">
           {title}
+          {headerSubtitle && <span className="block truncate text-[10px] font-normal text-gray-500">{headerSubtitle}</span>}
           {stubMode && <span className="block text-[10px] text-amber-400">STUB</span>}
         </div>
         <HotDotButton side="right" open={active === "right"} onToggle={toggleRight} />

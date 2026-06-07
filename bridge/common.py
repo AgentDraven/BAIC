@@ -12,6 +12,7 @@ def status_badge(status: str) -> str:
         "ready": "ACTIVE_FREE",
         "canceled_active": "CANCELED_ACTIVE",
         "unclaimed": "UNCLAIMED",
+        "unconfigured": "UNCONFIGURED",
         "idle": "UNCLAIMED",
     }
     return mapping.get(status.lower(), "UNCLAIMED")

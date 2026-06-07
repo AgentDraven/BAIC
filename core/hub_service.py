@@ -9,7 +9,9 @@ from db.ports import DatabasePort
 from db.repository import EnatRepository
 
 from core.config_loader import AppConfig
+from core.provenance import cfg_provenance, field, metric_provenance, provenance
 from core.provider_loader import ProviderRegistry
+from core.spoke_builder import build_console_payload, resolve_operations
 
 
 def _snap_to_dict(s: MetricSnapshot) -> dict[str, Any]:
@@ -50,6 +52,7 @@ class HubService:
         consumer_kinds = {"consumer_frontend"}
         providers_cfg = self._registry.all_provider_configs()
         stub = self._registry.stub_mode
+        stub_demo = self._hub_cfg.get("stub_demo", {})
 
         consumer_cards: list[dict[str, Any]] = []
         infra_cards: list[dict[str, Any]] = []
@@ -64,6 +67,11 @@ class HubService:
             card["kind"] = cfg.get("kind", "hyperscaler")
             card["console_screen"] = cfg.get("console_screen", "GLOBAL_LEDGER_HUB")
             card["metrics_profile"] = cfg.get("metrics_profile", "token_and_promo_cash")
+            card["provenance"] = metric_provenance(
+                has_snapshot=snap is not None,
+                stub_mode=stub,
+                secrets_configured=bridge.secrets_configured(),
+            )
 
             if snap and snap.promo_balance:
                 usd_liquidity += float(snap.promo_balance)
@@ -74,13 +82,36 @@ class HubService:
                 infra_cards.append(card)
 
         status_key = "portfolio_status_stub" if stub else "portfolio_status_live"
-        default_status = "ACTIVE ARBITRAGE (STUB)" if stub else "INITIALIZING"
+        default_status = "ACTIVE ARBITRAGE (STUB)" if stub else "AWAITING LIVE METRICS"
+
+        if stub:
+            global_runway = stub_demo.get("global_runway_months")
+            out_of_pocket = float(stub_demo.get("out_of_pocket_monthly", 0))
+            kpi_prov = cfg_provenance(
+                "cfg/config.json",
+                "Demo KPI from hub.stub_demo — only when BAIC runs with --stub.",
+            )
+        else:
+            global_runway = None
+            out_of_pocket = 0.0
+            kpi_prov = provenance(
+                source="computed",
+                summary="Sum of promo_balance from metric_snapshots rows (local SQLite). Zero until live sync.",
+                stored_in="sqlite://metric_snapshots",
+                output_ref="TOTAL ACTIVE LIQUIDITY KPI",
+            )
 
         return {
             "portfolio_status": self._hub_cfg.get(status_key, default_status),
-            "global_runway_months": int(self._hub_cfg.get("global_runway_months", 0 if not stub else 14)),
-            "out_of_pocket_monthly": float(self._hub_cfg.get("out_of_pocket_monthly", 0.0 if not stub else 19.99)),
-            "total_liquidity_usd": round(usd_liquidity, 2),
+            "global_runway_months": field(global_runway, kpi_prov if stub else cfg_provenance("cfg/config.json", "Runway requires live billing sync (not implemented).")),
+            "out_of_pocket_monthly": field(out_of_pocket, kpi_prov if stub else provenance(source="computed", summary="Sum of consumer subscription costs from DB (not implemented).", stored_in="—")),
+            "total_liquidity_usd": field(round(usd_liquidity, 2), kpi_prov if stub else provenance(
+                source="sqlite_snapshot",
+                summary="Sum of promo_balance across infra providers in metric_snapshots.",
+                stored_in="sqlite://metric_snapshots",
+                feeds="Hub KPI strip",
+                extra={"stale_seed_warning": not stub and usd_liquidity > 0},
+            )),
             "consumer_cards": consumer_cards,
             "infra_cards": infra_cards,
             "dirt_events": [{"level": e.level, "message": e.message} for e in dirt],
@@ -98,7 +129,25 @@ class HubService:
             snap_dict = _snap_to_dict(snap) if snap else None
 
         metrics = bridge.get_metrics(snap.hierarchy_path if snap else "", snap_dict)
-        blocks = self._build_blocks(provider_id, cfg, entities, metrics)
+        has_snapshot = snap is not None
+        secrets_ok = bridge.secrets_configured()
+        operations = resolve_operations(
+            provider_id,
+            cfg,
+            stub_mode=self._registry.stub_mode,
+            has_metrics=has_snapshot,
+            secrets_configured=secrets_ok,
+        )
+        spoke = build_console_payload(
+            provider_id,
+            cfg,
+            entities,
+            metrics,
+            stub_mode=self._registry.stub_mode,
+            has_snapshot=has_snapshot,
+            secrets_configured=secrets_ok,
+            operations=operations,
+        )
 
         return {
             "provider_id": provider_id,
@@ -110,56 +159,18 @@ class HubService:
                 for e in entities
             ],
             "metrics": metrics,
-            "blocks": blocks,
-            "operations": bridge.supported_operations(),
+            "metrics_provenance": metric_provenance(
+                has_snapshot=has_snapshot,
+                stub_mode=self._registry.stub_mode,
+                secrets_configured=secrets_ok,
+            ),
+            "header": spoke["header"],
+            "context": spoke["context"],
+            "blocks": spoke["blocks"],
+            "layout_screen": spoke["layout_screen"],
+            "operations": [o["id"] for o in operations],
+            "operation_details": operations,
         }
-
-    def _build_blocks(
-        self,
-        provider_id: str,
-        cfg: dict[str, Any],
-        entities: list[Any],
-        metrics: dict[str, Any],
-    ) -> list[dict[str, Any]]:
-        if provider_id == "google_cloud":
-            projects = [e.name for e in entities if e.tier == "project"]
-            if not projects and self._registry.stub_mode:
-                projects = ["M4O-Venture", "Merit-SWDAR"]
-            return [
-                {
-                    "id": "ai_studio",
-                    "title": "BLOCK A: GOOGLE AI STUDIO (PUBLIC DEVELOPER SANDBOX)",
-                    "status": "ACTIVE" if metrics.get("status") or self._registry.stub_mode else "UNCONFIGURED",
-                    "projects": projects,
-                    "tpm_ceiling": metrics.get("tpm_ceiling") or (1_000_000 if self._registry.stub_mode else 0),
-                },
-                {
-                    "id": "vertex_ai",
-                    "title": "BLOCK B: GCP VERTEX AI (ENTERPRISE CORE POOL)",
-                    "status": "ACTIVE" if metrics.get("promo_balance") or self._registry.stub_mode else "UNCONFIGURED",
-                    "promo_pools": [
-                        {
-                            "name": "MAIN POOL",
-                            "balance": metrics.get("promo_balance") or (1000.0 if self._registry.stub_mode else 0),
-                            "expires": metrics.get("promo_expires"),
-                        },
-                    ],
-                    "guardrails": {
-                        "current_cost": metrics.get("accumulated_cost") or 0.0,
-                        "spend_cap": metrics.get("spend_cap") or 15.0,
-                        "auto_swap_at_tpm_pct": 95,
-                    },
-                },
-                {"id": "capability_matrix", "title": "BLOCK C: PLATFORM × MODEL MATRIX", "status": "ACTIVE"},
-            ]
-        return [
-            {
-                "id": "default",
-                "title": f"{cfg.get('display_name', provider_id)} Console",
-                "metrics": metrics,
-            },
-            {"id": "capability_matrix", "title": "BLOCK C: PLATFORM × MODEL MATRIX", "status": "ACTIVE"},
-        ]
 
     def run_operation(self, provider_id: str, op_id: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
         bridge = self._registry.get(provider_id)

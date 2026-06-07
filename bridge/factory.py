@@ -1,4 +1,4 @@
-"""Generic bridge factory for providers sharing similar hub card patterns."""
+"""Generic bridge factory — hub_card copy from provider_registry, balances from metrics only."""
 
 from __future__ import annotations
 
@@ -8,20 +8,16 @@ from bridge.base import ProviderBridge
 from bridge.common import format_usd, metrics_from_snapshot, status_badge
 
 
-def make_bridge(provider_id: str, defaults: dict[str, Any] | None = None) -> type[ProviderBridge]:
-    card_defaults = defaults or {}
+def make_bridge(provider_id: str) -> type[ProviderBridge]:
     pid = provider_id
 
     class BridgeImpl(ProviderBridge):
         provider_id = pid
 
-        def __init__(self) -> None:
-            super().__init__()
-            self._card = card_defaults
-
         def load_config(self, registry_entry: dict[str, Any], secrets: dict[str, Any]) -> None:
             self._entry = registry_entry
             self._secrets = secrets
+            self._hub_card = dict(registry_entry.get("hub_card", {}))
 
         def hierarchy_tiers(self) -> list[str]:
             return list(self._entry.get("hierarchy", ["billing_account", "project", "byok"]))
@@ -52,12 +48,12 @@ def make_bridge(provider_id: str, defaults: dict[str, Any] | None = None) -> typ
             }
 
         def supported_operations(self) -> list[str]:
-            return list(self._card.get("operations", ["enter_provider_console"]))
+            return list(self._hub_card.get("operations", ["enter_provider_console"]))
 
         def run_operation(self, op_id: str, context: dict[str, Any]) -> dict[str, Any]:
             if not self._stub_mode:
                 self.ensure_live_ready()
-            handlers = self._card.get("op_messages", {})
+            handlers = self._hub_card.get("op_messages", {})
             if op_id in handlers:
                 return {"ok": True, "message": handlers[op_id]}
             if op_id == "enter_provider_console":
@@ -67,16 +63,45 @@ def make_bridge(provider_id: str, defaults: dict[str, Any] | None = None) -> typ
 
         def hub_card(self, snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
             m = metrics_from_snapshot(snapshot)
-            balance = self._card.get("balance_summary", format_usd(m.get("promo_balance")))
+            has_metrics = bool(m)
+            balance = self._balance_from_metrics(m) if has_metrics else None
+            if not balance and self._stub_mode:
+                balance = self._hub_card.get("balance_summary_stub")
+            status = self._resolve_status(m, has_metrics)
+            detail = (
+                self._hub_card.get("detail")
+                if has_metrics or self._stub_mode
+                else "Connect credentials in cfg/secrets.json or run with --stub"
+            )
             return {
                 "provider_id": pid,
                 "title": self._entry.get("display_name", pid),
-                "balance_summary": balance if m or self._stub_mode else "Configure credentials",
-                "detail": self._card.get("detail", ""),
-                "status": m.get("status", "unknown") if m else "unconfigured",
-                "status_badge": status_badge(str(m.get("status", "unknown") if m else "unclaimed")),
-                "cta": self._card.get("cta", "OPEN CONSOLE"),
+                "balance_summary": balance,
+                "detail": detail,
+                "status": m.get("status", "unknown") if has_metrics else ("active" if self._stub_mode else "unconfigured"),
+                "status_badge": status,
+                "cta": self._hub_card.get("cta", "OPEN CONSOLE"),
                 "operations": self.supported_operations(),
             }
+
+        def _balance_from_metrics(self, m: dict[str, Any]) -> str | None:
+            if m.get("promo_balance") is not None:
+                return format_usd(m["promo_balance"])
+            if m.get("allowance_tokens"):
+                return f"~{int(m['allowance_tokens']):,} Token Cap"
+            if m.get("allowance_percent") is not None:
+                return f"{m['allowance_percent']}% Rest (Locked)"
+            if m.get("consumer_credits"):
+                return f"{m['consumer_credits']:,} Consumer Credits"
+            if m.get("compute_cpus"):
+                return f"{m['compute_cpus']} Ampere CPUs · {m.get('compute_ram_gb', '?')} GB RAM"
+            return None
+
+        def _resolve_status(self, m: dict[str, Any], has_metrics: bool) -> str:
+            if self._stub_mode and not has_metrics:
+                return self._hub_card.get("status_badge_stub", "ACTIVE_FREE")
+            if has_metrics:
+                return status_badge(str(m.get("status", "active")))
+            return "UNCONFIGURED"
 
     return BridgeImpl

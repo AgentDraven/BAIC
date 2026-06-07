@@ -10,6 +10,7 @@ import {
 } from "./api";
 import { ProviderCardView } from "./components/ProviderCardView";
 import { ProviderConsoleView } from "./components/ProviderConsoleView";
+import { displayValue, ProvenanceHotspot, unwrapField } from "./components/ProvenanceHotspot";
 import { MobileFirstShell } from "./layouts/MobileFirstShell";
 
 export default function App() {
@@ -98,34 +99,34 @@ export default function App() {
             </div>
           )}
 
-          <section>
-            <h2 className="mb-3 text-xs font-semibold text-gray-500">CONSUMER FRONTENDS & SUBSCRIPTIONS</h2>
-            <div className="card-grid">
+          <HubSection title="SELECT CONSUMER FRONTENDS & SUBSCRIPTIONS">
+            <div className="hub-grid hub-grid-3">
               {hub.consumer_cards.filter(filterCard).map((c) => (
                 <ProviderCardView key={c.provider_id} card={c} onOpen={openProvider} onAction={handleAction} />
               ))}
             </div>
-          </section>
+          </HubSection>
 
-          <section>
-            <h2 className="mb-3 text-xs font-semibold text-gray-500">INFRASTRUCTURE EXTRACTION NODES</h2>
-            <div className="card-grid md:grid-cols-2">
+          <HubSection title="SELECT INFRASTRUCTURE EXTRACTION NODES">
+            <div className="hub-grid hub-grid-2">
               {hub.infra_cards.filter(filterCard).map((c) => (
                 <ProviderCardView key={c.provider_id} card={c} onOpen={openProvider} onAction={handleAction} />
               ))}
             </div>
-          </section>
+          </HubSection>
 
-          <section className="panel">
-            <h2 className="mb-2 text-xs font-semibold text-gray-500">ENTITY REGISTRY PIPELINE (DIRT ENGINE)</h2>
+          <HubSection title="ENTITY REGISTRY PIPELINE (DIRT ENGINE)">
             <div className="max-h-32 space-y-1 overflow-y-auto font-mono text-xs text-gray-400">
+              {hub.dirt_events.length === 0 && (
+                <div className="text-gray-600">[SYSTEM] Awaiting DIRT pipeline events…</div>
+              )}
               {hub.dirt_events.map((e, i) => (
                 <div key={i}>
                   [{e.level}] {e.message}
                 </div>
               ))}
             </div>
-          </section>
+          </HubSection>
         </main>
       )}
     </>
@@ -134,28 +135,60 @@ export default function App() {
   return (
     <>
       {toast && <Toast message={toast} />}
-      <MobileFirstShell title="BAIC CONTROL PLANE · GLOBAL LIQUIDITY POOL" stubMode={stubMode}>
+      <MobileFirstShell
+        title="BAIC CONTROL PLANE · GLOBAL LIQUIDITY POOL"
+        portfolioStatus={hub?.portfolio_status}
+        stubMode={stubMode}
+      >
         {center}
       </MobileFirstShell>
     </>
   );
 }
 
-function KpiStrip({ hub }: { hub: HubSummary }) {
+function HubSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="grid gap-3 md:grid-cols-3">
-      <Kpi label="GLOBAL EST. RUNWAY" value={`${hub.global_runway_months} MONTHS`} />
-      <Kpi label="OUT-OF-POCKET SPEND" value={`$${hub.out_of_pocket_monthly.toFixed(2)}/MO`} />
-      <Kpi label="TOTAL ACTIVE LIQUIDITY (USD)" value={`$${hub.total_liquidity_usd.toLocaleString()}`} />
+    <section className="hub-section">
+      <h2 className="hub-section-title">{title}</h2>
+      <div className="hub-section-body">{children}</div>
+    </section>
+  );
+}
+
+function KpiStrip({ hub }: { hub: HubSummary }) {
+  const runwayF = unwrapField(hub.global_runway_months);
+  const oopF = unwrapField(hub.out_of_pocket_monthly);
+  const liqF = unwrapField(hub.total_liquidity_usd);
+
+  const runway =
+    runwayF.value != null ? `${runwayF.value} MONTHS` : "—";
+  const oop =
+    typeof oopF.value === "number" && oopF.value > 0 ? `$${oopF.value.toFixed(2)}/MO` : "—";
+  const liquidity =
+    typeof liqF.value === "number" && liqF.value > 0 ? `$${liqF.value.toLocaleString()}` : "$0";
+
+  return (
+    <div className="hub-kpi-strip">
+      <Kpi label="GLOBAL EST. RUNWAY" value={runway} provenance={runwayF.provenance} />
+      <Kpi label="OUT-OF-POCKET SPEND" value={oop} provenance={oopF.provenance} />
+      <Kpi label="TOTAL ACTIVE LIQUIDITY (USD)" value={liquidity} provenance={liqF.provenance} />
+      {liqF.provenance?.stale_seed_warning && (
+        <div className="col-span-full rounded border border-amber-500/30 bg-amber-900/10 px-3 py-2 text-[10px] text-amber-300">
+          Liquidity sum includes SQLite rows from a prior --stub run. Hover KPI values for provenance, or delete{" "}
+          <code>output/baic_state.db</code>.
+        </div>
+      )}
     </div>
   );
 }
 
-function Kpi({ label, value }: { label: string; value: string }) {
+function Kpi({ label, value, provenance }: { label: string; value: string; provenance?: import("./api").ProvenanceMeta }) {
   return (
-    <div className="panel text-center">
-      <div className="text-[10px] text-gray-500">{label}</div>
-      <div className="text-lg font-bold text-cyan-300">{value}</div>
+    <div className="hub-kpi">
+      <div className="text-[10px] text-gray-500">[•] {label}</div>
+      <div className="text-lg font-bold text-cyan-300">
+        <ProvenanceHotspot provenance={provenance}>{value}</ProvenanceHotspot>
+      </div>
     </div>
   );
 }

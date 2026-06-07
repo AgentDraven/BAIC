@@ -1,4 +1,5 @@
 import { Badge } from "./Badge";
+import { ProvenanceHotspot } from "./ProvenanceHotspot";
 import type { ProviderCard } from "../api";
 
 type Props = {
@@ -17,12 +18,21 @@ export function ProviderCardView({ card, onOpen, onAction }: Props) {
         <h3 className="text-sm font-semibold text-cyan-200">{card.title}</h3>
         <Badge status={card.status_badge} />
       </div>
-      {card.balance_summary && <p className="text-xs text-gray-300">{card.balance_summary}</p>}
+      {card.balance_summary && (
+        <p className="text-xs text-gray-300">
+          <ProvenanceHotspot provenance={card.provenance}>{card.balance_summary}</ProvenanceHotspot>
+        </p>
+      )}
       {card.detail && <p className="text-xs text-gray-500">{card.detail}</p>}
       <div className="mt-auto flex flex-wrap gap-2 pt-2">
         {isInfra && (
-          <button type="button" className="btn-primary" onClick={() => onOpen(card.provider_id)}>
-            Enter console
+          <button
+            type="button"
+            className="btn-primary"
+            title={card.provenance?.summary}
+            onClick={() => onOpen(card.provider_id)}
+          >
+            {card.cta ?? "Enter console"}
           </button>
         )}
         {primaryOp && !isInfra && (

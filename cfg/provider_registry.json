@@ -10,7 +10,23 @@
       "bridge_module": "bridge.google",
       "metrics_profile": "token_and_promo_cash",
       "enabled": true,
-      "products": ["ai_studio", "vertex_ai"]
+      "products": ["ai_studio", "vertex_ai"],
+      "hub_card": {
+        "detail": "Posture: SECURE (SQLite Synchronized)",
+        "cta": "CLICK TO ENTER PROVIDER CONSOLE",
+        "operations": ["enter_provider_console", "claim_dev_voucher", "force_swap"],
+        "operation_labels": {
+          "enter_provider_console": "ENTER PROVIDER CONSOLE",
+          "claim_dev_voucher": "CLAIM DEV VOUCHER",
+          "force_swap": "FORCE SWAP"
+        },
+        "operation_visibility": {
+          "enter_provider_console": ["always"],
+          "claim_dev_voucher": ["stub_mode", "secrets_configured"],
+          "force_swap": ["has_metrics"]
+        },
+        "balance_summary_stub": "$1,040.00 (Vertex) + $40.00 Developer Code"
+      }
     },
     "microsoft_azure": {
       "display_name": "Microsoft Azure (Founders Hub)",
@@ -19,7 +35,16 @@
       "hierarchy": ["billing_account", "project", "byok"],
       "bridge_module": "bridge.azure",
       "metrics_profile": "token_and_promo_cash",
-      "enabled": true
+      "enabled": true,
+      "hub_card": {
+        "detail": "Context: Private OpenAI Schema · Endpoint: Custom Cursor Router",
+        "cta": "CLICK TO ENTER PROVIDER CONSOLE",
+        "operations": ["enter_provider_console"],
+        "operation_labels": { "enter_provider_console": "ENTER PROVIDER CONSOLE" },
+        "operation_visibility": { "enter_provider_console": ["always"] },
+        "balance_summary_stub": "$1,000.00 Grant",
+        "status_badge_stub": "ACTIVE_FREE"
+      }
     },
     "amazon_aws": {
       "display_name": "Amazon Web Services (Bedrock)",
@@ -28,7 +53,14 @@
       "hierarchy": ["billing_account", "project", "byok"],
       "bridge_module": "bridge.aws",
       "metrics_profile": "token_and_promo_cash",
-      "enabled": true
+      "enabled": true,
+      "hub_card": {
+        "detail": "Targets: Bedrock Nodes · Vulnerability: Missing API Access Keys",
+        "cta": "SUBMIT ACTIVATION REQUEST",
+        "operations": ["enter_provider_console", "submit_activation"],
+        "balance_summary_stub": "$0.00 (Unclaimed Portfolio)",
+        "status_badge_stub": "UNCLAIMED"
+      }
     },
     "oracle_oci": {
       "display_name": "Oracle Cloud Infrastructure",
@@ -38,7 +70,14 @@
       "hierarchy_notes": "Always Free tier uses compute_pool not BYOK.",
       "bridge_module": "bridge.oci",
       "metrics_profile": "compute_capacity",
-      "enabled": true
+      "enabled": true,
+      "hub_card": {
+        "detail": "Cron Infrastructure: SECURE",
+        "cta": "MONITOR BACKGROUND TASK",
+        "operations": ["enter_provider_console", "monitor_background"],
+        "balance_summary_stub": "4 Ampere CPUs · 24 GB RAM",
+        "status_badge_stub": "ACTIVE_FREE"
+      }
     },
     "cursor_pro": {
       "display_name": "Cursor Pro",
@@ -47,7 +86,19 @@
       "hierarchy": ["subscription", "seat", "routing_profile"],
       "bridge_module": "bridge.cursor",
       "metrics_profile": "allowance_percent",
-      "enabled": true
+      "enabled": true,
+      "hub_card": {
+        "detail": "Routing: API Disabled",
+        "cta": "TROUBLESHOOT SYNC",
+        "operations": ["troubleshoot_sync"],
+        "operation_labels": { "troubleshoot_sync": "TROUBLESHOOT SYNC" },
+        "operation_visibility": { "troubleshoot_sync": ["always"] },
+        "balance_summary_stub": "5% Rest (Locked)",
+        "status_badge_stub": "CANCELED_ACTIVE",
+        "op_messages": {
+          "troubleshoot_sync": "Cursor sync diagnostic started"
+        }
+      }
     },
     "github_copilot": {
       "display_name": "GitHub Copilot Education",
@@ -56,7 +107,19 @@
       "hierarchy": ["subscription", "seat", "routing_profile"],
       "bridge_module": "bridge.github_copilot",
       "metrics_profile": "allowance_tokens",
-      "enabled": true
+      "enabled": true,
+      "hub_card": {
+        "detail": "Speed Status: SLOW (VS Code)",
+        "cta": "ROUTE VIA CLINE",
+        "operations": ["route_via_cline"],
+        "operation_labels": { "route_via_cline": "ROUTE VIA CLINE" },
+        "operation_visibility": { "route_via_cline": ["always"] },
+        "balance_summary_stub": "~192k Token Cap",
+        "status_badge_stub": "ACTIVE_FREE",
+        "op_messages": {
+          "route_via_cline": "Routing profile switched to Cline"
+        }
+      }
     },
     "google_one_ai": {
       "display_name": "Google One AI Premium",
@@ -65,7 +128,19 @@
       "hierarchy": ["subscription", "credit_pool", "routing_profile"],
       "bridge_module": "bridge.google_one",
       "metrics_profile": "consumer_credits",
-      "enabled": true
+      "enabled": true,
+      "hub_card": {
+        "detail": "Target: Native Flow / Antigravity",
+        "cta": "CLAIM $40 DEV VOUCHER",
+        "operations": ["claim_dev_voucher"],
+        "operation_labels": { "claim_dev_voucher": "CLAIM $40 DEV VOUCHER" },
+        "operation_visibility": { "claim_dev_voucher": ["stub_mode", "secrets_configured"] },
+        "balance_summary_stub": "$19.99/MO · 1,000 Consumer Credits",
+        "status_badge_stub": "ACTIVE_FREE",
+        "op_messages": {
+          "claim_dev_voucher": "Consumer dev voucher claim queued"
+        }
+      }
     }
   }
 }

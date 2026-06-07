@@ -64,22 +64,25 @@ class GoogleBridge(ProviderBridge):
 
     def hub_card(self, snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
         m = metrics_from_snapshot(snapshot)
+        hub = dict(self._entry.get("hub_card", {}))
+        has_metrics = bool(m)
         promo = m.get("promo_balance")
-        dev = 40.0 if self._stub_mode and promo is None else (promo and 40.0)
-        balance = (
-            f"{format_usd(promo)} (Vertex) + {format_usd(dev)} Developer Code"
-            if promo is not None
-            else ("Configure GCP credentials" if not self._stub_mode else f"{format_usd(1040)} (Vertex) + {format_usd(40)} Developer Code")
-        )
+        if has_metrics and promo is not None:
+            balance = f"{format_usd(promo)} (Vertex) + {format_usd(40.0)} Developer Code"
+        elif self._stub_mode:
+            balance = hub.get("balance_summary_stub")
+        else:
+            balance = None
+        detail = hub.get("detail") if has_metrics or self._stub_mode else "Configure GCP credentials"
+        status_raw = m.get("status") if has_metrics else ("active" if self._stub_mode else "unconfigured")
         return {
             "provider_id": self.provider_id,
             "title": self._entry.get("display_name", "Google Ecosystem"),
             "balance_summary": balance,
-            "projects": ["M4O-Venture", "Merit-SWDAR", "Draven-Bot"] if self._stub_mode or m else [],
-            "posture": "SECURE (SQLite Synchronized)" if m or self._stub_mode else "UNCONFIGURED",
-            "status": m.get("status", "active") if m else ("active" if self._stub_mode else "unconfigured"),
-            "status_badge": status_badge(str(m.get("status", "active") if m else ("active" if self._stub_mode else "unclaimed"))),
-            "cta": "CLICK TO ENTER PROVIDER CONSOLE",
+            "detail": detail,
+            "status": status_raw,
+            "status_badge": status_badge(str(status_raw if has_metrics else ("active" if self._stub_mode else "unclaimed"))),
+            "cta": hub.get("cta", "CLICK TO ENTER PROVIDER CONSOLE"),
             "operations": self.supported_operations(),
         }
 

@@ -28,14 +28,21 @@ def temp_config(tmp_path: Path, repo_root: Path) -> AppConfig:
     (tmp_path / "VERSION").write_text("0.0.0-test\n", encoding="utf-8")
     config = {
         "app_name": "BAIC Test",
-        "api_host": "127.0.0.1",
-        "api_port": 8765,
+        "api": {"host": "127.0.0.1", "port": 8765},
         "database": {"engine": "sqlite", "path": str(out_dir / "test.db"), "echo": False},
+        "hub": {
+            "portfolio_status_live": "AWAITING LIVE METRICS",
+            "portfolio_status_stub": "ACTIVE ARBITRAGE (STUB)",
+            "stub_demo": {"global_runway_months": 14, "out_of_pocket_monthly": 19.99},
+        },
         "branding": {},
     }
     (cfg_dir / "config.json").write_text(json.dumps(config), encoding="utf-8")
     registry_src = repo_root / "cfg" / "provider_registry.json"
     (cfg_dir / "provider_registry.json").write_text(registry_src.read_text(encoding="utf-8"), encoding="utf-8")
+    spoke_src = repo_root / "cfg" / "spoke_console_layout.json"
+    if spoke_src.is_file():
+        (cfg_dir / "spoke_console_layout.json").write_text(spoke_src.read_text(encoding="utf-8"), encoding="utf-8")
     matrix_src = repo_root / "cfg" / "model_capability_matrix.json"
     if matrix_src.is_file():
         (cfg_dir / "model_capability_matrix.json").write_text(matrix_src.read_text(encoding="utf-8"), encoding="utf-8")

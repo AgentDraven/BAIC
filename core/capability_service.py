@@ -22,7 +22,34 @@ class CapabilityService:
         platforms = self._matrix.get("platforms", {})
         if platform_id not in platforms:
             raise BaicError(ErrorCode.PROVIDER_NOT_FOUND, f"Platform '{platform_id}' not in matrix")
-        return platforms[platform_id]
+        plat = dict(platforms[platform_id])
+        catalog = self._matrix.get("model_catalog", {})
+        enriched: dict[str, Any] = {}
+        for model_id, cell in plat.get("models", {}).items():
+            c = dict(cell)
+            declared = bool(c.get("available", False))
+            live_verified = declared and self._stub_mode
+            c["declared_available"] = declared
+            c["live_verified"] = live_verified
+            c["display_name"] = catalog.get(model_id, {}).get("display_name", model_id)
+            c["provenance"] = {
+                "source": "cfg",
+                "summary": (
+                    "Declared in cfg/model_capability_matrix.json — "
+                    + ("marked verified in --stub demo only." if self._stub_mode else "not live-verified against cloud API.")
+                ),
+                "stored_in": "cfg/model_capability_matrix.json",
+                "input": f"platforms.{platform_id}.models.{model_id}",
+                "learn_more_url": "BAIC docs/CONCEPTS_GUIDE.md#pxm-matrix",
+            }
+            enriched[model_id] = c
+        plat["models"] = enriched
+        plat["matrix_provenance"] = {
+            "source": "cfg",
+            "summary": "Platform × Model routing declarations (operator cfg, not cloud inventory API).",
+            "stored_in": "cfg/model_capability_matrix.json",
+        }
+        return plat
 
     def model_families(self) -> list[dict[str, str]]:
         catalog = self._matrix.get("model_catalog", {})

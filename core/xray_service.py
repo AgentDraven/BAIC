@@ -57,7 +57,6 @@ class XRayBuffer:
             "dashboard_events": dashboard_events,
             "logs": dirt_events or [],
             "request_events": request_events,
-            "stub_manifest": {},
         }
 
 

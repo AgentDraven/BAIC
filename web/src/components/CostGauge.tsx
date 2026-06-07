@@ -9,14 +9,24 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import type { ProvenanceMeta } from "../api";
+import { ProvenanceHotspot } from "./ProvenanceHotspot";
 
 type Props = {
   currentCost: number;
   spendCap: number;
   label?: string;
+  costProvenance?: ProvenanceMeta;
+  capProvenance?: ProvenanceMeta;
 };
 
-export function CostGauge({ currentCost, spendCap, label = "M4O-Venture (Vertex)" }: Props) {
+export function CostGauge({
+  currentCost,
+  spendCap,
+  label = "Cost gauge",
+  costProvenance,
+  capProvenance,
+}: Props) {
   const data = [{ name: label, cost: currentCost, cap: spendCap }];
 
   return (
@@ -36,7 +46,10 @@ export function CostGauge({ currentCost, spendCap, label = "M4O-Venture (Vertex)
         </ComposedChart>
       </ResponsiveContainer>
       <p className="text-center text-xs text-gray-400">
-        [Cost: ${currentCost.toFixed(2)}] − [Promo Discount: ${currentCost.toFixed(2)}] = Owed: $0.00
+        [Cost:{" "}
+        <ProvenanceHotspot provenance={costProvenance}>${currentCost.toFixed(2)}</ProvenanceHotspot>] − [Promo
+        Discount: ${currentCost.toFixed(2)}] = Owed: $0.00 · Cap:{" "}
+        <ProvenanceHotspot provenance={capProvenance}>${spendCap.toFixed(2)}</ProvenanceHotspot>
       </p>
     </div>
   );

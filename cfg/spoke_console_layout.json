@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Spoke console block templates — MERIT §II.K. Blocks render from API payload + this layout SSOT."
+  },
+  "console_screens": {
+    "GOOGLE_CONSOLE": {
+      "header": [
+        {
+          "id": "active_route",
+          "label": "ACTIVE ROUTE",
+          "bind": "context.active_route"
+        },
+        {
+          "id": "interception",
+          "label": "INTERCEPTION",
+          "bind": "context.interception_mode"
+        }
+      ],
+      "blocks": [
+        { "id": "ai_studio", "template": "ai_studio_sandbox" },
+        { "id": "vertex_ai", "template": "promo_guardrails" },
+        { "id": "cost_gauge", "template": "dual_axis_cost" },
+        { "id": "capability_matrix", "template": "pxm_matrix" }
+      ]
+    },
+    "AZURE_CONSOLE": {
+      "header": [
+        { "id": "active_route", "label": "ACTIVE ROUTE", "bind": "context.active_route" },
+        { "id": "interception", "label": "INTERCEPTION", "bind": "context.interception_mode" }
+      ],
+      "blocks": [
+        { "id": "azure_core", "template": "promo_guardrails" },
+        { "id": "cost_gauge", "template": "dual_axis_cost" },
+        { "id": "capability_matrix", "template": "pxm_matrix" }
+      ]
+    },
+    "AWS_CONSOLE": {
+      "header": [
+        { "id": "active_route", "label": "ACTIVE ROUTE", "bind": "context.active_route" },
+        { "id": "interception", "label": "INTERCEPTION", "bind": "context.interception_mode" }
+      ],
+      "blocks": [
+        { "id": "aws_core", "template": "promo_guardrails" },
+        { "id": "capability_matrix", "template": "pxm_matrix" }
+      ]
+    },
+    "OCI_CONSOLE": {
+      "header": [
+        { "id": "active_route", "label": "ACTIVE ROUTE", "bind": "context.active_route" },
+        { "id": "interception", "label": "INTERCEPTION", "bind": "context.interception_mode" }
+      ],
+      "blocks": [
+        { "id": "oci_core", "template": "compute_capacity" },
+        { "id": "capability_matrix", "template": "pxm_matrix" }
+      ]
+    },
+    "CONSUMER_CONSOLE": {
+      "header": [],
+      "blocks": [
+        { "id": "consumer", "template": "consumer_subscription" },
+        { "id": "capability_matrix", "template": "pxm_matrix" }
+      ]
+    }
+  },
+  "block_templates": {
+    "ai_studio_sandbox": {
+      "title": "BLOCK A: GOOGLE AI STUDIO (PUBLIC DEVELOPER SANDBOX)",
+      "sections": [
+        { "id": "projects", "label": "PROJECTS", "bind": "projects", "type": "list" },
+        { "id": "tpm_ceiling", "label": "QUOTA CEILING", "bind": "tpm_ceiling", "type": "tpm" },
+        { "id": "pricing_matrix", "label": "2026 COMMERCIAL MATRIX", "bind": "pricing_matrix", "type": "pricing" }
+      ]
+    },
+    "promo_guardrails": {
+      "title_pattern": "BLOCK B: {provider_label} (ENTERPRISE CORE POOL)",
+      "sections": [
+        { "id": "promo_pools", "label": "PROMO POOLS", "bind": "promo_pools", "type": "promo_list" },
+        { "id": "guardrails", "label": "GUARDRAILS", "bind": "guardrails", "type": "guardrails" },
+        { "id": "operations", "label": "ACTIONS", "bind": "operations", "type": "operations" }
+      ]
+    },
+    "dual_axis_cost": {
+      "title": "DUAL-AXIS COST GAUGE",
+      "bind": "guardrails"
+    },
+    "pxm_matrix": {
+      "title": "BLOCK C: PLATFORM × MODEL MATRIX",
+      "bind": "capability_matrix"
+    },
+    "compute_capacity": {
+      "title": "COMPUTE CAPACITY (ALWAYS FREE)",
+      "sections": [
+        { "id": "cpu", "label": "CPU", "bind": "cpu_percent", "type": "percent" },
+        { "id": "memory", "label": "MEMORY FREE", "bind": "memory_gb_free", "type": "gb" }
+      ]
+    },
+    "consumer_subscription": {
+      "title": "CONSUMER SUBSCRIPTION",
+      "sections": [
+        { "id": "allowance", "label": "ALLOWANCE", "bind": "allowance_summary", "type": "text" },
+        { "id": "operations", "label": "ACTIONS", "bind": "operations", "type": "operations" }
+      ]
+    }
+  }
+}

@@ -9,6 +9,7 @@ def test_load_app_config():
     cfg = AppConfig.load()
     assert cfg.database.engine == "sqlite"
     assert cfg.api_port > 0
+    assert cfg.api_base_url().startswith("http://")
 
 
 def test_load_provider_registry():

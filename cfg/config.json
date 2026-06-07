@@ -1,25 +1,36 @@
 {
   "app_name": "BAIC TokenMaxxing Control Plane",
-  "api_host": "127.0.0.1",
-  "api_port": 8765,
+  "api": {
+    "host": "127.0.0.1",
+    "port": 8765
+  },
   "database": {
     "engine": "sqlite",
     "path": "output/baic_state.db",
     "echo": false
   },
   "hub": {
-    "portfolio_status_live": "INITIALIZING",
+    "portfolio_status_live": "AWAITING LIVE METRICS",
     "portfolio_status_stub": "ACTIVE ARBITRAGE (STUB)",
-    "global_runway_months": 14,
-    "out_of_pocket_monthly": 19.99
+    "stub_demo": {
+      "global_runway_months": 14,
+      "out_of_pocket_monthly": 19.99
+    }
   },
   "ui": {
-    "dev_port": 5173,
-    "api_base_url": "http://127.0.0.1:8765",
+    "dev_server_port": 5173,
     "layout": {
       "mode": "mobile_first",
       "desktop_breakpoint": 1024,
-      "hot_dots_enabled": true
+      "hot_dots_enabled": true,
+      "rail_defaults": {
+        "left_width_px": 288,
+        "right_width_px": 460,
+        "left_min_px": 220,
+        "left_max_px": 560,
+        "right_min_px": 320,
+        "right_max_px": 820
+      }
     },
     "xray": {
       "auto_open_on_error": false,

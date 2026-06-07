@@ -35,10 +35,13 @@ class AppConfig:
             raise BaicError(ErrorCode.CONFIG_NOT_FOUND, f"Missing {path}")
         data = json.loads(path.read_text(encoding="utf-8"))
         db = data.get("database", {})
+        api = data.get("api", {})
+        api_host = api.get("host", data.get("api_host", "127.0.0.1"))
+        api_port = int(api.get("port", data.get("api_port", 8765)))
         return cls(
             app_name=data.get("app_name", "BAIC"),
-            api_host=data.get("api_host", "127.0.0.1"),
-            api_port=int(data.get("api_port", 8765)),
+            api_host=api_host,
+            api_port=api_port,
             database=DatabaseConfig(
                 engine=db.get("engine", "sqlite"),
                 path=db.get("path", "output/baic_state.db"),
@@ -53,6 +56,9 @@ class AppConfig:
 
     def ui_config(self) -> dict[str, Any]:
         return dict(self.raw.get("ui", {}))
+
+    def api_base_url(self) -> str:
+        return f"http://{self.api_host}:{self.api_port}"
 
 
 def load_provider_registry(path: Path | None = None) -> dict[str, Any]:
@@ -70,6 +76,13 @@ def load_capability_matrix(path: Path | None = None) -> dict[str, Any]:
         file_path = cfg_path("model_capability_matrix.json.example")
     if not file_path.is_file():
         raise BaicError(ErrorCode.CONFIG_NOT_FOUND, "model_capability_matrix.json not found")
+    return json.loads(file_path.read_text(encoding="utf-8"))
+
+
+def load_spoke_console_layout(path: Path | None = None) -> dict[str, Any]:
+    file_path = path or cfg_path("spoke_console_layout.json")
+    if not file_path.is_file():
+        raise BaicError(ErrorCode.CONFIG_NOT_FOUND, "spoke_console_layout.json not found")
     return json.loads(file_path.read_text(encoding="utf-8"))
 
 

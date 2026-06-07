@@ -31,3 +31,39 @@ body {
 .btn-primary {
   @apply rounded border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-sm text-cyan-300 transition hover:bg-cyan-500/20;
 }
+
+.hub-kpi-strip {
+  @apply grid gap-3 border border-baic-border md:grid-cols-3;
+}
+
+.hub-kpi {
+  @apply border border-baic-border bg-baic-panel/60 p-4 text-center;
+}
+
+.hub-section {
+  @apply border border-baic-border bg-baic-panel/30;
+}
+
+.hub-section-title {
+  @apply border-b border-baic-border px-4 py-2 text-xs font-semibold tracking-wide text-gray-400;
+}
+
+.hub-section-body {
+  @apply p-4;
+}
+
+.hub-grid {
+  @apply grid gap-4;
+}
+
+.hub-grid-2 {
+  @apply md:grid-cols-2;
+}
+
+.hub-grid-3 {
+  @apply md:grid-cols-2 xl:grid-cols-3;
+}
+
+.provenance-hotspot:focus-visible {
+  @apply outline outline-1 outline-cyan-500/60;
+}
