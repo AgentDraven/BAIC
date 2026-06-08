@@ -141,6 +141,90 @@
           "claim_dev_voucher": "Consumer dev voucher claim queued"
         }
       }
+    },
+    "groq": {
+      "display_name": "Groq (Direct API)",
+      "kind": "llm_api",
+      "console_screen": "LLM_API_CONSOLE",
+      "hierarchy": ["byok"],
+      "hierarchy_notes": "Direct vendor API — single BYOK tier; no billing_account or project. Key from GROQ_API_KEY.",
+      "bridge_module": "bridge.groq",
+      "metrics_profile": "token_and_promo_cash",
+      "enabled": true,
+      "api_base": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "models": ["llama-3.1-8b-instant", "llama-3.3-70b-versatile"],
+      "default_model": "llama-3.3-70b-versatile",
+      "hub_card": {
+        "detail": "Direct OpenAI-compatible API · Groq LPU inference",
+        "cta": "CONFIGURE API KEY",
+        "operations": ["enter_provider_console"],
+        "operation_labels": { "enter_provider_console": "OPEN CONSOLE" },
+        "balance_summary_stub": "Pay-as-you-go (BYOK)"
+      }
+    },
+    "openai": {
+      "display_name": "OpenAI (Direct API)",
+      "kind": "llm_api",
+      "console_screen": "LLM_API_CONSOLE",
+      "hierarchy": ["byok"],
+      "hierarchy_notes": "Direct vendor API — single BYOK tier. Key from OPENAI_API_KEY. Distinct from Azure-hosted OpenAI.",
+      "bridge_module": "bridge.openai",
+      "metrics_profile": "token_and_promo_cash",
+      "enabled": true,
+      "api_base": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY",
+      "models": ["gpt-4o-mini", "gpt-4o"],
+      "default_model": "gpt-4o",
+      "hub_card": {
+        "detail": "Direct api.openai.com · BYOK routing",
+        "cta": "CONFIGURE API KEY",
+        "operations": ["enter_provider_console"],
+        "operation_labels": { "enter_provider_console": "OPEN CONSOLE" },
+        "balance_summary_stub": "Pay-as-you-go (BYOK)"
+      }
+    },
+    "gemini": {
+      "display_name": "Gemini (Direct API)",
+      "kind": "llm_api",
+      "console_screen": "LLM_API_CONSOLE",
+      "hierarchy": ["byok"],
+      "hierarchy_notes": "Direct Generative Language API (OpenAI-compat). Key from GEMINI_API_KEY. Distinct from Vertex / AI Studio.",
+      "bridge_module": "bridge.gemini",
+      "metrics_profile": "token_and_promo_cash",
+      "enabled": true,
+      "api_base": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "api_key_env": "GEMINI_API_KEY",
+      "models": ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
+      "default_model": "gemini-2.0-flash",
+      "hub_card": {
+        "detail": "Direct Generative Language API · OpenAI-compatible surface",
+        "cta": "CONFIGURE API KEY",
+        "operations": ["enter_provider_console"],
+        "operation_labels": { "enter_provider_console": "OPEN CONSOLE" },
+        "balance_summary_stub": "Pay-as-you-go (BYOK)"
+      }
+    },
+    "anthropic": {
+      "display_name": "Anthropic (Direct API)",
+      "kind": "llm_api",
+      "console_screen": "LLM_API_CONSOLE",
+      "hierarchy": ["byok"],
+      "hierarchy_notes": "Direct vendor API — single BYOK tier. Key from ANTHROPIC_API_KEY. Distinct from Bedrock / Azure Claude.",
+      "bridge_module": "bridge.anthropic",
+      "metrics_profile": "token_and_promo_cash",
+      "enabled": true,
+      "api_base": "https://api.anthropic.com/v1",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "models": ["claude-3-haiku-20240307", "claude-3-5-sonnet-20240620"],
+      "default_model": "claude-3-5-sonnet-20240620",
+      "hub_card": {
+        "detail": "Direct api.anthropic.com · BYOK routing",
+        "cta": "CONFIGURE API KEY",
+        "operations": ["enter_provider_console"],
+        "operation_labels": { "enter_provider_console": "OPEN CONSOLE" },
+        "balance_summary_stub": "Pay-as-you-go (BYOK)"
+      }
     }
   }
 }

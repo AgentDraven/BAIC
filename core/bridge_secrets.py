@@ -34,6 +34,18 @@ BRIDGE_SECRET_SPECS: dict[str, list[dict[str, str]]] = {
     "google_one_ai": [
         {"key": "oauth_client_id", "env": "GOOGLE_ONE_CLIENT_ID", "description": "Google One AI OAuth client id"},
     ],
+    "groq": [
+        {"key": "api_key", "env": "GROQ_API_KEY", "description": "Groq API key"},
+    ],
+    "openai": [
+        {"key": "api_key", "env": "OPENAI_API_KEY", "description": "OpenAI API key"},
+    ],
+    "gemini": [
+        {"key": "api_key", "env": "GEMINI_API_KEY", "description": "Google Gemini API key"},
+    ],
+    "anthropic": [
+        {"key": "api_key", "env": "ANTHROPIC_API_KEY", "description": "Anthropic API key"},
+    ],
 }
 
 

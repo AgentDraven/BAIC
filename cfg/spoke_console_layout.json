@@ -61,6 +61,16 @@
         { "id": "consumer", "template": "consumer_subscription" },
         { "id": "capability_matrix", "template": "pxm_matrix" }
       ]
+    },
+    "LLM_API_CONSOLE": {
+      "header": [
+        { "id": "active_route", "label": "ACTIVE ROUTE", "bind": "context.active_route" },
+        { "id": "api_base", "label": "API BASE", "bind": "context.api_base" }
+      ],
+      "blocks": [
+        { "id": "llm_api_core", "template": "llm_api_byok" },
+        { "id": "capability_matrix", "template": "pxm_matrix" }
+      ]
     }
   },
   "block_templates": {
@@ -99,6 +109,14 @@
       "title": "CONSUMER SUBSCRIPTION",
       "sections": [
         { "id": "allowance", "label": "ALLOWANCE", "bind": "allowance_summary", "type": "text" },
+        { "id": "operations", "label": "ACTIONS", "bind": "operations", "type": "operations" }
+      ]
+    },
+    "llm_api_byok": {
+      "title": "DIRECT API (BYOK)",
+      "sections": [
+        { "id": "models", "label": "MODELS", "bind": "models", "type": "list" },
+        { "id": "api_base", "label": "API BASE", "bind": "api_base", "type": "text" },
         { "id": "operations", "label": "ACTIONS", "bind": "operations", "type": "operations" }
       ]
     }

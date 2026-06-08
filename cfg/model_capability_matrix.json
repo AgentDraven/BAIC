@@ -1,9 +1,24 @@
 {
-  "metadata": { "version": "1.0.0", "updated": "2026-06-06" },
+  "metadata": { "version": "1.1.0", "updated": "2026-06-08" },
   "model_catalog": {
     "gemini-2.5-flash": {
       "family": "google",
       "display_name": "Gemini 2.5 Flash",
+      "modalities": ["text"]
+    },
+    "gemini-2.0-flash": {
+      "family": "google",
+      "display_name": "Gemini 2.0 Flash",
+      "modalities": ["text"]
+    },
+    "gemini-1.5-flash": {
+      "family": "google",
+      "display_name": "Gemini 1.5 Flash",
+      "modalities": ["text"]
+    },
+    "gemini-1.5-pro": {
+      "family": "google",
+      "display_name": "Gemini 1.5 Pro",
       "modalities": ["text"]
     },
     "gpt-4o": {
@@ -11,9 +26,24 @@
       "display_name": "GPT-4o",
       "modalities": ["text", "vision"]
     },
+    "gpt-4o-mini": {
+      "family": "openai",
+      "display_name": "GPT-4o Mini",
+      "modalities": ["text"]
+    },
     "claude-sonnet-4": {
       "family": "anthropic",
       "display_name": "Claude Sonnet 4",
+      "modalities": ["text"]
+    },
+    "claude-3-haiku-20240307": {
+      "family": "anthropic",
+      "display_name": "Claude 3 Haiku",
+      "modalities": ["text"]
+    },
+    "claude-3-5-sonnet-20240620": {
+      "family": "anthropic",
+      "display_name": "Claude 3.5 Sonnet",
       "modalities": ["text"]
     },
     "grok-3": {
@@ -24,6 +54,16 @@
     "llama-3.3-70b": {
       "family": "meta",
       "display_name": "Llama 3.3 70B",
+      "modalities": ["text"]
+    },
+    "llama-3.3-70b-versatile": {
+      "family": "meta",
+      "display_name": "Llama 3.3 70B Versatile",
+      "modalities": ["text"]
+    },
+    "llama-3.1-8b-instant": {
+      "family": "meta",
+      "display_name": "Llama 3.1 8B Instant",
       "modalities": ["text"]
     }
   },
@@ -72,6 +112,66 @@
       "models": {
         "gpt-4o": { "available": true, "notes": "Cursor routing profile" },
         "claude-sonnet-4": { "available": true }
+      }
+    },
+    "groq": {
+      "provider_id": "groq",
+      "routing_surface": "direct_api",
+      "models": {
+        "llama-3.1-8b-instant": {
+          "available": true,
+          "endpoint_key": "groq:llama-3.1-8b-instant"
+        },
+        "llama-3.3-70b-versatile": {
+          "available": true,
+          "endpoint_key": "groq:llama-3.3-70b-versatile"
+        }
+      }
+    },
+    "openai": {
+      "provider_id": "openai",
+      "routing_surface": "direct_api",
+      "models": {
+        "gpt-4o-mini": {
+          "available": true,
+          "endpoint_key": "openai:gpt-4o-mini"
+        },
+        "gpt-4o": {
+          "available": true,
+          "endpoint_key": "openai:gpt-4o"
+        }
+      }
+    },
+    "gemini": {
+      "provider_id": "gemini",
+      "routing_surface": "direct_api",
+      "models": {
+        "gemini-2.0-flash": {
+          "available": true,
+          "endpoint_key": "gemini:gemini-2.0-flash"
+        },
+        "gemini-1.5-flash": {
+          "available": true,
+          "endpoint_key": "gemini:gemini-1.5-flash"
+        },
+        "gemini-1.5-pro": {
+          "available": true,
+          "endpoint_key": "gemini:gemini-1.5-pro"
+        }
+      }
+    },
+    "anthropic": {
+      "provider_id": "anthropic",
+      "routing_surface": "direct_api",
+      "models": {
+        "claude-3-haiku-20240307": {
+          "available": true,
+          "endpoint_key": "anthropic:claude-3-haiku-20240307"
+        },
+        "claude-3-5-sonnet-20240620": {
+          "available": true,
+          "endpoint_key": "anthropic:claude-3-5-sonnet-20240620"
+        }
       }
     }
   }

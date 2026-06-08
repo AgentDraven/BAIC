@@ -93,8 +93,35 @@ def load_secrets(path: Path | None = None) -> dict[str, Any]:
     return json.loads(file_path.read_text(encoding="utf-8"))
 
 
+def load_merged_provider_secrets(path: Path | None = None) -> dict[str, Any]:
+    """Merge cfg/secrets.json with layered MERIT env (persona L2 + repo L3)."""
+    from core.bridge_secrets import BRIDGE_SECRET_SPECS
+
+    doc = load_secrets(path)
+    providers: dict[str, dict[str, str]] = {
+        pid: dict(vals) for pid, vals in doc.get("providers", {}).items()
+    }
+    try:
+        from core.merit_env import load_merged_env
+
+        env = load_merged_env(repo_path=get_repo_root())
+    except Exception:
+        env = {}
+    env.update(load_env_secrets())
+
+    for pid, specs in BRIDGE_SECRET_SPECS.items():
+        row = dict(providers.get(pid, {}))
+        for spec in specs:
+            env_key = spec.get("env", "")
+            if env_key and env.get(env_key):
+                row[spec["key"]] = env[env_key]
+        if row:
+            providers[pid] = row
+    return {"providers": providers}
+
+
 def load_env_secrets() -> dict[str, str]:
-    """Merge relevant env vars (does not load .env.local — operator exports or uses secrets.json)."""
+    """Read known secret env vars from os.environ."""
     keys = [
         "GOOGLE_APPLICATION_CREDENTIALS",
         "GOOGLE_CLOUD_PROJECT",
@@ -110,6 +137,10 @@ def load_env_secrets() -> dict[str, str]:
         "CURSOR_API_TOKEN",
         "GITHUB_TOKEN",
         "GOOGLE_ONE_CLIENT_ID",
+        "GROQ_API_KEY",
+        "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
+        "ANTHROPIC_API_KEY",
     ]
     return {k: os.environ.get(k, "") for k in keys if os.environ.get(k)}
 

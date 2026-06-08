@@ -22,10 +22,23 @@ def test_registry_loads_all_enabled():
     ids = registry.list_ids()
     assert "google_cloud" in ids
     assert "cursor_pro" in ids
-    assert len(ids) >= 7
+    assert len(ids) >= 11
 
 
 def test_registry_missing_provider():
     registry = ProviderRegistry(load_provider_registry())
     with pytest.raises(BaicError):
         registry.get("nonexistent_provider")
+
+
+def test_llm_api_bridge_loads():
+    reg = load_provider_registry()
+    registry = ProviderRegistry(reg, stub_mode=True)
+    for pid in ("groq", "openai", "gemini", "anthropic"):
+        bridge = registry.get(pid)
+        cfg = reg["providers"][pid]
+        assert cfg["kind"] == "llm_api"
+        assert bridge.hierarchy_tiers() == ["byok"]
+        result = bridge.forward_request("byok/default", {"prompt": "hello", "model": cfg["models"][0]})
+        assert result.get("stub") is True
+        assert result.get("routed") is True

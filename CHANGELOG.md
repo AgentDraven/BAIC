@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## [0.1.9] - 2026-06-08
+
+### Added
+- **Four `llm_api` providers** from dirt SSOT: `groq`, `openai`, `gemini`, `anthropic` in `cfg/provider_registry.json` with `byok` hierarchy and hub cards.
+- **Shared LLM API bridge** (`bridge/llm_api.py`) plus thin stubs under `bridge/{groq,openai,gemini,anthropic}/`.
+- **`LLM_API_CONSOLE`** spoke template in `cfg/spoke_console_layout.json`.
+- **Model capability matrix v1.1.0** — dirt model IDs wired to new `llm_api` platforms.
+- **Layered env merge** — `core/merit_env.py` and `load_merged_provider_secrets()` in `core/config_loader.py` (L2 persona → L3 repo precedence).
+- **Secrets scaffold** — `GROQ_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY` in `.env.local.example` and `cfg/secrets.example.json`.
+
+### Changed
+- `core/api/app.py` loads merged provider secrets at startup.
+- **40 pytest tests** (added `test_llm_api_bridge_loads`).
+
 ## [0.1.6] - 2026-06-06
 
 ### Added (Phases 2–5)

@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from core.arbitrage import estimate_tokens, evaluate_route
 from core.capability_service import CapabilityService
-from core.config_loader import AppConfig, load_provider_registry, load_secrets
+from core.config_loader import AppConfig, load_merged_provider_secrets, load_provider_registry
 from core.config_scaffold import validate_scaffold
 from core.error_codes import BaicError
 from core.hub_service import HubService
@@ -65,7 +65,7 @@ def create_app(
     app_config = config or AppConfig.load()
     database = db or create_database(app_config, stub_mode=stub_mode)
     database.initialize()
-    secrets_doc = load_secrets()
+    secrets_doc = load_merged_provider_secrets()
     registry = ProviderRegistry(
         load_provider_registry(),
         secrets=secrets_doc.get("providers", {}),

@@ -35,14 +35,15 @@ Discover monetizable content, scalable workflows, and high-ROI implementations a
 - **Unverified / Unsafe Deployments:** Systems lacking secure sandboxing, adversarial debate verification, or persistent memory protocols.
 
 ## Scoring Bias
-Favor:
+
+### Favor
 <!-- RATIONALE: Aligns the Judge agent with strict ROI and empirical testing. Ref: Du et al., 2023 (Adversarial Debate) -->
 - **Concrete Unit Economics:** Direct, measurable reductions in operational overhead, explicitly detailing before-and-after cost structures.
 - **Absolute Observability Metrics:** Systems using reasoning entropy, value-function decay, or uncertainty variance to detect and retract from dead-ends.
 - **Monetizable Pain:** Addressing critical stressors such as cash flow optimization, payment collection friction, and time reclamation.
 - **Architectural Rigor:** Integration of persistent memory protocols, self-healing infrastructures, and multi-layered verification.
 
-Disfavor:
+### Disfavor
 - High complexity with slow payoff or unproven ROI.
 - Environments where costs explode non-literally due to multi-step task billing (The Loop Tax).
 - Echo-chamber consensus over rigorous stress-testing.
@@ -62,10 +63,10 @@ The Research Engine should produce:
 
 ---
 
-### Internal Rationalization: 76 Mechanisms & Empirical Targets
+## Internal Rationalization: 76 Mechanisms & Empirical Targets
 <!-- DEVELOPER NOTE: These 76 targets provide the Researcher agent with hyper-specific search vectors to find highly-technical, deeply-researched content rather than generic blog spam. -->
 
-**Benchmarking & Evaluation Mechanisms**
+### Benchmarking & Evaluation Mechanisms
 1. Reliability Surface $R(k, ε, λ)$
 2. Pass@k Metric (tau-bench)
 3. Action Metamorphic Relations
@@ -77,7 +78,7 @@ The Research Engine should produce:
 9. Bootstrap Voice Utility Formula ($V_u$)
 10. Bootstrap Face Utility Formula ($F_u$)
 
-**Cognitive Architecture & Reasoning Mechanisms**
+### Cognitive Architecture & Reasoning Mechanisms
 <!-- RATIONALE: Core reasoning frameworks mapped for BRAIN v2.1. Refs: Wei 2022, Yao 2023, Shinn 2023, Dhuliawala 2023 -->
 11. Chain-of-Thought (CoT) with Node-Level Axioms
 12. Tree-of-Thoughts (ToT) with Bounded Search Pruning
@@ -95,7 +96,7 @@ The Research Engine should produce:
 24. Mixture of Agents (MoA)
 25. Bayesian Optimization (AgentOpt)
 
-**Enterprise Deployment & Case Study Evidence**
+### Enterprise Deployment & Case Study Evidence
 26. Siemens AG (Manufacturing) - Predictive maintenance via multimodal inputs
 27. Mayo Clinic (Healthcare) - CNNs reducing diagnostic times
 28. JPMorgan Chase (Finance) - COiN platform extracting legal data
@@ -118,7 +119,7 @@ The Research Engine should produce:
 45. Telefónica (Telecommunications) - Teneo hybrid AI
 46. HelloFresh (E-commerce) - Support cost reduction
 
-**SME Market Research & Economic Drivers**
+### SME Market Research & Economic Drivers
 47. vCita Cash Flow Anchor
 48. SBEC Financial Metrics (Spend vs Savings)
 49. Eurostat Adoption Gap
@@ -131,7 +132,7 @@ The Research Engine should produce:
 56. World Economic Forum Projection
 57. SBEC Time Reclamation
 
-**Customer Lifetime Value (LTV) & Retention Analytics**
+### Customer Lifetime Value (LTV) & Retention Analytics
 58. Gartner AI Retention
 59. McKinsey Customization Index
 60. Stanford AI Expansion Value
@@ -141,7 +142,7 @@ The Research Engine should produce:
 64. Intercom Educational Impact
 65. OpenAI Pricing Lifespan
 
-**Operational Infrastructure & Financial Arbitrage**
+### Operational Infrastructure & Financial Arbitrage
 66. The "Loop Tax" Paradigm (Task-based vs Execution-based billing)
 67. Data Sovereignty Protocols
 68. Small-Large Model Cascades (Level8 routing)
@@ -156,7 +157,7 @@ The Research Engine should produce:
 
 ---
 
-### Academic & Industry Bibliography
+## Academic & Industry Bibliography
 *   Acar, O. A., & Gvirtz, A. (2024). *GenAI Can Help Small Companies Level the Playing Field*. Harvard Business Review.
 *   Ardito, L., Messeni Petruzzelli, A., & Panniello, U. (2024). *Artificial Intelligence Adoption and Revenue Growth in European SMEs*. Internet Research.
 *   Basiri, A., et al. (2016). *Chaos Engineering*. IEEE Software.
