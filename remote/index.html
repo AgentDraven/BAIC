@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tokenmaxxing</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d12;
+      --card: #16161e;
+      --text: #e4e4e7;
+      --muted: #71717a;
+      --border: #27272a;
+      --accent-start: #7c3aed;
+      --accent-end: #06b6d4;
+      --red: #ef4444;
+      --amber: #f59e0b;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .header {
+      padding: 2rem 1.5rem 1rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .title {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .meta {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .error-banner {
+      display: none;
+      margin: 1rem 1.5rem 0;
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 0.75rem 1rem;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 8px;
+      color: #fca5a5;
+      font-size: 0.875rem;
+    }
+
+    .error-banner.visible { display: block; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1rem;
+      padding: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: rgba(124, 58, 237, 0.2);
+      color: #c4b5fd;
+      border: 1px solid rgba(124, 58, 237, 0.35);
+      white-space: nowrap;
+    }
+
+    .fetched {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .line {
+      margin-bottom: 0.875rem;
+    }
+
+    .line:last-child { margin-bottom: 0; }
+
+    .line-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .line-label { color: var(--muted); }
+
+    .line-value { font-weight: 500; text-align: right; }
+
+    .subtitle {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+
+    .resets {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-top: 0.4rem;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-fill.normal {
+      background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+    }
+
+    .progress-fill.warn { background: var(--amber); }
+    .progress-fill.danger { background: var(--red); }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .badge-pill {
+      display: inline-block;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      color: #fff;
+    }
+
+    .chart {
+      margin-top: 0.4rem;
+    }
+
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 64px;
+    }
+
+    .chart-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .chart-bar {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      background: linear-gradient(180deg, var(--accent-end), var(--accent-start));
+      min-height: 2px;
+    }
+
+    .chart-label {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
+
+    .chart-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 class="title">Tokenmaxxing</h1>
+    <p class="meta" id="status">Loading…</p>
+  </div>
+  <div class="error-banner" id="error"></div>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const API_BASE = params.get('api') || '';
+    const TOKEN = params.get('token') || '';
+    const REFRESH_SEC = Math.max(10, parseInt(params.get('refresh') || '60', 10) || 60);
+
+    const statusEl = document.getElementById('status');
+    const errorEl = document.getElementById('error');
+    const gridEl = document.getElementById('grid');
+
+    let lastUpdated = null;
+    let snapshots = [];
+
+    function esc(str) {
+      if (str == null) return '';
+      const el = document.createElement('span');
+      el.textContent = String(str);
+      return el.textContent;
+    }
+
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text != null) node.textContent = text;
+      return node;
+    }
+
+    function formatRelativePast(iso) {
+      const diff = Date.now() - new Date(iso).getTime();
+      if (diff < 0) return 'just now';
+      const sec = Math.floor(diff / 1000);
+      if (sec < 60) return 'just now';
+      const min = Math.floor(sec / 60);
+      if (min < 60) return min + 'm ago';
+      const hr = Math.floor(min / 60);
+      if (hr < 24) return hr + 'h ' + (min % 60) + 'm ago';
+      const day = Math.floor(hr / 24);
+      return day + 'd ago';
+    }
+
+    function formatRelativeFuture(iso) {
+      const diff = new Date(iso).getTime() - Date.now();
+      if (diff <= 0) return 'resets soon';
+      const sec = Math.floor(diff / 1000);
+      const min = Math.floor(sec / 60);
+      if (min < 60) return 'resets in ' + min + 'm';
+      const hr = Math.floor(min / 60);
+      const remMin = min % 60;
+      if (hr < 24) return 'resets in ' + hr + 'h ' + remMin + 'm';
+      const day = Math.floor(hr / 24);
+      return 'resets in ' + day + 'd';
+    }
+
+    function formatProgressValue(line) {
+      const { used, limit, format } = line;
+      const kind = format?.kind || 'percent';
+      if (kind === 'percent') {
+        return Math.round(used) + '%';
+      }
+      if (kind === 'dollars') {
+        return '$' + used.toFixed(2) + ' / $' + limit.toFixed(2);
+      }
+      const sfx = format?.suffix ? ' ' + format.suffix : '';
+      return Math.round(used) + ' / ' + Math.round(limit) + sfx;
+    }
+
+    function progressRatio(used, limit) {
+      if (!limit || limit <= 0) return 0;
+      return Math.max(0, Math.min(1, used / limit));
+    }
+
+    function progressBarClass(ratio) {
+      if (ratio > 0.9) return 'danger';
+      if (ratio > 0.75) return 'warn';
+      return 'normal';
+    }
+
+    function renderProgress(line) {
+      const wrap = el('div', 'line');
+      const row = el('div', 'line-row');
+      row.appendChild(el('span', 'line-label', line.label));
+      row.appendChild(el('span', 'line-value', formatProgressValue(line)));
+      wrap.appendChild(row);
+
+      const ratio = progressRatio(line.used, line.limit);
+      const bar = el('div', 'progress-bar');
+      const fill = el('div', 'progress-fill ' + progressBarClass(ratio));
+      fill.style.width = (ratio * 100) + '%';
+      bar.appendChild(fill);
+      wrap.appendChild(bar);
+
+      if (line.resetsAt) {
+        wrap.appendChild(el('div', 'resets', formatRelativeFuture(line.resetsAt)));
+      }
+      return wrap;
+    }
+
+    function renderText(line) {
+      const wrap = el('div', 'line');
+      const row = el('div', 'line-row');
+      row.appendChild(el('span', 'line-label', line.label));
+      row.appendChild(el('span', 'line-value', line.value));
+      wrap.appendChild(row);
+      if (line.subtitle) {
+        wrap.appendChild(el('div', 'subtitle', line.subtitle));
+      }
+      return wrap;
+    }
+
+    function renderBadge(line) {
+      const wrap = el('div', 'line');
+      const row = el('div', 'badge-row');
+      row.appendChild(el('span', 'line-label', line.label));
+      const pill = el('span', 'badge-pill', line.text);
+      if (line.color) {
+        pill.style.background = line.color;
+        pill.style.borderColor = line.color;
+      }
+      row.appendChild(pill);
+      wrap.appendChild(row);
+      if (line.subtitle) {
+        wrap.appendChild(el('div', 'subtitle', line.subtitle));
+      }
+      return wrap;
+    }
+
+    function renderBarChart(line) {
+      const wrap = el('div', 'line');
+      wrap.appendChild(el('div', 'line-row', line.label));
+
+      const points = line.points || [];
+      const maxVal = Math.max(...points.map(p => p.value), 1);
+
+      const chart = el('div', 'chart');
+      const bars = el('div', 'chart-bars');
+
+      for (const pt of points) {
+        const barWrap = el('div', 'chart-bar-wrap');
+        const bar = el('div', 'chart-bar');
+        const pct = (pt.value / maxVal) * 100;
+        bar.style.height = Math.max(2, pct) + '%';
+        if (line.color) bar.style.background = line.color;
+        barWrap.appendChild(bar);
+        barWrap.appendChild(el('div', 'chart-label', pt.label));
+        bars.appendChild(barWrap);
+      }
+
+      chart.appendChild(bars);
+      wrap.appendChild(chart);
+
+      if (line.note) {
+        wrap.appendChild(el('div', 'chart-note', line.note));
+      }
+      return wrap;
+    }
+
+    function renderLine(line) {
+      switch (line.type) {
+        case 'progress': return renderProgress(line);
+        case 'text': return renderText(line);
+        case 'badge': return renderBadge(line);
+        case 'barChart': return renderBarChart(line);
+        default: return null;
+      }
+    }
+
+    function renderCard(snapshot) {
+      const card = el('div', 'card');
+
+      const header = el('div', 'card-header');
+      const left = el('div');
+      left.appendChild(el('div', 'card-title', snapshot.displayName));
+      if (snapshot.plan) {
+        left.appendChild(el('span', 'pill', snapshot.plan));
+      }
+      header.appendChild(left);
+
+      if (snapshot.fetchedAt) {
+        header.appendChild(el('span', 'fetched', formatRelativePast(snapshot.fetchedAt)));
+      }
+      card.appendChild(header);
+
+      const lines = snapshot.lines || [];
+      for (const line of lines) {
+        const node = renderLine(line);
+        if (node) card.appendChild(node);
+      }
+
+      return card;
+    }
+
+    function render() {
+      gridEl.replaceChildren();
+
+      if (!snapshots.length) {
+        gridEl.appendChild(el('div', 'empty', 'No usage data yet'));
+        return;
+      }
+
+      for (const snap of snapshots) {
+        gridEl.appendChild(renderCard(snap));
+      }
+    }
+
+    function updateStatus() {
+      if (lastUpdated) {
+        const ago = formatRelativePast(lastUpdated.toISOString());
+        statusEl.textContent = 'Last updated ' + ago + ' · refreshes every ' + REFRESH_SEC + 's';
+      } else {
+        statusEl.textContent = 'Waiting for data…';
+      }
+    }
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.classList.add('visible');
+    }
+
+    function hideError() {
+      errorEl.classList.remove('visible');
+      errorEl.textContent = '';
+    }
+
+    async function fetchUsage() {
+      const url = (API_BASE.replace(/\/$/, '') || '') + '/v1/usage';
+      const headers = {};
+      if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+
+      try {
+        const res = await fetch(url, { headers });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        snapshots = Array.isArray(data) ? data : [];
+        lastUpdated = new Date();
+        hideError();
+        render();
+        updateStatus();
+      } catch (err) {
+        showError('Fetch failed: ' + esc(err.message) + ' — showing stale data');
+        updateStatus();
+      }
+    }
+
+    fetchUsage();
+    setInterval(fetchUsage, REFRESH_SEC * 1000);
+    setInterval(updateStatus, 30000);
+  </script>
+</body>
+</html>
