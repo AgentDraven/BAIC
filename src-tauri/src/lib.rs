@@ -204,10 +204,7 @@ fn init_panel(app_handle: tauri::AppHandle) {
 
 #[tauri::command]
 fn hide_panel(app_handle: tauri::AppHandle) {
-    use tauri_nspanel::ManagerExt;
-    if let Ok(panel) = app_handle.get_webview_panel("main") {
-        panel.hide();
-    }
+    panel::hide_panel(&app_handle);
 }
 
 #[tauri::command]
@@ -509,12 +506,34 @@ pub fn run() {
     let runtime = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
     let _guard = runtime.enter();
 
-    tauri::Builder::default()
+    #[allow(unused_mut)]
+    let mut builder = tauri::Builder::default();
+    // Native NSPanel dropdown plugin — macOS only. Windows/Linux use the main
+    // WebviewWindow as the dropdown (see src/panel/other.rs).
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.plugin(tauri_nspanel::init());
+    }
+
+    builder
         .plugin(tauri_plugin_aptabase::Builder::new("A-US-6435241436").build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(tauri_nspanel::init())
+        .on_window_event(|window, event| {
+            // Hide the dropdown when it loses focus, mirroring the macOS
+            // `window_did_resign_key` behavior in the NSPanel backend.
+            #[cfg(not(target_os = "macos"))]
+            if let tauri::WindowEvent::Focused(false) = event {
+                if window.label() == "main" {
+                    let _ = window.hide();
+                }
+            }
+            #[cfg(target_os = "macos")]
+            {
+                let _ = (window, event);
+            }
+        })
         .plugin(
             tauri_plugin_log::Builder::new()
                 .targets([
@@ -554,7 +573,7 @@ pub fn run() {
             use tauri::Manager;
 
             let version = app.package_info().version.to_string();
-            log::info!("OpenUsage v{} starting", version);
+            log::info!("Tokenmaxxing v{} starting", version);
 
             // Load config early (lazy init via OnceLock, zero-cost after)
             let _proxy = config::get_resolved_proxy();

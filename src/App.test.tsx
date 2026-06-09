@@ -667,7 +667,7 @@ describe("App", () => {
     render(<App />)
 
     // Open about via version button in footer
-    await userEvent.click(await screen.findByRole("button", { name: /OpenUsage/i }))
+    await userEvent.click(await screen.findByRole("button", { name: /Tokenmaxxing/i }))
     await screen.findByText("Built by")
 
     // Close about via ESC key
@@ -824,7 +824,7 @@ describe("App", () => {
     // and every line gets a metric tag.
     await waitFor(() =>
       expect(state.traySetTooltipMock).toHaveBeenCalledWith(
-        "OpenUsage\nClaude: 42% · Weekly\nCursor: 55% · Credits"
+        "Tokenmaxxing\nClaude: 42% · Weekly\nCursor: 55% · Credits"
       )
     )
   })

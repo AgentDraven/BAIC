@@ -1,18 +1,23 @@
-# Track all your AI coding subscriptions in one place
+# Tokenmaxxing — track all your AI coding subscriptions in one place
 
-See your usage at a glance from your menu bar. No digging through dashboards.
+See your usage at a glance from your menu/task bar. No digging through dashboards.
 
-![OpenUsage Screenshot](screenshot.png)
+> **Tokenmaxxing is a community fork of [OpenUsage](https://github.com/robinebers/openusage) by [Robin Ebers](https://github.com/robinebers).**
+> It is **not** affiliated with, endorsed by, or an official part of OpenUsage. The goal of this fork is to bring the app to **Windows and Linux** in addition to macOS. All original credit for the design and the vast majority of the code goes to the OpenUsage authors — see [CREDITS.md](CREDITS.md).
 
-## Download
+## Platform status
 
-[**Download the latest release**](https://github.com/robinebers/openusage/releases/latest) (macOS, Apple Silicon & Intel)
+| Platform | Status |
+|----------|--------|
+| **macOS** (Apple Silicon & Intel) | ✅ Works (inherited from OpenUsage) |
+| **Windows** | 🚧 In progress — see [PORTING.md](PORTING.md) |
+| **Linux** | 🚧 In progress — see [PORTING.md](PORTING.md) |
 
-The app auto-updates. Install once and you're set.
+The macOS dropdown uses a native `NSPanel`; the Windows/Linux port replaces that with a standard Tauri window. Tracking work is in [PORTING.md](PORTING.md).
 
 ## What It Does
 
-OpenUsage lives in your menu bar and shows you how much of your AI coding subscriptions you've used. Progress bars, badges, and clear labels. No mental math required.
+Tokenmaxxing lives in your menu/task bar and shows how much of your AI coding subscriptions you've used. Progress bars, badges, and clear labels. No mental math required.
 
 - **One glance.** All your AI tools, one panel.
 - **Always up-to-date.** Refreshes automatically on a schedule you pick.
@@ -40,63 +45,45 @@ OpenUsage lives in your menu bar and shows you how much of your AI coding subscr
 - [**Devin**](docs/providers/devin.md) / weekly quota, extra usage
 - [**Z.ai**](docs/providers/zai.md) / session, weekly, web searches
 
-Community contributions welcome.
-
-Want a provider that's not listed? [Open an issue.](https://github.com/robinebers/openusage/issues/new)
-
-## Open Source, Community Driven
-
-OpenUsage is built by its users. Hundreds of people use it daily, and the project grows through community contributions: new providers, bug fixes, and ideas.
-
-I maintain the project as a guide and quality gatekeeper, but this is your app as much as mine. If something is missing or broken, the best way to get it fixed is to contribute by opening an issue, or submitting a PR.
-
-Plugins are currently bundled as we build our the API, but soon will be made flexible so you can build and load their own.
-
-<a href="https://www.star-history.com/?repos=robinebers%2Fopenusage&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=robinebers/openusage&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=robinebers/openusage&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=robinebers/openusage&type=date&legend=top-left" />
- </picture>
-</a>
-
-### How to Contribute
-
-- **Add a provider.** Each one is just a plugin. See the [Plugin API](docs/plugins/api.md).
-- **Fix a bug.** PRs welcome. Provide before/after screenshots.
-- **Request a feature.** [Open an issue](https://github.com/robinebers/openusage/issues/new) and make your case.
-
-Keep it simple. No feature creep, no AI-generated commit messages, test your changes.
-
-## Built Entirely with AI
-
-Not a single line of code in this project was read or written by hand. 100% AI-generated, AI-reviewed, AI-shipped — using [Cursor](https://cursor.com), [Claude Code](https://docs.anthropic.com/en/docs/claude-code), and [Codex CLI](https://github.com/openai/codex).
-
-OpenUsage is a real-world example of what I teach in the [AI Builder's Blueprint](https://itsbyrob.in/EBDqgJ6) — a proven process for building and shipping software with AI, no coding background required.
-
-## Sponsors
-
-OpenUsage is supported by our sponsors. Become a sponsor to get your logo here and on [openusage.ai](https://openusage.ai).
-
-[Become a Sponsor](https://github.com/sponsors/robinebers)
-
-<!-- Add sponsor logos here -->
+Want a provider that's not listed? [Open an issue.](https://github.com/falkoro/tokenmaxxing/issues/new)
 
 ## Credits
 
-Inspired by [CodexBar](https://github.com/steipete/CodexBar) by [@steipete](https://github.com/steipete). Same idea, very different approach.
+Tokenmaxxing is a fork of **[OpenUsage](https://github.com/robinebers/openusage)** by **[Robin Ebers](https://github.com/robinebers)** (MIT licensed). OpenUsage was in turn inspired by [CodexBar](https://github.com/steipete/CodexBar) by [@steipete](https://github.com/steipete). Full attribution in [CREDITS.md](CREDITS.md).
+
+This fork uses a different name and icon per the upstream [trademark policy](https://github.com/robinebers/openusage/blob/main/TRADEMARK.md): the "OpenUsage" name and logo are trademarks of Robin Ebers and are **not** used here.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) — see the license for the original copyright notice, which is retained.
 
 ---
 
 <details>
 <summary><strong>Build from source</strong></summary>
 
-> **Warning**: The `main` branch may not be stable. It is merged directly without staging, so users are advised to use tagged versions for stable builds. Tagged versions are fully tested while `main` may contain unreleased features.
+> **Warning**: The `master` branch may contain unreleased / in-progress (Windows/Linux) work and may not be stable.
 
 ### Stack
 
-...
+- **[Tauri 2](https://tauri.app)** (Rust backend + system webview)
+- **React 19 + TypeScript + Vite** frontend
+- **Bun** package manager
+- Plugin-based providers (bundled JS plugins in `plugins/`)
+
+### Prerequisites
+
+- [Rust](https://rustup.rs) toolchain
+- [Bun](https://bun.sh)
+- Platform Tauri prerequisites: see <https://tauri.app/start/prerequisites/>
+  (Linux needs `webkit2gtk`/`libgtk` dev packages; Windows needs the WebView2 runtime + MSVC build tools.)
+
+### Run
+
+```bash
+bun install
+bun run tauri dev      # dev
+bun run tauri build    # release bundle for the current OS
+```
+
+</details>

@@ -2,7 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [master, main]
+  push:
+    branches: [master]
 
 permissions:
   contents: read
@@ -25,3 +27,50 @@ jobs:
 
       - name: Run tests
         run: bun run test
+
+  # Cross-platform Rust compile signal for the Windows/Linux port.
+  # macOS is expected to pass; windows/linux are informational (continue-on-error)
+  # until the NSPanel-based UI is abstracted — see PORTING.md.
+  rust-build:
+    name: Tauri build (${{ matrix.platform }})
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            allow-failure: false
+          - platform: windows-latest
+            allow-failure: true
+          - platform: ubuntu-latest
+            allow-failure: true
+    runs-on: ${{ matrix.platform }}
+    continue-on-error: ${{ matrix.allow-failure }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux Tauri dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev \
+            librsvg2-dev patchelf libgtk-3-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install
+      - name: Bundle plugins
+        run: bun run bundle:plugins
+
+      - name: Build frontend
+        run: bun run build
+
+      - name: Cargo build (src-tauri)
+        working-directory: ./src-tauri
+        run: cargo build --release

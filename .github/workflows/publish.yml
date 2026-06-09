@@ -19,6 +19,13 @@ jobs:
             args: "--target aarch64-apple-darwin"
           - platform: macos-latest
             args: "--target x86_64-apple-darwin"
+          # Windows/Linux release builds — depend on the cross-platform port
+          # landing (see PORTING.md). Kept here so a tagged release attempts them;
+          # macOS still publishes even if these fail (fail-fast is false).
+          - platform: windows-latest
+            args: ""
+          - platform: ubuntu-latest
+            args: ""
     runs-on: ${{ matrix.platform }}
     env:
       RELEASE_TAG: ${{ github.ref_name }}
