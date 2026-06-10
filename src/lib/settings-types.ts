@@ -34,7 +34,7 @@ export const DEFAULT_MENUBAR_METRIC: MenubarMetric = "default";
 export const DEFAULT_GLOBAL_SHORTCUT: GlobalShortcut = null;
 export const DEFAULT_START_ON_LOGIN = false;
 export const DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED = false;
-export const DEFAULT_PANEL_KEEP_ON_TASKBAR = false;
+export const DEFAULT_PANEL_KEEP_ON_TASKBAR = true;
 
 const AUTO_UPDATE_INTERVALS: AutoUpdateIntervalMinutes[] = [5, 15, 30, 60];
 const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
