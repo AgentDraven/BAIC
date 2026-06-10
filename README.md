@@ -10,10 +10,10 @@ See your usage at a glance from your menu/task bar. No digging through dashboard
 | Platform | Status |
 |----------|--------|
 | **macOS** (Apple Silicon & Intel) | ✅ Works (inherited from OpenUsage) |
-| **Windows** | 🚧 In progress — see [PORTING.md](PORTING.md) |
-| **Linux** | 🚧 In progress — see [PORTING.md](PORTING.md) |
+| **Windows** | ✅ Builds (NSIS installer via CI) — beta, feedback welcome |
+| **Linux** | ✅ Works — deb / rpm / AppImage, verified on a live system |
 
-The macOS dropdown uses a native `NSPanel`; the Windows/Linux port replaces that with a standard Tauri window. Tracking work is in [PORTING.md](PORTING.md).
+The macOS dropdown uses a native `NSPanel`; on Windows/Linux it's a borderless always-on-top Tauri window. Port details in [PORTING.md](PORTING.md). Windows and Linux packages are built by CI on every push to `master` (grab them from the latest [Build Desktop run artifacts](../../actions/workflows/build-desktop.yml)); Linux additionally supports a headless server + [remote web dashboard](remote/README.md) setup.
 
 ## What It Does
 
