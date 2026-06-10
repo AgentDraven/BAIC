@@ -9,7 +9,23 @@
 //! `init`, `show_panel`, `hide_panel`, `toggle_panel`, `is_visible`,
 //! `position_panel_at_tray_icon`.
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use tauri::{AppHandle, Manager, Position, Size};
+
+static PANEL_PINNED: AtomicBool = AtomicBool::new(false);
+
+/// Sets whether the panel stays open as a draggable widget (Windows/Linux only).
+/// macOS ignores this flag — the NSPanel backend never reads it.
+pub fn set_pinned(pinned: bool) {
+    PANEL_PINNED.store(pinned, Ordering::Relaxed);
+}
+
+/// Returns whether the panel is pinned as a widget (Windows/Linux only).
+/// macOS ignores this flag — the NSPanel backend never reads it.
+pub fn is_pinned() -> bool {
+    PANEL_PINNED.load(Ordering::Relaxed)
+}
 
 #[cfg(target_os = "macos")]
 mod macos;

@@ -27,6 +27,10 @@ The macOS-only pieces were put behind a platform abstraction in `src/panel/`:
   now `#[cfg(target_os = "macos")]`.
 - `src/panel/other.rs` — Windows/Linux backend: the main `WebviewWindow` as a
   borderless, always-on-top, skip-taskbar dropdown.
+- Windows/Linux **pin-as-widget** mode: when pinned, the panel stays open on focus
+  loss, keeps its dragged position (no tray reposition on show), and can be moved
+  via a top drag region (`data-tauri-drag-region`). macOS NSPanel behavior is
+  unchanged.
 
 `Cargo.toml` moved `tauri-nspanel` under `[target.'cfg(target_os = "macos")']`.
 `lib.rs` registers the `tauri_nspanel` plugin only on macOS and hides the window on

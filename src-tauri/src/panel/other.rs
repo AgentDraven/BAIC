@@ -37,7 +37,9 @@ pub fn show_panel(app_handle: &AppHandle) {
         let _ = window.show();
         let _ = window.set_focus();
     }
-    position_panel_from_tray(app_handle);
+    if !super::is_pinned() {
+        position_panel_from_tray(app_handle);
+    }
 }
 
 pub fn toggle_panel(app_handle: &AppHandle) {

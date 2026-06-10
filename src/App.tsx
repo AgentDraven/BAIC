@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react"
 import { useShallow } from "zustand/react/shallow"
 import { AppShell } from "@/components/app/app-shell"
+import { PanelPinControl } from "@/components/panel-pin-control"
 import { useAppPluginViews } from "@/hooks/app/use-app-plugin-views"
 import { useProbe } from "@/hooks/app/use-probe"
 import { useSettingsBootstrap } from "@/hooks/app/use-settings-bootstrap"
@@ -238,33 +239,36 @@ function App() {
   )
 
   return (
-    <AppShell
-      onRefreshAll={handleRefreshAll}
-      navPlugins={navPlugins}
-      displayPlugins={displayPlugins}
-      settingsPlugins={settingsPlugins}
-      autoUpdateNextAt={autoUpdateNextAt}
-      selectedPlugin={selectedPlugin}
-      onPluginContextAction={handlePluginContextAction}
-      isPluginRefreshAvailable={isPluginRefreshAvailable}
-      onNavReorder={handleReorder}
-      appContentProps={{
-        onRetryPlugin: handleRetryPlugin,
-        onReorder: handleReorder,
-        onToggle: handleToggle,
-        onAutoUpdateIntervalChange: handleAutoUpdateIntervalChange,
-        onThemeModeChange: handleThemeModeChange,
-        onDisplayModeChange: handleDisplayModeChange,
-        onResetTimerDisplayModeChange: handleResetTimerDisplayModeChange,
-        onResetTimerDisplayModeToggle: handleResetTimerDisplayModeToggle,
-        onTimeFormatModeChange: handleTimeFormatModeChange,
-        onMenubarIconStyleChange: handleMenubarIconStyleChange,
-        onMenubarMetricChange: handleMenubarMetricChange,
-        traySettingsPreview,
-        onGlobalShortcutChange: handleGlobalShortcutChange,
-        onStartOnLoginChange: handleStartOnLoginChange,
-      }}
-    />
+    <>
+      <PanelPinControl />
+      <AppShell
+        onRefreshAll={handleRefreshAll}
+        navPlugins={navPlugins}
+        displayPlugins={displayPlugins}
+        settingsPlugins={settingsPlugins}
+        autoUpdateNextAt={autoUpdateNextAt}
+        selectedPlugin={selectedPlugin}
+        onPluginContextAction={handlePluginContextAction}
+        isPluginRefreshAvailable={isPluginRefreshAvailable}
+        onNavReorder={handleReorder}
+        appContentProps={{
+          onRetryPlugin: handleRetryPlugin,
+          onReorder: handleReorder,
+          onToggle: handleToggle,
+          onAutoUpdateIntervalChange: handleAutoUpdateIntervalChange,
+          onThemeModeChange: handleThemeModeChange,
+          onDisplayModeChange: handleDisplayModeChange,
+          onResetTimerDisplayModeChange: handleResetTimerDisplayModeChange,
+          onResetTimerDisplayModeToggle: handleResetTimerDisplayModeToggle,
+          onTimeFormatModeChange: handleTimeFormatModeChange,
+          onMenubarIconStyleChange: handleMenubarIconStyleChange,
+          onMenubarMetricChange: handleMenubarMetricChange,
+          traySettingsPreview,
+          onGlobalShortcutChange: handleGlobalShortcutChange,
+          onStartOnLoginChange: handleStartOnLoginChange,
+        }}
+      />
+    </>
   )
 }
 
