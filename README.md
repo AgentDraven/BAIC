@@ -17,12 +17,14 @@ The macOS dropdown uses a native `NSPanel`; on Windows/Linux it's a borderless a
 
 ## Download
 
-**[⬇ Latest beta release](https://github.com/falkoro/tokenmaxxing/releases/latest)** — direct downloads:
+**[⬇ Latest release](https://github.com/falkoro/tokenmaxxing/releases/latest)** — pick your platform:
 
-- **Windows**: [`Tokenmaxxing_0.6.27_x64-setup.exe`](https://github.com/falkoro/tokenmaxxing/releases/download/beta-0.6.27/Tokenmaxxing_0.6.27_x64-setup.exe) (SmartScreen will warn — unsigned beta; *More info → Run anyway*)
-- **Debian/Ubuntu**: [`Tokenmaxxing_0.6.27_amd64.deb`](https://github.com/falkoro/tokenmaxxing/releases/download/beta-0.6.27/Tokenmaxxing_0.6.27_amd64.deb)
-- **Fedora/openSUSE**: [`Tokenmaxxing-0.6.27-1.x86_64.rpm`](https://github.com/falkoro/tokenmaxxing/releases/download/beta-0.6.27/Tokenmaxxing-0.6.27-1.x86_64.rpm)
-- **Any Linux**: [`Tokenmaxxing_0.6.27_amd64.AppImage`](https://github.com/falkoro/tokenmaxxing/releases/download/beta-0.6.27/Tokenmaxxing_0.6.27_amd64.AppImage) (`chmod +x`, then run)
+- **Windows**: `Tokenmaxxing_<version>_x64-setup.exe` (SmartScreen will warn — unsigned; *More info → Run anyway*)
+- **Debian/Ubuntu**: `Tokenmaxxing_<version>_amd64.deb`
+- **Fedora/openSUSE**: `Tokenmaxxing-<version>-1.x86_64.rpm`
+- **Any Linux**: `Tokenmaxxing_<version>_amd64.AppImage` (`chmod +x`, then run)
+
+The app **auto-updates** on Windows/Linux: it checks GitHub releases every 15 minutes and updates in place (builds from v0.7.0 onward).
 
 Fresh builds for every `master` push are also available as [Build Desktop run artifacts](../../actions/workflows/build-desktop.yml) (requires GitHub login). Any machine running the app — Windows or Linux — can also serve its usage to other machines via the [remote web dashboard](remote/README.md).
 
