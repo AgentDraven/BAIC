@@ -1,7 +1,7 @@
 use tauri::image::Image;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::path::BaseDirectory;
-use tauri::tray::{MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_store::StoreExt;
@@ -214,8 +214,13 @@ pub fn create(app_handle: &AppHandle) -> tauri::Result<()> {
         .on_tray_icon_event(|tray, event| {
             let app_handle = tray.app_handle();
 
+            // Left button only: right-click must fall through to the native
+            // context menu (Windows/Linux show it on right-click).
             if let TrayIconEvent::Click {
-                button_state, rect, ..
+                button: MouseButton::Left,
+                button_state,
+                rect,
+                ..
             } = event
             {
                 if button_state == MouseButtonState::Up {

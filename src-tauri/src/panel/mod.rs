@@ -145,13 +145,40 @@ pub(crate) fn compute_placement(
         }
     };
 
+    // Panel height, same strategy as the width above.
+    let panel_height = match (window.outer_size(), window.scale_factor()) {
+        (Ok(s), Ok(win_scale)) => s.height as f64 / win_scale,
+        _ => {
+            let conf: serde_json::Value = serde_json::from_str(include_str!("../../tauri.conf.json"))
+                .expect("tauri.conf.json must be valid JSON");
+            conf["app"]["windows"][0]["height"]
+                .as_f64()
+                .expect("height must be set in tauri.conf.json")
+        }
+    };
+
+    let mon_logical_w = monitor.size().width as f64 / target_scale;
+    let mon_logical_h = monitor.size().height as f64 / target_scale;
+
     let icon_center_x = icon_logical_x + (icon_logical_w / 2.0);
-    let panel_x = icon_center_x - (panel_width / 2.0);
+    // Keep the panel fully on the monitor horizontally (a tray icon near the
+    // right edge would otherwise push it partially off-screen).
+    let panel_x = (icon_center_x - (panel_width / 2.0))
+        .min(mon_logical_x + mon_logical_w - panel_width)
+        .max(mon_logical_x);
     let nudge_up: f64 = 6.0;
-    // Clamp to the monitor's top edge: when the menu bar is set to auto-hide,
-    // the tray rect sits above the visible screen, which would otherwise push
-    // the panel's top edge off-screen and clip it.
-    let panel_y = (icon_logical_y + icon_logical_h - nudge_up).max(mon_logical_y);
+    let below_y = icon_logical_y + icon_logical_h - nudge_up;
+    // macOS: the menu bar is at the top, so the panel drops below the icon.
+    // Windows/Linux: the tray usually sits in a bottom taskbar — dropping
+    // below would render off-screen, so open the panel above the icon.
+    let panel_y = if below_y + panel_height > mon_logical_y + mon_logical_h {
+        (icon_logical_y - panel_height - nudge_up).max(mon_logical_y)
+    } else {
+        // Clamp to the monitor's top edge: when the menu bar is set to
+        // auto-hide, the tray rect sits above the visible screen, which would
+        // otherwise push the panel's top edge off-screen and clip it.
+        below_y.max(mon_logical_y)
+    };
 
     Some(PanelPlacement {
         x: panel_x,
