@@ -23,9 +23,9 @@ export function NavButton({
       aria-label={ariaLabel}
       className={cn(
         "relative flex items-center justify-center w-full p-2.5 transition-colors",
-        "hover:bg-accent",
+        "hover:bg-accent/70",
         isActive
-          ? "text-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-primary dark:before:bg-page-accent before:rounded-full"
+          ? "text-foreground bg-accent/60 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-primary dark:before:bg-page-accent before:rounded-full"
           : "text-muted-foreground"
       )}
     >

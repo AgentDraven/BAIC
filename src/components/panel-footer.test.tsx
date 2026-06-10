@@ -29,7 +29,7 @@ describe("PanelFooter", () => {
         {...footerProps}
       />
     )
-    expect(screen.getByText("Next update in 5m")).toBeTruthy()
+    expect(screen.getByText("Next refresh in 5m")).toBeTruthy()
   })
 
   it("shows countdown in seconds when < 60 seconds", () => {
@@ -43,7 +43,7 @@ describe("PanelFooter", () => {
         {...footerProps}
       />
     )
-    expect(screen.getByText("Next update in 30s")).toBeTruthy()
+    expect(screen.getByText("Next refresh in 30s")).toBeTruthy()
   })
 
   it("triggers refresh when clicking countdown label", async () => {
@@ -59,7 +59,7 @@ describe("PanelFooter", () => {
         {...footerProps}
       />
     )
-    const button = screen.getByRole("button", { name: /Next update in/i })
+    const button = screen.getByRole("button", { name: /Next refresh in/i })
     await userEvent.click(button)
     expect(onRefreshAll).toHaveBeenCalledTimes(1)
   })

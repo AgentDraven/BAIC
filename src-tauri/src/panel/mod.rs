@@ -9,7 +9,9 @@
 //! `init`, `show_panel`, `hide_panel`, `toggle_panel`, `is_visible`,
 //! `position_panel_at_tray_icon`.
 
+use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::{Duration, Instant};
 
 use tauri::{AppHandle, Manager, Position, Size};
 
@@ -53,6 +55,28 @@ pub fn keep_on_taskbar() -> bool {
 /// Hide on blur unless pinned and configured to stay open.
 pub fn should_hide_on_blur() -> bool {
     !is_pinned() || !stay_open_when_pinned()
+}
+
+static PANEL_SHOWN_AT: Mutex<Option<Instant>> = Mutex::new(None);
+
+const SHOW_GRACE: Duration = Duration::from_millis(500);
+
+/// Record that the panel was just shown. Used to ignore the spurious blur
+/// that fires right after show on Windows/Linux (the tray click briefly holds
+/// focus, which would otherwise hide/minimize the panel the instant it opens).
+pub fn mark_shown() {
+    if let Ok(mut guard) = PANEL_SHOWN_AT.lock() {
+        *guard = Some(Instant::now());
+    }
+}
+
+/// True for ~500ms after the last `mark_shown()` call.
+pub fn within_show_grace() -> bool {
+    PANEL_SHOWN_AT
+        .lock()
+        .ok()
+        .and_then(|guard| guard.as_ref().map(|t| t.elapsed() < SHOW_GRACE))
+        .unwrap_or(false)
 }
 
 #[cfg(target_os = "macos")]

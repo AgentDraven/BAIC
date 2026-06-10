@@ -45,20 +45,22 @@ pub fn hide_panel(app_handle: &AppHandle) {
 
 pub fn show_panel(app_handle: &AppHandle) {
     let _ = init(app_handle);
-    let mut was_minimized = false;
     if let Some(window) = app_handle.get_webview_window("main") {
-        was_minimized = window.is_minimized().unwrap_or(false);
+        let was_minimized = window.is_minimized().unwrap_or(false);
         if was_minimized {
             let _ = window.unminimize();
+        }
+        // Position BEFORE show so the panel appears under the tray icon
+        // straight away, instead of flashing at its old spot and jumping.
+        // Restoring from minimize keeps the spot the user dragged it to;
+        // pinned mode also stays put.
+        if !super::is_pinned() && !was_minimized {
+            position_panel_from_tray(app_handle);
         }
         let _ = window.show();
         let _ = window.set_focus();
     }
-    // Restoring from minimize keeps the spot the user dragged it to; only a
-    // fresh show (window was hidden) re-anchors under the tray icon.
-    if !super::is_pinned() && !was_minimized {
-        position_panel_from_tray(app_handle);
-    }
+    super::mark_shown();
 }
 
 pub fn toggle_panel(app_handle: &AppHandle) {

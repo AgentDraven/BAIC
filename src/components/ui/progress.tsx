@@ -42,11 +42,11 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
         aria-valuenow={clamped}
         aria-valuemin={0}
         aria-valuemax={100}
-        className={cn("relative h-3 w-full overflow-hidden rounded-full bg-muted dark:bg-[#353537]", className)}
+        className={cn("relative h-3.5 w-full overflow-hidden rounded-full bg-muted dark:bg-[#353537]", className)}
         {...props}
       >
         <div
-          className="h-full transition-all bg-primary"
+          className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
           style={{ width: `${clamped}%`, ...indicatorStyle }}
         />
         {showMarker && (

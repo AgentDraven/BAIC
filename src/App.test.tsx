@@ -1594,7 +1594,7 @@ describe("App", () => {
     await waitFor(() => expect(screen.getAllByRole("button", { name: "Retry" })).toHaveLength(2))
 
     const initialCalls = state.startBatchMock.mock.calls.length
-    const refreshButton = await screen.findByRole("button", { name: /Next update in/i })
+    const refreshButton = await screen.findByRole("button", { name: /Next refresh in/i })
     await userEvent.click(refreshButton)
 
     await waitFor(() =>
@@ -1625,7 +1625,7 @@ describe("App", () => {
     const initialCalls = state.startBatchMock.mock.calls.length
     state.startBatchMock.mockImplementation(() => new Promise(() => {}))
 
-    const refreshButton = await screen.findByRole("button", { name: /Next update in/i })
+    const refreshButton = await screen.findByRole("button", { name: /Next refresh in/i })
     await userEvent.click(refreshButton)
     await userEvent.click(refreshButton)
     await userEvent.click(refreshButton)
@@ -1652,7 +1652,7 @@ describe("App", () => {
       await screen.findByRole("button", { name: "Retry" })
 
       state.startBatchMock.mockRejectedValueOnce(new Error("refresh all failed"))
-      const refreshButton = await screen.findByRole("button", { name: /Next update in/i })
+      const refreshButton = await screen.findByRole("button", { name: /Next refresh in/i })
       await userEvent.click(refreshButton)
 
       await waitFor(() =>

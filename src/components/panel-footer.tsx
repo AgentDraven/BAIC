@@ -109,9 +109,9 @@ export function PanelFooter({
     const totalSeconds = Math.ceil(remainingMs / 1000);
     if (totalSeconds >= 60) {
       const minutes = Math.ceil(totalSeconds / 60);
-      return `Next update in ${minutes}m`;
+      return `Next refresh in ${minutes}m`;
     }
-    return `Next update in ${totalSeconds}s`;
+    return `Next refresh in ${totalSeconds}s`;
   }, [autoUpdateNextAt, now]);
 
   return (

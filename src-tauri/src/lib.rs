@@ -58,9 +58,13 @@ pub fn run() {
             #[cfg(not(target_os = "macos"))]
             if let tauri::WindowEvent::Focused(false) = event {
                 use tauri::Manager;
-                if window.label() == "main" && panel::should_hide_on_blur() {
+                if window.label() == "main"
+                    && panel::should_hide_on_blur()
+                    && !panel::within_show_grace()
+                {
                     // Route through the panel so "keep on taskbar" can
-                    // minimize instead of hide.
+                    // minimize instead of hide. The grace check ignores the
+                    // spurious blur fired right after the tray click opens it.
                     panel::hide_panel(window.app_handle());
                 }
             }

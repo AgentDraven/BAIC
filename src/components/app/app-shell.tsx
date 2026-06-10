@@ -88,7 +88,7 @@ export function AppShell({
     >
       {isMac && <div className="tray-arrow" />}
       <div
-        className="relative bg-card rounded-xl overflow-hidden select-none w-full border shadow-lg flex flex-col"
+        className="relative bg-card rounded-2xl overflow-hidden select-none w-full border border-border/70 ring-1 ring-black/[0.04] dark:ring-white/[0.06] shadow-xl flex flex-col"
         style={maxPanelHeightPx ? { maxHeight: `${maxPanelHeightPx - verticalOverheadPx}px` } : undefined}
       >
         <div className="flex flex-1 min-h-0 flex-row">
