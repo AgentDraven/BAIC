@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { AboutDialog } from "@/components/about-dialog";
 import type { UpdateStatus } from "@/hooks/use-app-update";
 import { useNowTicker } from "@/hooks/use-now-ticker";
+import { getDataSourceLabel } from "@/lib/data-source";
 
 interface PanelFooterProps {
   version: string;
@@ -100,6 +101,8 @@ export function PanelFooter({
     resetKey: autoUpdateNextAt,
   });
 
+  const dataSourceLabel = getDataSourceLabel();
+
   const countdownLabel = useMemo(() => {
     if (!autoUpdateNextAt) return "Paused";
     const remainingMs = Math.max(0, autoUpdateNextAt - now);
@@ -113,14 +116,26 @@ export function PanelFooter({
 
   return (
     <>
-      <div className="flex justify-between items-center h-8 pt-1.5 border-t">
-        <VersionDisplay
-          version={version}
-          updateStatus={updateStatus}
-          onUpdateInstall={onUpdateInstall}
-          onUpdateCheck={onUpdateCheck}
-          onVersionClick={onShowAbout}
-        />
+      <div className="flex justify-between items-center h-8 pt-1.5 border-t gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <VersionDisplay
+            version={version}
+            updateStatus={updateStatus}
+            onUpdateInstall={onUpdateInstall}
+            onUpdateCheck={onUpdateCheck}
+            onVersionClick={onShowAbout}
+          />
+          <span
+            className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded"
+            title={
+              dataSourceLabel === "Local"
+                ? "Usage is probed on this machine"
+                : "Usage is read from a remote API cache"
+            }
+          >
+            {dataSourceLabel}
+          </span>
+        </div>
         {autoUpdateNextAt !== null && onRefreshAll ? (
           <button
             type="button"

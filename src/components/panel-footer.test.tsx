@@ -9,6 +9,10 @@ vi.mock("@tauri-apps/plugin-opener", () => ({
   openUrl: vi.fn(() => Promise.resolve()),
 }))
 
+vi.mock("@tauri-apps/api/core", () => ({
+  isTauri: () => true,
+}))
+
 const idle: UpdateStatus = { status: "idle" }
 const noop = () => {}
 const footerProps = { showAbout: false, onShowAbout: noop, onCloseAbout: noop, onUpdateCheck: noop }

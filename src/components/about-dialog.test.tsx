@@ -23,24 +23,25 @@ vi.mock("@/hooks/use-changelog", () => ({
 }))
 
 describe("AboutDialog", () => {
-  it("renders version, links, and maintainers", () => {
+  it("renders version and falkoro attribution", () => {
     render(<AboutDialog version="1.2.3" onClose={() => {}} />)
     expect(screen.getByText("Tokenmaxxing")).toBeInTheDocument()
     expect(screen.getByText("v1.2.3")).toBeInTheDocument()
-    expect(screen.getByText("GitHub")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "validatedev" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "davidarny" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "falkoro" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "GitHub" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "OpenUsage" })).toBeInTheDocument()
+    expect(screen.getByText(/Robin Ebers/)).toBeInTheDocument()
   })
 
-  it("opens maintainer GitHub profiles on click", async () => {
+  it("opens falkoro and repo links on click", async () => {
     render(<AboutDialog version="1.2.3" onClose={() => {}} />)
 
-    await userEvent.click(screen.getByRole("button", { name: "validatedev" }))
-    expect(openerState.openUrlMock).toHaveBeenCalledWith("https://github.com/validatedev")
+    await userEvent.click(screen.getByRole("button", { name: "falkoro" }))
+    expect(openerState.openUrlMock).toHaveBeenCalledWith("https://github.com/falkoro")
 
     openerState.openUrlMock.mockClear()
-    await userEvent.click(screen.getByRole("button", { name: "davidarny" }))
-    expect(openerState.openUrlMock).toHaveBeenCalledWith("https://github.com/davidarny")
+    await userEvent.click(screen.getByRole("button", { name: "GitHub" }))
+    expect(openerState.openUrlMock).toHaveBeenCalledWith("https://github.com/falkoro/tokenmaxxing")
   })
 
   it("closes on Escape", async () => {
@@ -127,4 +128,3 @@ describe("AboutDialog", () => {
     }
   })
 })
-

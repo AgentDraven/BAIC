@@ -46,6 +46,23 @@
       margin-top: 0.5rem;
       font-size: 0.85rem;
       color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .source-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent-end);
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
     }
 
     .error-banner {
@@ -235,7 +252,10 @@
 <body>
   <div class="header">
     <h1 class="title">Tokenmaxxing</h1>
-    <p class="meta" id="status">Loading…</p>
+    <p class="meta">
+      <span class="source-badge" id="source-badge" title="Usage proxied from a remote Tokenmaxxing instance">Remote</span>
+      <span id="status">Loading…</span>
+    </p>
   </div>
   <div class="error-banner" id="error"></div>
   <div class="grid" id="grid"></div>
@@ -444,12 +464,28 @@
       }
     }
 
+    function upstreamLabel() {
+      if (API_BASE) {
+        try {
+          return new URL(API_BASE, location.href).host;
+        } catch {
+          return API_BASE;
+        }
+      }
+      return location.host;
+    }
+
     function updateStatus() {
+      const upstream = upstreamLabel();
+      const badge = document.getElementById('source-badge');
+      if (badge) {
+        badge.title = 'Usage proxied from ' + upstream;
+      }
       if (lastUpdated) {
         const ago = formatRelativePast(lastUpdated.toISOString());
-        statusEl.textContent = 'Last updated ' + ago + ' · refreshes every ' + REFRESH_SEC + 's';
+        statusEl.textContent = upstream + ' · last updated ' + ago + ' · refreshes every ' + REFRESH_SEC + 's';
       } else {
-        statusEl.textContent = 'Waiting for data…';
+        statusEl.textContent = upstream + ' · waiting for data…';
       }
     }
 
