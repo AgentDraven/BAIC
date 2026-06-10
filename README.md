@@ -13,7 +13,18 @@ See your usage at a glance from your menu/task bar. No digging through dashboard
 | **Windows** | ✅ Builds (NSIS installer via CI) — beta, feedback welcome |
 | **Linux** | ✅ Works — deb / rpm / AppImage, verified on a live system |
 
-The macOS dropdown uses a native `NSPanel`; on Windows/Linux it's a borderless always-on-top Tauri window. Port details in [PORTING.md](PORTING.md). Windows and Linux packages are built by CI on every push to `master` (grab them from the latest [Build Desktop run artifacts](../../actions/workflows/build-desktop.yml)); Linux additionally supports a headless server + [remote web dashboard](remote/README.md) setup.
+The macOS dropdown uses a native `NSPanel`; on Windows/Linux it's a borderless always-on-top Tauri window. Port details in [PORTING.md](PORTING.md).
+
+## Download
+
+**[⬇ Latest beta release](https://github.com/falkoro/tokenmaxxing/releases/latest)** — direct downloads:
+
+- **Windows**: [`Tokenmaxxing_0.6.27_x64-setup.exe`](https://github.com/falkoro/tokenmaxxing/releases/download/beta-0.6.27/Tokenmaxxing_0.6.27_x64-setup.exe) (SmartScreen will warn — unsigned beta; *More info → Run anyway*)
+- **Debian/Ubuntu**: [`Tokenmaxxing_0.6.27_amd64.deb`](https://github.com/falkoro/tokenmaxxing/releases/download/beta-0.6.27/Tokenmaxxing_0.6.27_amd64.deb)
+- **Fedora/openSUSE**: [`Tokenmaxxing-0.6.27-1.x86_64.rpm`](https://github.com/falkoro/tokenmaxxing/releases/download/beta-0.6.27/Tokenmaxxing-0.6.27-1.x86_64.rpm)
+- **Any Linux**: [`Tokenmaxxing_0.6.27_amd64.AppImage`](https://github.com/falkoro/tokenmaxxing/releases/download/beta-0.6.27/Tokenmaxxing_0.6.27_amd64.AppImage) (`chmod +x`, then run)
+
+Fresh builds for every `master` push are also available as [Build Desktop run artifacts](../../actions/workflows/build-desktop.yml) (requires GitHub login). Any machine running the app — Windows or Linux — can also serve its usage to other machines via the [remote web dashboard](remote/README.md).
 
 ## What It Does
 
