@@ -66,13 +66,20 @@ export function AppShell({
   const appVersion = useAppVersion()
   const { updateStatus, triggerInstall, checkForUpdates } = useAppUpdate()
 
+  // The up-pointing caret targets the macOS menu bar icon above the panel.
+  // On Windows/Linux the panel opens above a bottom taskbar, so it points at
+  // nothing — hide it and keep the margins symmetric.
+  const isMac =
+    navigator.userAgent.includes("Mac OS X") ||
+    navigator.userAgent.includes("Macintosh")
+
   return (
     <div
       ref={containerRef}
       tabIndex={-1}
-      className="flex flex-col items-center p-6 pt-1.5 bg-transparent outline-none"
+      className={`flex flex-col items-center p-6 bg-transparent outline-none ${isMac ? "pt-1.5" : ""}`}
     >
-      <div className="tray-arrow" />
+      {isMac && <div className="tray-arrow" />}
       <div
         className="relative bg-card rounded-xl overflow-hidden select-none w-full border shadow-lg flex flex-col"
         style={maxPanelHeightPx ? { maxHeight: `${maxPanelHeightPx - ARROW_OVERHEAD_PX}px` } : undefined}

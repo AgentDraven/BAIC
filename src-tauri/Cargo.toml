@@ -1,6 +1,6 @@
 [package]
 name = "openusage"
-version = "0.7.1"
+version = "0.7.2"
 description = "Tokenmaxxing is an open source, cross-platform AI subscription limit tracker (a fork of OpenUsage)"
 authors = ["Robin Ebers (original OpenUsage)", "Falk"]
 edition = "2024"
