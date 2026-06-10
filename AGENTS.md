@@ -9,7 +9,7 @@
 - Use `trash` for deletes
 - Use `mv` / `cp` to move and copy files
 - Bugs: add regression test when it fits
-- Keep files <~400 LOC; split/refactor as needed
+- Keep files <250 lines; split/refactor as needed
 - Simplicity first: handle only important cases; no enterprise over-engineering/fallbacks
 - New functionality: small OR absolutely necessary
 - NEVER delete files, folders or other data unless explicilty approved or part of a plan

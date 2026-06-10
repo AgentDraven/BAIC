@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { invoke } from "@tauri-apps/api/core"
 import { LazyStore } from "@tauri-apps/plugin-store"
 import { Pin, PinOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { isMacPlatform } from "@/lib/platform"
+import { useAppPreferencesStore } from "@/stores/app-preferences-store"
+import { useAppUiStore } from "@/stores/app-ui-store"
 
 const UI_STATE_STORE_PATH = "ui-state.json"
 const PANEL_PINNED_KEY = "panelPinned"
-// Matches the transparent p-6 margin around the card, so the drag frame never
-// covers interactive content.
 const DRAG_EDGE_PX = 24
 
 function applyPinned(pinned: boolean) {
@@ -22,13 +22,10 @@ const DRAG_EDGES: React.CSSProperties[] = [
   { top: 0, right: 0, bottom: 0, width: DRAG_EDGE_PX },
 ]
 
-/**
- * Pin toggle rendered as a side-nav button (Windows/Linux only).
- * While pinned, the transparent margin around the card becomes a drag frame
- * so the panel can be moved anywhere on screen.
- */
 export function PanelPinControl() {
-  const [pinned, setPinned] = useState(false)
+  const pinned = useAppUiStore((state) => state.panelPinned)
+  const setPinned = useAppUiStore((state) => state.setPanelPinned)
+  const keepOnTaskbar = useAppPreferencesStore((state) => state.panelKeepOnTaskbar)
 
   useEffect(() => {
     if (isMacPlatform()) return
@@ -42,7 +39,7 @@ export function PanelPinControl() {
         applyPinned(true)
       })
       .catch(console.error)
-  }, [])
+  }, [setPinned])
 
   if (isMacPlatform()) return null
 
@@ -58,9 +55,11 @@ export function PanelPinControl() {
       .catch(console.error)
   }
 
+  const draggable = pinned || keepOnTaskbar
+
   return (
     <>
-      {pinned &&
+      {draggable &&
         DRAG_EDGES.map((edge, index) => (
           <div
             key={index}

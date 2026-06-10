@@ -8,7 +8,6 @@ use tauri_plugin_store::StoreExt;
 
 use crate::log_path;
 use crate::panel::{hide_panel, is_visible, position_panel_at_tray_icon, show_panel};
-
 const LOG_LEVEL_STORE_KEY: &str = "logLevel";
 
 fn get_stored_log_level(app_handle: &AppHandle) -> log::LevelFilter {

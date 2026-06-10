@@ -15,6 +15,7 @@ use tauri::{AppHandle, Manager, Position, Size};
 
 static PANEL_PINNED: AtomicBool = AtomicBool::new(false);
 static PANEL_STAY_OPEN_WHEN_PINNED: AtomicBool = AtomicBool::new(false);
+static PANEL_KEEP_ON_TASKBAR: AtomicBool = AtomicBool::new(false);
 
 /// Sets whether the panel stays open as a draggable widget (Windows/Linux only).
 /// macOS ignores this flag — the NSPanel backend never reads it.
@@ -36,6 +37,17 @@ pub fn set_stay_open_when_pinned(stay_open: bool) {
 
 pub fn stay_open_when_pinned() -> bool {
     PANEL_STAY_OPEN_WHEN_PINNED.load(Ordering::Relaxed)
+}
+
+/// When enabled, dismissing the panel minimizes it instead of hiding it, so
+/// the app keeps a taskbar button while running (Windows/Linux only).
+/// macOS ignores this flag — the NSPanel backend never reads it.
+pub fn set_keep_on_taskbar(keep: bool) {
+    PANEL_KEEP_ON_TASKBAR.store(keep, Ordering::Relaxed);
+}
+
+pub fn keep_on_taskbar() -> bool {
+    PANEL_KEEP_ON_TASKBAR.load(Ordering::Relaxed)
 }
 
 /// Hide on blur unless pinned and configured to stay open.
@@ -77,6 +89,8 @@ fn monitor_contains_physical_point(
 pub(crate) struct PanelPlacement {
     pub x: f64,
     pub y: f64,
+    // Only the macOS backend flips into AppKit's bottom-left origin.
+    #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
     pub primary_logical_h: f64,
 }
 

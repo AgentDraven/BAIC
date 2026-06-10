@@ -6,6 +6,7 @@ import {
   DEFAULT_MENUBAR_ICON_STYLE,
   DEFAULT_MENUBAR_METRIC,
   DEFAULT_RESET_TIMER_DISPLAY_MODE,
+  DEFAULT_PANEL_KEEP_ON_TASKBAR,
   DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED,
   DEFAULT_START_ON_LOGIN,
   DEFAULT_THEME_MODE,
@@ -31,6 +32,7 @@ type AppPreferencesStore = {
   menubarIconStyle: MenubarIconStyle
   menubarMetric: MenubarMetric
   panelStayOpenWhenPinned: boolean
+  panelKeepOnTaskbar: boolean
   setAutoUpdateInterval: (value: AutoUpdateIntervalMinutes) => void
   setThemeMode: (value: ThemeMode) => void
   setDisplayMode: (value: DisplayMode) => void
@@ -41,6 +43,7 @@ type AppPreferencesStore = {
   setMenubarIconStyle: (value: MenubarIconStyle) => void
   setMenubarMetric: (value: MenubarMetric) => void
   setPanelStayOpenWhenPinned: (value: boolean) => void
+  setPanelKeepOnTaskbar: (value: boolean) => void
   resetState: () => void
 }
 
@@ -55,6 +58,7 @@ const initialState = {
   menubarIconStyle: DEFAULT_MENUBAR_ICON_STYLE,
   menubarMetric: DEFAULT_MENUBAR_METRIC,
   panelStayOpenWhenPinned: DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED,
+  panelKeepOnTaskbar: DEFAULT_PANEL_KEEP_ON_TASKBAR,
 }
 
 export const useAppPreferencesStore = create<AppPreferencesStore>((set) => ({
@@ -69,5 +73,6 @@ export const useAppPreferencesStore = create<AppPreferencesStore>((set) => ({
   setMenubarIconStyle: (value) => set({ menubarIconStyle: value }),
   setMenubarMetric: (value) => set({ menubarMetric: value }),
   setPanelStayOpenWhenPinned: (value) => set({ panelStayOpenWhenPinned: value }),
+  setPanelKeepOnTaskbar: (value) => set({ panelKeepOnTaskbar: value }),
   resetState: () => set(initialState),
 }))

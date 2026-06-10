@@ -40,6 +40,7 @@ export type AppContentActionProps = {
   onGlobalShortcutChange: (value: GlobalShortcut) => void
   onStartOnLoginChange: (value: boolean) => void
   onPanelStayOpenWhenPinnedChange: (value: boolean) => void
+  onPanelKeepOnTaskbarChange: (value: boolean) => void
 }
 
 export type AppContentProps = AppContentDerivedProps & AppContentActionProps
@@ -63,6 +64,7 @@ export function AppContent({
   onGlobalShortcutChange,
   onStartOnLoginChange,
   onPanelStayOpenWhenPinnedChange,
+  onPanelKeepOnTaskbarChange,
 }: AppContentProps) {
   const { activeView } = useAppUiStore(
     useShallow((state) => ({
@@ -81,6 +83,7 @@ export function AppContent({
     themeMode,
     startOnLogin,
     panelStayOpenWhenPinned,
+    panelKeepOnTaskbar,
   } = useAppPreferencesStore(
     useShallow((state) => ({
       displayMode: state.displayMode,
@@ -93,6 +96,7 @@ export function AppContent({
       themeMode: state.themeMode,
       startOnLogin: state.startOnLogin,
       panelStayOpenWhenPinned: state.panelStayOpenWhenPinned,
+      panelKeepOnTaskbar: state.panelKeepOnTaskbar,
     }))
   )
 
@@ -136,6 +140,8 @@ export function AppContent({
         onStartOnLoginChange={onStartOnLoginChange}
         panelStayOpenWhenPinned={panelStayOpenWhenPinned}
         onPanelStayOpenWhenPinnedChange={onPanelStayOpenWhenPinnedChange}
+        panelKeepOnTaskbar={panelKeepOnTaskbar}
+        onPanelKeepOnTaskbarChange={onPanelKeepOnTaskbarChange}
       />
     )
   }

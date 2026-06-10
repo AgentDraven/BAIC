@@ -4,6 +4,7 @@ import {
   getEnabledPluginIds,
   saveAutoUpdateInterval,
   saveGlobalShortcut,
+  savePanelKeepOnTaskbar,
   savePanelStayOpenWhenPinned,
   saveStartOnLogin,
   type AutoUpdateIntervalMinutes,
@@ -18,6 +19,7 @@ type UseSettingsSystemActionsArgs = {
   setGlobalShortcut: (value: GlobalShortcut) => void
   setStartOnLogin: (value: boolean) => void
   setPanelStayOpenWhenPinned: (value: boolean) => void
+  setPanelKeepOnTaskbar: (value: boolean) => void
   applyStartOnLogin: (value: boolean) => Promise<void>
 }
 
@@ -28,6 +30,7 @@ export function useSettingsSystemActions({
   setGlobalShortcut,
   setStartOnLogin,
   setPanelStayOpenWhenPinned,
+  setPanelKeepOnTaskbar,
   applyStartOnLogin,
 }: UseSettingsSystemActionsArgs) {
   const handleAutoUpdateIntervalChange = useCallback((value: AutoUpdateIntervalMinutes) => {
@@ -77,10 +80,21 @@ export function useSettingsSystemActions({
     })
   }, [setPanelStayOpenWhenPinned])
 
+  const handlePanelKeepOnTaskbarChange = useCallback((value: boolean) => {
+    setPanelKeepOnTaskbar(value)
+    void savePanelKeepOnTaskbar(value).catch((error) => {
+      console.error("Failed to save panel keep-on-taskbar setting:", error)
+    })
+    invoke("set_panel_keep_on_taskbar", { keep: value }).catch((error) => {
+      console.error("Failed to apply panel keep-on-taskbar setting:", error)
+    })
+  }, [setPanelKeepOnTaskbar])
+
   return {
     handleAutoUpdateIntervalChange,
     handleGlobalShortcutChange,
     handleStartOnLoginChange,
     handlePanelStayOpenWhenPinnedChange,
+    handlePanelKeepOnTaskbarChange,
   }
 }

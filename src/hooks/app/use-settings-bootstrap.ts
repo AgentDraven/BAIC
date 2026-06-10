@@ -6,32 +6,12 @@ import {
   isEnabled as isAutostartEnabled,
 } from "@tauri-apps/plugin-autostart"
 import type { PluginMeta } from "@/lib/plugin-types"
+import { loadStoredSettings } from "@/hooks/app/load-stored-settings"
 import {
   arePluginSettingsEqual,
-  DEFAULT_AUTO_UPDATE_INTERVAL,
-  DEFAULT_DISPLAY_MODE,
-  DEFAULT_GLOBAL_SHORTCUT,
-  DEFAULT_MENUBAR_ICON_STYLE,
-  DEFAULT_MENUBAR_METRIC,
-  DEFAULT_RESET_TIMER_DISPLAY_MODE,
-  DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED,
-  DEFAULT_START_ON_LOGIN,
-  DEFAULT_THEME_MODE,
-  DEFAULT_TIME_FORMAT_MODE,
   getEnabledPluginIds,
-  loadAutoUpdateInterval,
-  loadDisplayMode,
-  loadGlobalShortcut,
-  loadMenubarIconStyle,
-  loadMenubarMetric,
-  loadPanelStayOpenWhenPinned,
-  migrateLegacyTraySettings,
   migrateWindsurfToDevin,
   loadPluginSettings,
-  loadResetTimerDisplayMode,
-  loadStartOnLogin,
-  loadThemeMode,
-  loadTimeFormatMode,
   normalizePluginSettings,
   savePluginSettings,
   type AutoUpdateIntervalMinutes,
@@ -58,6 +38,7 @@ type UseSettingsBootstrapArgs = {
   setMenubarIconStyle: (value: MenubarIconStyle) => void
   setMenubarMetric: (value: MenubarMetric) => void
   setPanelStayOpenWhenPinned: (value: boolean) => void
+  setPanelKeepOnTaskbar: (value: boolean) => void
   setLoadingForPlugins: (ids: string[]) => void
   setErrorForPlugins: (ids: string[], error: string) => void
   startBatch: (pluginIds?: string[]) => Promise<string[] | undefined>
@@ -76,6 +57,7 @@ export function useSettingsBootstrap({
   setMenubarIconStyle,
   setMenubarMetric,
   setPanelStayOpenWhenPinned,
+  setPanelKeepOnTaskbar,
   setLoadingForPlugins,
   setErrorForPlugins,
   startBatch,
@@ -84,12 +66,10 @@ export function useSettingsBootstrap({
     if (!isTauri()) return
     const currentlyEnabled = await isAutostartEnabled()
     if (currentlyEnabled === value) return
-
     if (value) {
       await enableAutostart()
       return
     }
-
     await disableAutostart()
   }, [])
 
@@ -109,109 +89,21 @@ export function useSettingsBootstrap({
           await savePluginSettings(normalized)
         }
 
-        let storedInterval = DEFAULT_AUTO_UPDATE_INTERVAL
-        try {
-          storedInterval = await loadAutoUpdateInterval()
-        } catch (error) {
-          console.error("Failed to load auto-update interval:", error)
-        }
-
-        let storedThemeMode = DEFAULT_THEME_MODE
-        try {
-          storedThemeMode = await loadThemeMode()
-        } catch (error) {
-          console.error("Failed to load theme mode:", error)
-        }
-
-        let storedDisplayMode = DEFAULT_DISPLAY_MODE
-        try {
-          storedDisplayMode = await loadDisplayMode()
-        } catch (error) {
-          console.error("Failed to load display mode:", error)
-        }
-
-        let storedResetTimerDisplayMode = DEFAULT_RESET_TIMER_DISPLAY_MODE
-        try {
-          storedResetTimerDisplayMode = await loadResetTimerDisplayMode()
-        } catch (error) {
-          console.error("Failed to load reset timer display mode:", error)
-        }
-
-        let storedTimeFormatMode = DEFAULT_TIME_FORMAT_MODE
-        try {
-          storedTimeFormatMode = await loadTimeFormatMode()
-        } catch (error) {
-          console.error("Failed to load time format mode:", error)
-        }
-
-        let storedGlobalShortcut = DEFAULT_GLOBAL_SHORTCUT
-        try {
-          storedGlobalShortcut = await loadGlobalShortcut()
-        } catch (error) {
-          console.error("Failed to load global shortcut:", error)
-        }
-
-        let storedStartOnLogin = DEFAULT_START_ON_LOGIN
-        try {
-          storedStartOnLogin = await loadStartOnLogin()
-        } catch (error) {
-          console.error("Failed to load start on login:", error)
-        }
-
-        try {
-          await applyStartOnLogin(storedStartOnLogin)
-        } catch (error) {
-          console.error("Failed to apply start on login setting:", error)
-        }
-        try {
-          await migrateLegacyTraySettings()
-        } catch (error) {
-          console.error("Failed to migrate legacy tray settings:", error)
-        }
-
-        let storedMenubarIconStyle = DEFAULT_MENUBAR_ICON_STYLE
-        try {
-          storedMenubarIconStyle = await loadMenubarIconStyle()
-        } catch (error) {
-          console.error("Failed to load menubar icon style:", error)
-        }
-
-        let storedMenubarMetric = DEFAULT_MENUBAR_METRIC
-        try {
-          storedMenubarMetric = await loadMenubarMetric()
-        } catch (error) {
-          console.error("Failed to load menubar metric:", error)
-        }
-
-        let storedPanelStayOpenWhenPinned = DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED
-        try {
-          storedPanelStayOpenWhenPinned = await loadPanelStayOpenWhenPinned()
-        } catch (error) {
-          console.error("Failed to load panel stay-open setting:", error)
-        }
-
-        if (isTauri()) {
-          try {
-            await invoke("set_panel_stay_open_when_pinned", {
-              stayOpen: storedPanelStayOpenWhenPinned,
-            })
-          } catch (error) {
-            console.error("Failed to apply panel stay-open setting:", error)
-          }
-        }
+        const stored = await loadStoredSettings(applyStartOnLogin)
 
         if (isMounted) {
           setPluginSettings(normalized)
-          setAutoUpdateInterval(storedInterval)
-          setThemeMode(storedThemeMode)
-          setDisplayMode(storedDisplayMode)
-          setResetTimerDisplayMode(storedResetTimerDisplayMode)
-          setTimeFormatMode(storedTimeFormatMode)
-          setGlobalShortcut(storedGlobalShortcut)
-          setStartOnLogin(storedStartOnLogin)
-          setMenubarIconStyle(storedMenubarIconStyle)
-          setMenubarMetric(storedMenubarMetric)
-          setPanelStayOpenWhenPinned(storedPanelStayOpenWhenPinned)
+          setAutoUpdateInterval(stored.autoUpdateInterval)
+          setThemeMode(stored.themeMode)
+          setDisplayMode(stored.displayMode)
+          setResetTimerDisplayMode(stored.resetTimerDisplayMode)
+          setTimeFormatMode(stored.timeFormatMode)
+          setGlobalShortcut(stored.globalShortcut)
+          setStartOnLogin(stored.startOnLogin)
+          setMenubarIconStyle(stored.menubarIconStyle)
+          setMenubarMetric(stored.menubarMetric)
+          setPanelStayOpenWhenPinned(stored.panelStayOpenWhenPinned)
+          setPanelKeepOnTaskbar(stored.panelKeepOnTaskbar)
 
           const enabledIds = getEnabledPluginIds(normalized)
           setLoadingForPlugins(enabledIds)
@@ -230,7 +122,6 @@ export function useSettingsBootstrap({
     }
 
     loadSettings()
-
     return () => {
       isMounted = false
     }
@@ -243,8 +134,8 @@ export function useSettingsBootstrap({
     setLoadingForPlugins,
     setMenubarIconStyle,
     setMenubarMetric,
-    migrateWindsurfToDevin,
-    migrateLegacyTraySettings,
+    setPanelKeepOnTaskbar,
+    setPanelStayOpenWhenPinned,
     setPluginSettings,
     setPluginsMeta,
     setResetTimerDisplayMode,
@@ -254,7 +145,5 @@ export function useSettingsBootstrap({
     startBatch,
   ])
 
-  return {
-    applyStartOnLogin,
-  }
+  return { applyStartOnLogin }
 }

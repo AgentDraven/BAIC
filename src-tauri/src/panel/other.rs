@@ -22,23 +22,41 @@ pub fn init(app_handle: &AppHandle) -> tauri::Result<()> {
 pub fn is_visible(app_handle: &AppHandle) -> bool {
     app_handle
         .get_webview_window("main")
-        .and_then(|w| w.is_visible().ok())
+        .map(|w| {
+            // A minimized window still reports is_visible() == true, but for
+            // toggle purposes it is dismissed.
+            w.is_visible().unwrap_or(false) && !w.is_minimized().unwrap_or(false)
+        })
         .unwrap_or(false)
 }
 
 pub fn hide_panel(app_handle: &AppHandle) {
     if let Some(window) = app_handle.get_webview_window("main") {
-        let _ = window.hide();
+        if super::keep_on_taskbar() {
+            // Minimize instead of hiding so the taskbar button stays alive
+            // (a hidden window loses its taskbar presence, which also made
+            // right-clicking the taskbar button act on a vanished window).
+            let _ = window.minimize();
+        } else {
+            let _ = window.hide();
+        }
     }
 }
 
 pub fn show_panel(app_handle: &AppHandle) {
     let _ = init(app_handle);
+    let mut was_minimized = false;
     if let Some(window) = app_handle.get_webview_window("main") {
+        was_minimized = window.is_minimized().unwrap_or(false);
+        if was_minimized {
+            let _ = window.unminimize();
+        }
         let _ = window.show();
         let _ = window.set_focus();
     }
-    if !super::is_pinned() {
+    // Restoring from minimize keeps the spot the user dragged it to; only a
+    // fresh show (window was hidden) re-anchors under the tray icon.
+    if !super::is_pinned() && !was_minimized {
         position_panel_from_tray(app_handle);
     }
 }
