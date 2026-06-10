@@ -8,8 +8,14 @@ import { useAppVersion } from "@/hooks/app/use-app-version"
 import { usePanel } from "@/hooks/app/use-panel"
 import { useAppUpdate } from "@/hooks/use-app-update"
 import { useAppUiStore } from "@/stores/app-ui-store"
+import { isMacPlatform } from "@/lib/platform"
 
-const ARROW_OVERHEAD_PX = 37
+// Vertical space around the card that counts against the window's max height:
+// macOS has the pt-1.5 top + tray arrow + pb-6 bottom (~37px); Windows/Linux
+// have the symmetric p-6 margin (48px). Using the wrong value clips the
+// footer at the bottom of the panel.
+const VERTICAL_OVERHEAD_MAC_PX = 37
+const VERTICAL_OVERHEAD_OTHER_PX = 48
 
 type AppShellProps = {
   onRefreshAll: () => void
@@ -69,9 +75,10 @@ export function AppShell({
   // The up-pointing caret targets the macOS menu bar icon above the panel.
   // On Windows/Linux the panel opens above a bottom taskbar, so it points at
   // nothing — hide it and keep the margins symmetric.
-  const isMac =
-    navigator.userAgent.includes("Mac OS X") ||
-    navigator.userAgent.includes("Macintosh")
+  const isMac = isMacPlatform()
+  const verticalOverheadPx = isMac
+    ? VERTICAL_OVERHEAD_MAC_PX
+    : VERTICAL_OVERHEAD_OTHER_PX
 
   return (
     <div
@@ -82,7 +89,7 @@ export function AppShell({
       {isMac && <div className="tray-arrow" />}
       <div
         className="relative bg-card rounded-xl overflow-hidden select-none w-full border shadow-lg flex flex-col"
-        style={maxPanelHeightPx ? { maxHeight: `${maxPanelHeightPx - ARROW_OVERHEAD_PX}px` } : undefined}
+        style={maxPanelHeightPx ? { maxHeight: `${maxPanelHeightPx - verticalOverheadPx}px` } : undefined}
       >
         <div className="flex flex-1 min-h-0 flex-row">
           <SideNav

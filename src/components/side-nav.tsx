@@ -29,6 +29,7 @@ function GaugeIcon({ className }: { className?: string }) {
 import { cn } from "@/lib/utils"
 import { getRelativeLuminance } from "@/lib/color"
 import { useDarkMode } from "@/hooks/use-dark-mode"
+import { PanelPinControl } from "@/components/panel-pin-control"
 
 type ActiveView = "home" | "settings" | string
 
@@ -249,6 +250,9 @@ export function SideNav({
           </SortableContext>
         </DndContext>
       </div>
+
+      {/* Pin as widget (Windows/Linux only) */}
+      <PanelPinControl />
 
       {/* Help */}
       <NavButton

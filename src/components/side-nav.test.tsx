@@ -34,6 +34,11 @@ describe("SideNav", () => {
     expect(onViewChange).toHaveBeenCalledWith("home")
   })
 
+  it("renders the pin control in the nav on non-macOS", () => {
+    render(<SideNav activeView="home" onViewChange={vi.fn()} plugins={[]} />)
+    expect(screen.getByRole("button", { name: "Pin panel" })).toBeInTheDocument()
+  })
+
   it("renders plugin icon button and uses brand color when appropriate", () => {
     const onViewChange = vi.fn()
     render(

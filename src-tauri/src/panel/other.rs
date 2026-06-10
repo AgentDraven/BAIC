@@ -1,9 +1,10 @@
 //! Non-macOS panel backend (Windows / Linux).
 //!
 //! There is no `NSPanel` outside macOS, so the app's main `WebviewWindow` doubles
-//! as the dropdown: borderless, always-on-top, hidden from the taskbar, shown and
-//! positioned under the tray icon and hidden again when it loses focus (the
-//! focus-out hide is wired up in `lib.rs` via `on_window_event`).
+//! as the dropdown: borderless, always-on-top, shown and positioned under the
+//! tray icon and hidden again when it loses focus (the focus-out hide is wired
+//! up in `lib.rs` via `on_window_event`). The window keeps a taskbar presence
+//! while visible so it can be found, raised, and dismissed like a normal app.
 
 use tauri::{AppHandle, LogicalPosition, Manager, Position, Size};
 
@@ -13,7 +14,7 @@ use super::{PanelPlacement, compute_placement};
 pub fn init(app_handle: &AppHandle) -> tauri::Result<()> {
     if let Some(window) = app_handle.get_webview_window("main") {
         let _ = window.set_always_on_top(true);
-        let _ = window.set_skip_taskbar(true);
+        let _ = window.set_skip_taskbar(false);
     }
     Ok(())
 }

@@ -46,9 +46,17 @@ fn set_stored_log_level(app_handle: &AppHandle, level: log::LevelFilter) {
 }
 
 pub fn create(app_handle: &AppHandle) -> tauri::Result<()> {
+    // macOS uses a monochrome template glyph (recolored by the menu bar);
+    // Windows/Linux ignore the template flag, so a black glyph would be
+    // invisible on dark taskbars — use the colored icon there instead.
+    let tray_icon_file = if cfg!(target_os = "macos") {
+        "icons/tray-icon.png"
+    } else {
+        "icons/tray-icon-color.png"
+    };
     let tray_icon_path = app_handle
         .path()
-        .resolve("icons/tray-icon.png", BaseDirectory::Resource)?;
+        .resolve(tray_icon_file, BaseDirectory::Resource)?;
     let icon = Image::from_path(tray_icon_path)?;
 
     // Load persisted log level
@@ -155,7 +163,7 @@ pub fn create(app_handle: &AppHandle) -> tauri::Result<()> {
 
     TrayIconBuilder::with_id("tray")
         .icon(icon)
-        .icon_as_template(true)
+        .icon_as_template(cfg!(target_os = "macos"))
         .tooltip("Tokenmaxxing")
         .menu(&menu)
         .show_menu_on_left_click(false)

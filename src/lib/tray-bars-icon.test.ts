@@ -46,6 +46,25 @@ describe("tray-bars-icon", () => {
     expect(svg).not.toContain("<image ")
   })
 
+  it("glyphColor defaults to black and is applied when set (Windows/Linux trays)", () => {
+    const defaultSvg = makeTrayBarsSvg({
+      bars: [{ id: "a", fraction: 0.5 }],
+      sizePx: 36,
+      style: "bars",
+    })
+    expect(defaultSvg).toContain('fill="black"')
+    expect(defaultSvg).not.toContain('fill="white"')
+
+    const whiteSvg = makeTrayBarsSvg({
+      bars: [{ id: "a", fraction: 0.5 }],
+      sizePx: 36,
+      style: "bars",
+      glyphColor: "white",
+    })
+    expect(whiteSvg).toContain('fill="white"')
+    expect(whiteSvg).not.toContain('fill="black"')
+  })
+
   it("style=bars with empty bars renders a single empty track", () => {
     const svg = makeTrayBarsSvg({
       bars: [],

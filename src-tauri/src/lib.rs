@@ -208,19 +208,10 @@ fn hide_panel(app_handle: tauri::AppHandle) {
 }
 
 #[tauri::command]
-fn set_panel_pinned(app_handle: tauri::AppHandle, pinned: bool) {
+fn set_panel_pinned(_app_handle: tauri::AppHandle, pinned: bool) {
+    // The window always keeps its taskbar presence on Windows/Linux (see
+    // panel::other::init); pinning only controls the hide-on-blur behavior.
     panel::set_pinned(pinned);
-    // While pinned as a widget, give the window a taskbar presence so it can
-    // be found/raised like a normal app; as a tray dropdown it stays hidden.
-    #[cfg(not(target_os = "macos"))]
-    {
-        use tauri::Manager;
-        if let Some(window) = app_handle.get_webview_window("main") {
-            let _ = window.set_skip_taskbar(!pinned);
-        }
-    }
-    #[cfg(target_os = "macos")]
-    let _ = app_handle;
 }
 
 #[tauri::command]
