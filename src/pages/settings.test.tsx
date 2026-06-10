@@ -71,6 +71,8 @@ const defaultProps = {
   onGlobalShortcutChange: vi.fn(),
   startOnLogin: false,
   onStartOnLoginChange: vi.fn(),
+  panelStayOpenWhenPinned: false,
+  onPanelStayOpenWhenPinnedChange: vi.fn(),
 }
 
 afterEach(() => {

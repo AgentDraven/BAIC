@@ -14,6 +14,7 @@ import {
   DEFAULT_MENUBAR_ICON_STYLE,
   DEFAULT_MENUBAR_METRIC,
   DEFAULT_RESET_TIMER_DISPLAY_MODE,
+  DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED,
   DEFAULT_START_ON_LOGIN,
   DEFAULT_THEME_MODE,
   DEFAULT_TIME_FORMAT_MODE,
@@ -23,6 +24,7 @@ import {
   loadGlobalShortcut,
   loadMenubarIconStyle,
   loadMenubarMetric,
+  loadPanelStayOpenWhenPinned,
   migrateLegacyTraySettings,
   migrateWindsurfToDevin,
   loadPluginSettings,
@@ -55,6 +57,7 @@ type UseSettingsBootstrapArgs = {
   setStartOnLogin: (value: boolean) => void
   setMenubarIconStyle: (value: MenubarIconStyle) => void
   setMenubarMetric: (value: MenubarMetric) => void
+  setPanelStayOpenWhenPinned: (value: boolean) => void
   setLoadingForPlugins: (ids: string[]) => void
   setErrorForPlugins: (ids: string[], error: string) => void
   startBatch: (pluginIds?: string[]) => Promise<string[] | undefined>
@@ -72,6 +75,7 @@ export function useSettingsBootstrap({
   setStartOnLogin,
   setMenubarIconStyle,
   setMenubarMetric,
+  setPanelStayOpenWhenPinned,
   setLoadingForPlugins,
   setErrorForPlugins,
   startBatch,
@@ -179,6 +183,23 @@ export function useSettingsBootstrap({
           console.error("Failed to load menubar metric:", error)
         }
 
+        let storedPanelStayOpenWhenPinned = DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED
+        try {
+          storedPanelStayOpenWhenPinned = await loadPanelStayOpenWhenPinned()
+        } catch (error) {
+          console.error("Failed to load panel stay-open setting:", error)
+        }
+
+        if (isTauri()) {
+          try {
+            await invoke("set_panel_stay_open_when_pinned", {
+              stayOpen: storedPanelStayOpenWhenPinned,
+            })
+          } catch (error) {
+            console.error("Failed to apply panel stay-open setting:", error)
+          }
+        }
+
         if (isMounted) {
           setPluginSettings(normalized)
           setAutoUpdateInterval(storedInterval)
@@ -190,6 +211,7 @@ export function useSettingsBootstrap({
           setStartOnLogin(storedStartOnLogin)
           setMenubarIconStyle(storedMenubarIconStyle)
           setMenubarMetric(storedMenubarMetric)
+          setPanelStayOpenWhenPinned(storedPanelStayOpenWhenPinned)
 
           const enabledIds = getEnabledPluginIds(normalized)
           setLoadingForPlugins(enabledIds)

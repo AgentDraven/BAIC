@@ -20,7 +20,7 @@ export type ResetTimerDisplayMode = "relative" | "absolute";
 
 export type TimeFormatMode = "auto" | "12h" | "24h";
 
-export type MenubarIconStyle = "provider" | "bars" | "donut";
+export type MenubarIconStyle = "gauge" | "provider" | "bars" | "donut";
 
 export type MenubarMetric = "default" | "weekly";
 
@@ -39,13 +39,14 @@ const LEGACY_TRAY_ICON_STYLE_KEY = "trayIconStyle";
 const LEGACY_TRAY_SHOW_PERCENTAGE_KEY = "trayShowPercentage";
 const GLOBAL_SHORTCUT_KEY = "globalShortcut";
 const START_ON_LOGIN_KEY = "startOnLogin";
+const PANEL_STAY_OPEN_WHEN_PINNED_KEY = "panelStayOpenWhenPinned";
 
 export const DEFAULT_AUTO_UPDATE_INTERVAL: AutoUpdateIntervalMinutes = 15;
 export const DEFAULT_THEME_MODE: ThemeMode = "system";
 export const DEFAULT_DISPLAY_MODE: DisplayMode = "left";
 export const DEFAULT_RESET_TIMER_DISPLAY_MODE: ResetTimerDisplayMode = "relative";
 export const DEFAULT_TIME_FORMAT_MODE: TimeFormatMode = "auto";
-export const DEFAULT_MENUBAR_ICON_STYLE: MenubarIconStyle = "provider";
+export const DEFAULT_MENUBAR_ICON_STYLE: MenubarIconStyle = "gauge";
 export const DEFAULT_MENUBAR_METRIC: MenubarMetric = "default";
 export const DEFAULT_GLOBAL_SHORTCUT: GlobalShortcut = null;
 export const DEFAULT_START_ON_LOGIN = false;
@@ -55,14 +56,17 @@ const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
 const DISPLAY_MODES: DisplayMode[] = ["used", "left"];
 const RESET_TIMER_DISPLAY_MODES: ResetTimerDisplayMode[] = ["relative", "absolute"];
 const TIME_FORMAT_MODES: TimeFormatMode[] = ["auto", "12h", "24h"];
-const MENUBAR_ICON_STYLES: MenubarIconStyle[] = ["provider", "donut", "bars"];
+const MENUBAR_ICON_STYLES: MenubarIconStyle[] = ["gauge", "provider", "donut", "bars"];
 const MENUBAR_METRICS: MenubarMetric[] = ["default", "weekly"];
 
 export const MENUBAR_ICON_STYLE_OPTIONS: { value: MenubarIconStyle; label: string }[] = [
+  { value: "gauge", label: "Logo" },
   { value: "provider", label: "Plugin" },
   { value: "donut", label: "Donut" },
   { value: "bars", label: "Bars" },
 ];
+
+export const DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED = false;
 
 export const MENUBAR_METRIC_OPTIONS: { value: MenubarMetric; label: string }[] = [
   { value: "default", label: "Default" },
@@ -379,5 +383,16 @@ export async function loadStartOnLogin(): Promise<boolean> {
 
 export async function saveStartOnLogin(value: boolean): Promise<void> {
   await store.set(START_ON_LOGIN_KEY, value);
+  await store.save();
+}
+
+export async function loadPanelStayOpenWhenPinned(): Promise<boolean> {
+  const stored = await store.get<unknown>(PANEL_STAY_OPEN_WHEN_PINNED_KEY);
+  if (typeof stored === "boolean") return stored;
+  return DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED;
+}
+
+export async function savePanelStayOpenWhenPinned(value: boolean): Promise<void> {
+  await store.set(PANEL_STAY_OPEN_WHEN_PINNED_KEY, value);
   await store.save();
 }

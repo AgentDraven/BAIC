@@ -14,6 +14,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{AppHandle, Manager, Position, Size};
 
 static PANEL_PINNED: AtomicBool = AtomicBool::new(false);
+static PANEL_STAY_OPEN_WHEN_PINNED: AtomicBool = AtomicBool::new(false);
 
 /// Sets whether the panel stays open as a draggable widget (Windows/Linux only).
 /// macOS ignores this flag — the NSPanel backend never reads it.
@@ -25,6 +26,21 @@ pub fn set_pinned(pinned: bool) {
 /// macOS ignores this flag — the NSPanel backend never reads it.
 pub fn is_pinned() -> bool {
     PANEL_PINNED.load(Ordering::Relaxed)
+}
+
+/// When pinned, keep the panel visible after it loses focus (Windows/Linux only).
+/// If false, a pinned widget can be hidden by clicking away while staying pinned.
+pub fn set_stay_open_when_pinned(stay_open: bool) {
+    PANEL_STAY_OPEN_WHEN_PINNED.store(stay_open, Ordering::Relaxed);
+}
+
+pub fn stay_open_when_pinned() -> bool {
+    PANEL_STAY_OPEN_WHEN_PINNED.load(Ordering::Relaxed)
+}
+
+/// Hide on blur unless pinned and configured to stay open.
+pub fn should_hide_on_blur() -> bool {
+    !is_pinned() || !stay_open_when_pinned()
 }
 
 #[cfg(target_os = "macos")]

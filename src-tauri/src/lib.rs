@@ -215,6 +215,11 @@ fn set_panel_pinned(_app_handle: tauri::AppHandle, pinned: bool) {
 }
 
 #[tauri::command]
+fn set_panel_stay_open_when_pinned(_app_handle: tauri::AppHandle, stay_open: bool) {
+    panel::set_stay_open_when_pinned(stay_open);
+}
+
+#[tauri::command]
 fn open_devtools(#[allow(unused)] app_handle: tauri::AppHandle) {
     #[cfg(debug_assertions)]
     {
@@ -532,7 +537,7 @@ pub fn run() {
             // `window_did_resign_key` behavior in the NSPanel backend.
             #[cfg(not(target_os = "macos"))]
             if let tauri::WindowEvent::Focused(false) = event {
-                if window.label() == "main" && !panel::is_pinned() {
+                if window.label() == "main" && panel::should_hide_on_blur() {
                     let _ = window.hide();
                 }
             }
@@ -562,6 +567,7 @@ pub fn run() {
             init_panel,
             hide_panel,
             set_panel_pinned,
+            set_panel_stay_open_when_pinned,
             open_devtools,
             start_probe_batch,
             list_plugins,

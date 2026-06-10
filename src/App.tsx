@@ -60,6 +60,7 @@ function App() {
     setTimeFormatMode,
     setGlobalShortcut,
     setStartOnLogin,
+    setPanelStayOpenWhenPinned,
   } = useAppPreferencesStore(
     useShallow((state) => ({
       autoUpdateInterval: state.autoUpdateInterval,
@@ -77,6 +78,7 @@ function App() {
       setTimeFormatMode: state.setTimeFormatMode,
       setGlobalShortcut: state.setGlobalShortcut,
       setStartOnLogin: state.setStartOnLogin,
+      setPanelStayOpenWhenPinned: state.setPanelStayOpenWhenPinned,
     }))
   )
 
@@ -128,6 +130,7 @@ function App() {
     setTimeFormatMode,
     setGlobalShortcut,
     setStartOnLogin,
+    setPanelStayOpenWhenPinned,
     setLoadingForPlugins,
     setErrorForPlugins,
     startBatch,
@@ -158,12 +161,14 @@ function App() {
     handleAutoUpdateIntervalChange,
     handleGlobalShortcutChange,
     handleStartOnLoginChange,
+    handlePanelStayOpenWhenPinnedChange,
   } = useSettingsSystemActions({
     pluginSettings,
     setAutoUpdateInterval,
     setAutoUpdateNextAt,
     setGlobalShortcut,
     setStartOnLogin,
+    setPanelStayOpenWhenPinned,
     applyStartOnLogin,
   })
 
@@ -263,6 +268,7 @@ function App() {
         traySettingsPreview,
         onGlobalShortcutChange: handleGlobalShortcutChange,
         onStartOnLoginChange: handleStartOnLoginChange,
+        onPanelStayOpenWhenPinnedChange: handlePanelStayOpenWhenPinnedChange,
       }}
     />
   )

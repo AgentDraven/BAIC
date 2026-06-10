@@ -6,6 +6,7 @@ import type { DisplayMode, MenubarIconStyle, MenubarMetric, PluginSettings } fro
 import { getEnabledPluginIds } from "@/lib/settings"
 import { isMacPlatform } from "@/lib/platform"
 import { getTrayIconSizePx, renderTrayBarsIcon } from "@/lib/tray-bars-icon"
+import { isTrayIconTemplate } from "@/lib/tray-icon"
 import { getTrayPrimaryBars, type TrayPrimaryBar } from "@/lib/tray-primary-progress"
 import { formatTrayPercentText, formatTrayTooltip } from "@/lib/tray-tooltip"
 import type { PluginState } from "@/hooks/app/types"
@@ -160,10 +161,11 @@ export function useTrayIcon({
 
       const restoreGaugeIcon = () => {
         const gaugePath = trayGaugeIconPathRef.current
+        const useTemplate = isTrayIconTemplate()
         if (gaugePath) {
           Promise.all([
             tray.setIcon(gaugePath),
-            tray.setIconAsTemplate(true),
+            tray.setIconAsTemplate(useTemplate),
             setTrayTitle(""),
             setTrayTooltip("Tokenmaxxing"),
           ])
@@ -260,6 +262,12 @@ export function useTrayIcon({
       })
       const tooltip = formatTrayTooltip(tooltipBars, pluginsMetaRef.current, preferWeekly)
       const updateTooltip = () => setTrayTooltip(tooltip)
+      const useTemplate = isTrayIconTemplate()
+
+      if (style === "gauge") {
+        restoreGaugeIcon()
+        return
+      }
 
       if (style === "bars") {
         renderTrayBarsIcon({
@@ -270,7 +278,7 @@ export function useTrayIcon({
         })
           .then(async (img) => {
             await tray.setIcon(img)
-            await tray.setIconAsTemplate(true)
+            await tray.setIconAsTemplate(useTemplate)
             await setTrayTitle("")
             await updateTooltip()
           })
@@ -299,7 +307,7 @@ export function useTrayIcon({
         })
           .then(async (img) => {
             await tray.setIcon(img)
-            await tray.setIconAsTemplate(true)
+            await tray.setIconAsTemplate(useTemplate)
             await setTrayTitle("")
             await updateTooltip()
           })
@@ -322,7 +330,7 @@ export function useTrayIcon({
       })
         .then(async (img) => {
           await tray.setIcon(img)
-          await tray.setIconAsTemplate(true)
+          await tray.setIconAsTemplate(useTemplate)
           await setTrayTitle(providerPercentText)
           await updateTooltip()
         })

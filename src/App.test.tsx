@@ -1921,7 +1921,7 @@ describe("App", () => {
     resolveResourcePath?.("/resource/icons/tray-icon.png")
 
     await waitFor(() => expect(state.traySetIconMock).toHaveBeenCalledWith({}))
-    expect(state.traySetIconAsTemplateMock).toHaveBeenCalledWith(true)
+    expect(state.traySetIconAsTemplateMock).toHaveBeenCalledWith(false)
     expect(state.traySetTitleMock).toHaveBeenCalledWith("--%")
   })
 

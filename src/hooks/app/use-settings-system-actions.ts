@@ -4,6 +4,7 @@ import {
   getEnabledPluginIds,
   saveAutoUpdateInterval,
   saveGlobalShortcut,
+  savePanelStayOpenWhenPinned,
   saveStartOnLogin,
   type AutoUpdateIntervalMinutes,
   type GlobalShortcut,
@@ -16,6 +17,7 @@ type UseSettingsSystemActionsArgs = {
   setAutoUpdateNextAt: (value: number | null) => void
   setGlobalShortcut: (value: GlobalShortcut) => void
   setStartOnLogin: (value: boolean) => void
+  setPanelStayOpenWhenPinned: (value: boolean) => void
   applyStartOnLogin: (value: boolean) => Promise<void>
 }
 
@@ -25,6 +27,7 @@ export function useSettingsSystemActions({
   setAutoUpdateNextAt,
   setGlobalShortcut,
   setStartOnLogin,
+  setPanelStayOpenWhenPinned,
   applyStartOnLogin,
 }: UseSettingsSystemActionsArgs) {
   const handleAutoUpdateIntervalChange = useCallback((value: AutoUpdateIntervalMinutes) => {
@@ -64,9 +67,20 @@ export function useSettingsSystemActions({
     })
   }, [applyStartOnLogin, setStartOnLogin])
 
+  const handlePanelStayOpenWhenPinnedChange = useCallback((value: boolean) => {
+    setPanelStayOpenWhenPinned(value)
+    void savePanelStayOpenWhenPinned(value).catch((error) => {
+      console.error("Failed to save panel stay-open setting:", error)
+    })
+    invoke("set_panel_stay_open_when_pinned", { stayOpen: value }).catch((error) => {
+      console.error("Failed to apply panel stay-open setting:", error)
+    })
+  }, [setPanelStayOpenWhenPinned])
+
   return {
     handleAutoUpdateIntervalChange,
     handleGlobalShortcutChange,
     handleStartOnLoginChange,
+    handlePanelStayOpenWhenPinnedChange,
   }
 }

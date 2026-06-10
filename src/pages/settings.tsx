@@ -19,6 +19,7 @@ import { GripVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { GlobalShortcutSection } from "@/components/global-shortcut-section";
+import { isMacPlatform } from "@/lib/platform";
 import { getBarFillLayout, getTrayIconSizePx } from "@/lib/tray-bars-icon";
 import {
   AUTO_UPDATE_OPTIONS,
@@ -107,6 +108,18 @@ function MenubarIconStylePreview({
   traySettingsPreview: TraySettingsPreview;
 }) {
   const textClass = isActive ? "text-primary-foreground" : "text-foreground";
+
+  if (style === "gauge") {
+    return (
+      <img
+        src="/icon.png"
+        alt=""
+        aria-hidden
+        className="rounded-sm"
+        style={{ width: `${TRAY_PREVIEW_SIZE_PX}px`, height: `${TRAY_PREVIEW_SIZE_PX}px` }}
+      />
+    );
+  }
 
   if (style === "provider") {
     return (
@@ -284,6 +297,8 @@ interface SettingsPageProps {
   onGlobalShortcutChange: (value: GlobalShortcut) => void;
   startOnLogin: boolean;
   onStartOnLoginChange: (value: boolean) => void;
+  panelStayOpenWhenPinned: boolean;
+  onPanelStayOpenWhenPinnedChange: (value: boolean) => void;
 }
 
 export function SettingsPage({
@@ -309,6 +324,8 @@ export function SettingsPage({
   onGlobalShortcutChange,
   startOnLogin,
   onStartOnLoginChange,
+  panelStayOpenWhenPinned,
+  onPanelStayOpenWhenPinnedChange,
 }: SettingsPageProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -545,6 +562,27 @@ export function SettingsPage({
         globalShortcut={globalShortcut}
         onGlobalShortcutChange={onGlobalShortcutChange}
       />
+      {!isMacPlatform() && (
+        <section>
+          <h3 className="text-lg font-semibold mb-0">Pinned Panel</h3>
+          <p className="text-sm text-muted-foreground mb-2">
+            Widget mode stays pinned when you hide the panel
+          </p>
+          <label className="flex items-center gap-2 text-sm select-none text-foreground">
+            <Checkbox
+              key={`panel-stay-open-${panelStayOpenWhenPinned}`}
+              checked={panelStayOpenWhenPinned}
+              onCheckedChange={(checked) =>
+                onPanelStayOpenWhenPinnedChange(checked === true)
+              }
+            />
+            Keep open while pinned
+          </label>
+          <p className="text-xs text-muted-foreground mt-1.5">
+            Off: click away to hide, but stay pinned. On: pinned panel ignores click-away.
+          </p>
+        </section>
+      )}
       <section>
         <h3 className="text-lg font-semibold mb-0">Start on Login</h3>
         <p className="text-sm text-muted-foreground mb-2">
