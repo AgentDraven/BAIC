@@ -65,6 +65,10 @@ pub(crate) fn set_panel_stay_open_when_pinned(_app_handle: tauri::AppHandle, sta
 #[tauri::command]
 pub(crate) fn set_panel_keep_on_taskbar(app_handle: tauri::AppHandle, keep: bool) {
     panel::set_keep_on_taskbar(keep);
+    // Re-apply the window flags so toggling the setting takes effect live
+    // (always-on-top on/off).
+    #[cfg(not(target_os = "macos"))]
+    let _ = panel::init(&app_handle);
     // Turning the flag off while the panel sits minimized on the taskbar
     // would leave a stale button behind — hide it fully instead.
     #[cfg(not(target_os = "macos"))]

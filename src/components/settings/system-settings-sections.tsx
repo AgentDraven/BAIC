@@ -46,7 +46,7 @@ export function PinnedPanelSection({
         Keep on taskbar
       </label>
       <p className="text-xs text-muted-foreground mt-1.5">
-        On: dismissing the panel minimizes it, so the taskbar button stays while Tokenmaxxing runs. Off: the panel hides completely.
+        On: the panel acts like a normal window — it stays open when you click elsewhere and keeps its taskbar button. Off: tray dropdown — the panel floats on top and hides when it loses focus.
       </p>
     </section>
   );

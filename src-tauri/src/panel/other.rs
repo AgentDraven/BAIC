@@ -1,19 +1,22 @@
 //! Non-macOS panel backend (Windows / Linux).
 //!
 //! There is no `NSPanel` outside macOS, so the app's main `WebviewWindow` doubles
-//! as the dropdown: borderless, always-on-top, shown and positioned under the
-//! tray icon and hidden again when it loses focus (the focus-out hide is wired
-//! up in `lib.rs` via `on_window_event`). The window keeps a taskbar presence
-//! while visible so it can be found, raised, and dismissed like a normal app.
+//! as the dropdown. In keep-on-taskbar mode it behaves like a normal window
+//! (not always-on-top, no blur-hide) so the user can keep working with the
+//! panel open. In tray-dropdown mode it is borderless, always-on-top, shown
+//! and positioned under the tray icon and hidden again when it loses focus
+//! (the focus-out hide is wired up in `lib.rs` via `on_window_event`).
 
 use tauri::{AppHandle, LogicalPosition, Manager, Position, Size};
 
 use super::{PanelPlacement, compute_placement};
 
-/// Configure the main window to behave like a tray dropdown. Idempotent.
+/// Configure the main window for the current mode. In keep-on-taskbar mode the
+/// window is a normal window (not always-on-top). In tray-dropdown mode it is
+/// borderless and always-on-top. Idempotent.
 pub fn init(app_handle: &AppHandle) -> tauri::Result<()> {
     if let Some(window) = app_handle.get_webview_window("main") {
-        let _ = window.set_always_on_top(true);
+        let _ = window.set_always_on_top(!super::keep_on_taskbar());
         let _ = window.set_skip_taskbar(false);
     }
     Ok(())

@@ -134,6 +134,81 @@ fn read_command_stdout(program: &str, args: &[&str]) -> Option<String> {
     Some(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
+/// Marker error: the command was killed because it exceeded its deadline.
+#[derive(Debug, PartialEq, Eq)]
+struct CommandTimedOut;
+
+/// Like `read_command_stdout`, but kills the child (and its process group on
+/// unix) if it does not exit within `timeout`. Needed for interactive-shell
+/// reads: shell rc files can start integrations (e.g. cursor-agent's
+/// cursor-shell) that hold stdout open forever, which made a plain
+/// `Command::output()` hang the whole probe batch.
+/// Returns Ok(None) on spawn failure or non-zero exit, Err on timeout.
+fn read_command_stdout_with_timeout(
+    program: &str,
+    args: &[&str],
+    timeout: std::time::Duration,
+) -> Result<Option<String>, CommandTimedOut> {
+    use std::process::Stdio;
+
+    let mut command = Command::new(program);
+    command
+        .args(args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null());
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        // Own process group so the timeout kill reaps grandchildren too
+        // (the shell may have spawned integrations of its own).
+        command.process_group(0);
+    }
+
+    let Ok(mut child) = command.spawn() else {
+        return Ok(None);
+    };
+
+    // Drain stdout on a separate thread so the child can never block on a
+    // full pipe buffer, and so a kill cannot race a blocking read.
+    let stdout_reader = child.stdout.take().map(|mut stdout| {
+        std::thread::spawn(move || {
+            let mut buf = Vec::new();
+            let _ = std::io::Read::read_to_end(&mut stdout, &mut buf);
+            buf
+        })
+    });
+
+    let start = std::time::Instant::now();
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                let stdout = stdout_reader
+                    .and_then(|reader| reader.join().ok())
+                    .unwrap_or_default();
+                if !status.success() {
+                    return Ok(None);
+                }
+                return Ok(Some(String::from_utf8_lossy(&stdout).into_owned()));
+            }
+            Ok(None) => {
+                if start.elapsed() >= timeout {
+                    log::warn!(
+                        "command {} did not exit within {:?}; killing it",
+                        redact_log_message(program),
+                        timeout
+                    );
+                    let _ = kill_ccusage_on_timeout(&mut child);
+                    let _ = child.wait();
+                    return Err(CommandTimedOut);
+                }
+                std::thread::sleep(std::time::Duration::from_millis(50));
+            }
+            Err(_) => return Ok(None),
+        }
+    }
+}
+
 fn read_env_value_via_command(program: &str, args: &[&str]) -> Option<String> {
     let stdout = read_command_stdout(program, args)?;
     sanitize_env_value(&stdout)
@@ -225,6 +300,15 @@ fn shell_from_env() -> Option<String> {
     }
 }
 
+/// Shells whose interactive env read already timed out this session. A shell
+/// that hangs once (rc files starting never-exiting integrations) will hang
+/// for every env name — skip it instead of paying the timeout repeatedly,
+/// which used to eat the whole probe deadline.
+fn timed_out_shells() -> &'static Mutex<HashSet<String>> {
+    static TIMED_OUT: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
+    TIMED_OUT.get_or_init(|| Mutex::new(HashSet::new()))
+}
+
 fn read_env_from_interactive_shell(program: &str, name: &str) -> Option<String> {
     const START_MARKER: &str = "__OPENUSAGE_ENV_START__";
     const END_MARKER: &str = "__OPENUSAGE_ENV_END__";
@@ -233,7 +317,22 @@ fn read_env_from_interactive_shell(program: &str, name: &str) -> Option<String> 
         "printf '{}\\n'; printenv {}; printf '{}\\n'",
         START_MARKER, name, END_MARKER
     );
-    let output = read_command_stdout(program, &["-ilc", script.as_str()])?;
+    // Bounded: an interactive shell sources the user's rc files, which can
+    // start never-exiting integrations that would otherwise hang the probe.
+    let output = match read_command_stdout_with_timeout(
+        program,
+        &["-ilc", script.as_str()],
+        std::time::Duration::from_secs(5),
+    ) {
+        Ok(Some(output)) => output,
+        Ok(None) => return None,
+        Err(CommandTimedOut) => {
+            if let Ok(mut dead) = timed_out_shells().lock() {
+                dead.insert(program.to_string());
+            }
+            return None;
+        }
+    };
     parse_interactive_shell_env_output(&output, START_MARKER, END_MARKER)
 }
 
@@ -257,6 +356,13 @@ fn read_env_from_interactive_shells(name: &str) -> Option<String> {
     }
 
     for program in programs {
+        let is_dead = timed_out_shells()
+            .lock()
+            .map(|dead| dead.contains(program.as_str()))
+            .unwrap_or(false);
+        if is_dead {
+            continue;
+        }
         if let Some(value) = read_env_from_interactive_shell(program.as_str(), name) {
             return Some(value);
         }
@@ -2879,6 +2985,66 @@ fn expand_path(path: &str) -> String {
 mod tests {
     use super::*;
     use rquickjs::{Context, Function, Object, Runtime};
+
+    #[cfg(unix)]
+    #[test]
+    fn read_command_stdout_with_timeout_kills_hung_command() {
+        let start = std::time::Instant::now();
+        let result = read_command_stdout_with_timeout(
+            "/bin/sh",
+            &["-c", "sleep 30"],
+            std::time::Duration::from_millis(500),
+        );
+        assert_eq!(result, Err(CommandTimedOut));
+        assert!(
+            start.elapsed() < std::time::Duration::from_secs(5),
+            "timeout kill took too long: {:?}",
+            start.elapsed()
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn read_command_stdout_with_timeout_returns_fast_command_output() {
+        let result = read_command_stdout_with_timeout(
+            "/bin/sh",
+            &["-c", "echo hi"],
+            std::time::Duration::from_secs(5),
+        );
+        assert_eq!(
+            result.expect("should complete").as_deref().map(str::trim),
+            Some("hi")
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn interactive_shell_timeout_marks_shell_dead_for_session() {
+        use std::os::unix::fs::PermissionsExt;
+
+        // A fake shell that ignores its args and never exits: a timed-out env
+        // read must add it to the session dead-list so later env names skip
+        // it instead of re-paying the timeout. Costs one 5s timeout.
+        let fake_shell = std::env::temp_dir().join("openusage-test-hanging-shell.sh");
+        std::fs::write(&fake_shell, "#!/bin/sh\nsleep 30\n").expect("write fake shell");
+        let mut perms = std::fs::metadata(&fake_shell).expect("stat").permissions();
+        perms.set_mode(0o755);
+        std::fs::set_permissions(&fake_shell, perms).expect("chmod");
+
+        let program = fake_shell.to_string_lossy().into_owned();
+        if let Ok(mut dead) = timed_out_shells().lock() {
+            dead.remove(program.as_str());
+        }
+
+        let value = read_env_from_interactive_shell(program.as_str(), "HOME_TEST_VAR");
+        assert!(value.is_none());
+        let marked = timed_out_shells()
+            .lock()
+            .map(|dead| dead.contains(program.as_str()))
+            .unwrap_or(false);
+        assert!(marked, "hanging shell should be on the dead-list after timeout");
+        let _ = std::fs::remove_file(&fake_shell);
+    }
 
     fn encrypt_aes_256_gcm_envelope_for_test(key: &[u8], plaintext: &str) -> String {
         let iv = [7_u8; 16];

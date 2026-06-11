@@ -52,8 +52,14 @@ pub fn keep_on_taskbar() -> bool {
     PANEL_KEEP_ON_TASKBAR.load(Ordering::Relaxed)
 }
 
-/// Hide on blur unless pinned and configured to stay open.
+/// Hide on blur unless the panel is in keep-on-taskbar mode. In
+/// keep-on-taskbar mode the panel behaves like a normal window and never
+/// auto-hides on focus loss; otherwise hide on blur unless pinned and
+/// configured to stay open.
 pub fn should_hide_on_blur() -> bool {
+    if keep_on_taskbar() {
+        return false;
+    }
     !is_pinned() || !stay_open_when_pinned()
 }
 
@@ -239,4 +245,58 @@ pub(crate) fn compute_placement(
         y: panel_y,
         primary_logical_h,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Flags are global atomics, so run this as a single sequential test
+    // to avoid races with other tests in the same process.
+    #[test]
+    fn should_hide_on_blur_flag_matrix() {
+        // keep_on_taskbar=true wins regardless of pinned/stay_open
+        set_keep_on_taskbar(true);
+        set_pinned(false);
+        set_stay_open_when_pinned(false);
+        assert!(!should_hide_on_blur());
+
+        set_keep_on_taskbar(true);
+        set_pinned(true);
+        set_stay_open_when_pinned(false);
+        assert!(!should_hide_on_blur());
+
+        set_keep_on_taskbar(true);
+        set_pinned(true);
+        set_stay_open_when_pinned(true);
+        assert!(!should_hide_on_blur());
+
+        // keep_on_taskbar=false + unpinned -> hide
+        set_keep_on_taskbar(false);
+        set_pinned(false);
+        set_stay_open_when_pinned(false);
+        assert!(should_hide_on_blur());
+
+        set_keep_on_taskbar(false);
+        set_pinned(false);
+        set_stay_open_when_pinned(true);
+        assert!(should_hide_on_blur());
+
+        // keep_on_taskbar=false + pinned + stay_open=true -> stay
+        set_keep_on_taskbar(false);
+        set_pinned(true);
+        set_stay_open_when_pinned(true);
+        assert!(!should_hide_on_blur());
+
+        // keep_on_taskbar=false + pinned + stay_open=false -> hide
+        set_keep_on_taskbar(false);
+        set_pinned(true);
+        set_stay_open_when_pinned(false);
+        assert!(should_hide_on_blur());
+
+        // Reset to defaults so we don't leak state into other tests.
+        set_keep_on_taskbar(false);
+        set_pinned(false);
+        set_stay_open_when_pinned(false);
+    }
 }

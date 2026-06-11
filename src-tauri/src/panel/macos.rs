@@ -1,6 +1,6 @@
 //! macOS panel backend — native `NSPanel` via `tauri-nspanel`.
 
-use tauri::{AppHandle, Position, Size};
+use tauri::{AppHandle, Manager, Position, Size};
 use tauri_nspanel::{
     CollectionBehavior, ManagerExt, PanelLevel, StyleMask, WebviewWindowExt, tauri_panel,
 };
@@ -53,7 +53,7 @@ fn set_panel_top_left_immediately(
 }
 
 /// Get the existing panel, initializing it if needed. Returns `None` on error.
-fn get_or_init_panel(app_handle: &AppHandle) -> Option<tauri_nspanel::Panel> {
+fn get_or_init_panel(app_handle: &AppHandle) -> Option<tauri_nspanel::PanelHandle<tauri::Wry>> {
     match app_handle.get_webview_panel("main") {
         Ok(panel) => Some(panel),
         Err(_) => {
@@ -75,7 +75,6 @@ fn get_or_init_panel(app_handle: &AppHandle) -> Option<tauri_nspanel::Panel> {
 
 /// Retrieve the tray icon rect and position the panel beneath it.
 fn position_panel_from_tray(app_handle: &AppHandle) {
-    use tauri::Manager;
     let Some(tray) = app_handle.tray_by_id("tray") else {
         log::debug!("position_panel_from_tray: tray icon not found");
         return;
@@ -137,7 +136,6 @@ tauri_panel! {
 }
 
 pub fn init(app_handle: &AppHandle) -> tauri::Result<()> {
-    use tauri::Manager;
     if app_handle.get_webview_panel("main").is_ok() {
         return Ok(());
     }
@@ -183,7 +181,6 @@ pub fn position_panel_at_tray_icon(
     icon_position: Position,
     icon_size: Size,
 ) {
-    use tauri::Manager;
     let Some(window) = app_handle.get_webview_window("main") else {
         return;
     };
