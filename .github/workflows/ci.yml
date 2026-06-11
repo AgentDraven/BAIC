@@ -28,10 +28,9 @@ jobs:
       - name: Run tests
         run: bun run test
 
-  # Cross-platform Rust compile signal for the Windows/Linux port.
-  # windows/linux must pass (they are this fork's release targets).
-  # macOS is informational: src/panel/macos.rs predates the tauri-nspanel v2.1
-  # API rework and has never compiled in this fork — see issue #17.
+  # Cross-platform Rust compile signal. All three platforms must pass:
+  # windows/linux are this fork's release targets, and macOS compiles again
+  # since the PanelHandle port (#16, fixed #17).
   rust-build:
     name: Tauri build (${{ matrix.platform }})
     needs: check
@@ -40,7 +39,7 @@ jobs:
       matrix:
         include:
           - platform: macos-latest
-            allow-failure: true
+            allow-failure: false
           - platform: windows-latest
             allow-failure: false
           - platform: ubuntu-latest
