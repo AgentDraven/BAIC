@@ -6,6 +6,11 @@ import type { ActiveView } from "@/components/side-nav"
 import type { DisplayPluginState } from "@/hooks/app/use-app-plugin-views"
 
 const PANEL_WIDTH = 400
+// When pinned, the window stays the regular panel width and resizes to fit
+// the full app content (the pinned performance bar is rendered as a top strip
+// inside the same window, not as a separate 760x72 overlay). The bar is a
+// quick-glance add-on, not a replacement for the full app.
+const PINNED_PANEL_WIDTH = 400
 const MAX_HEIGHT_FALLBACK_PX = 600
 const MAX_HEIGHT_FRACTION_OF_MONITOR = 0.8
 
@@ -15,6 +20,7 @@ type UsePanelArgs = {
   showAbout: boolean
   setShowAbout: (value: boolean) => void
   displayPlugins: DisplayPluginState[]
+  panelPinned?: boolean
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -34,6 +40,7 @@ export function usePanel({
   showAbout,
   setShowAbout,
   displayPlugins,
+  panelPinned = false,
 }: UsePanelArgs) {
   const containerRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -156,7 +163,8 @@ export function usePanel({
 
     const resizeWindow = async () => {
       const factor = window.devicePixelRatio
-      const width = Math.ceil(PANEL_WIDTH * factor)
+      const width = Math.ceil((panelPinned ? PINNED_PANEL_WIDTH : PANEL_WIDTH) * factor)
+
       const desiredHeightLogical = Math.max(1, container.scrollHeight)
 
       let maxHeightPhysical: number | null = null
@@ -196,13 +204,16 @@ export function usePanel({
 
     resizeWindow()
 
-    const observer = new ResizeObserver(() => {
-      resizeWindow()
-    })
-    observer.observe(container)
+    let observer: ResizeObserver | null = null
+    if (container) {
+      observer = new ResizeObserver(() => {
+        resizeWindow()
+      })
+      observer.observe(container)
+    }
 
-    return () => observer.disconnect()
-  }, [activeView, displayPlugins])
+    return () => observer?.disconnect()
+  }, [activeView, displayPlugins, panelPinned])
 
   useEffect(() => {
     const el = scrollRef.current

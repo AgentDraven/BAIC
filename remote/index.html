@@ -28,9 +28,26 @@
     }
 
     .header {
+      position: relative;
+      overflow: hidden;
       padding: 2rem 1.5rem 1rem;
       max-width: 1400px;
       margin: 0 auto;
+      border-radius: 0 0 16px 16px;
+    }
+
+    .flow-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.85;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
     }
 
     .title {
@@ -95,6 +112,26 @@
       border-radius: 12px;
       padding: 1.25rem;
       border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card.card-danger::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: radial-gradient(
+        520px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+        rgba(239, 68, 68, 0.28),
+        transparent 44%
+      );
+      pointer-events: none;
+    }
+
+    .card.card-danger > * {
+      position: relative;
+      z-index: 1;
     }
 
     .card-header {
@@ -171,6 +208,25 @@
       height: 100%;
       border-radius: 3px;
       transition: width 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.38), transparent);
+      animation: progress-shimmer 2.2s ease-in-out infinite;
+    }
+
+    @keyframes progress-shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .progress-fill::after { animation: none; }
     }
 
     .progress-fill.normal {
@@ -251,11 +307,14 @@
 </head>
 <body>
   <div class="header">
-    <h1 class="title">Tokenmaxxing</h1>
-    <p class="meta">
-      <span class="source-badge" id="source-badge" title="Usage proxied from a remote Tokenmaxxing instance">Remote</span>
-      <span id="status">Loading…</span>
-    </p>
+    <canvas class="flow-canvas" id="flow-canvas" aria-hidden="true"></canvas>
+    <div class="header-content">
+      <h1 class="title">Tokenmaxxing</h1>
+      <p class="meta">
+        <span class="source-badge" id="source-badge" title="Usage proxied from a remote Tokenmaxxing instance">Remote</span>
+        <span id="status">Loading…</span>
+      </p>
+    </div>
   </div>
   <div class="error-banner" id="error"></div>
   <div class="grid" id="grid"></div>
@@ -265,6 +324,34 @@
     const API_BASE = params.get('api') || '';
     const TOKEN = params.get('token') || '';
     const REFRESH_SEC = Math.max(10, parseInt(params.get('refresh') || '60', 10) || 60);
+    const DEMO_MODE = params.get('demo') !== '0' && (params.get('demo') === '1' || params.get('demo') === 'true' || !API_BASE);
+    const DEMO_SNAPSHOTS = [
+      {
+        displayName: 'Codex',
+        plan: 'Plus',
+        fetchedAt: new Date().toISOString(),
+        lines: [
+          { type: 'progress', label: 'Weekly reviews', used: 91, limit: 100,
+            resetsAt: new Date(Date.now() + 4 * 3600000).toISOString() }
+        ]
+      },
+      {
+        displayName: 'Cursor',
+        plan: 'Pro',
+        fetchedAt: new Date().toISOString(),
+        lines: [
+          { type: 'progress', label: 'API usage', used: 62, limit: 100 }
+        ]
+      },
+      {
+        displayName: 'Grok',
+        plan: 'SuperGrok',
+        fetchedAt: new Date().toISOString(),
+        lines: [
+          { type: 'progress', label: 'Credits', used: 41, limit: 100 }
+        ]
+      }
+    ];
 
     const statusEl = document.getElementById('status');
     const errorEl = document.getElementById('error');
@@ -335,6 +422,15 @@
       if (ratio > 0.9) return 'danger';
       if (ratio > 0.75) return 'warn';
       return 'normal';
+    }
+
+    function maxCardRatio(lines) {
+      let max = 0;
+      for (const line of lines || []) {
+        if (line.type !== 'progress') continue;
+        max = Math.max(max, progressRatio(line.used, line.limit));
+      }
+      return max;
     }
 
     function renderProgress(line) {
@@ -428,6 +524,14 @@
 
     function renderCard(snapshot) {
       const card = el('div', 'card');
+      if (maxCardRatio(snapshot.lines) >= 0.85) {
+        card.classList.add('card-danger');
+        card.addEventListener('mousemove', (event) => {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--glow-x', (event.clientX - rect.left) + 'px');
+          card.style.setProperty('--glow-y', (event.clientY - rect.top) + 'px');
+        });
+      }
 
       const header = el('div', 'card-header');
       const left = el('div');
@@ -465,6 +569,7 @@
     }
 
     function upstreamLabel() {
+      if (DEMO_MODE) return 'demo preview';
       if (API_BASE) {
         try {
           return new URL(API_BASE, location.href).host;
@@ -500,6 +605,18 @@
     }
 
     async function fetchUsage() {
+      if (DEMO_MODE) {
+        snapshots = DEMO_SNAPSHOTS.map((snap) => ({
+          ...snap,
+          fetchedAt: new Date().toISOString(),
+        }));
+        lastUpdated = new Date();
+        hideError();
+        render();
+        updateStatus();
+        return;
+      }
+
       const url = (API_BASE.replace(/\/$/, '') || '') + '/v1/usage';
       const headers = {};
       if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
@@ -519,8 +636,63 @@
       }
     }
 
+    (function startFlowCanvas() {
+      const canvas = document.getElementById('flow-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      let tick = 0;
+      let raf = 0;
+
+      function resize() {
+        const header = canvas.parentElement;
+        const w = header ? header.clientWidth : window.innerWidth;
+        const h = header ? header.clientHeight : 140;
+        canvas.width = Math.max(1, Math.floor(w * devicePixelRatio));
+        canvas.height = Math.max(1, Math.floor(h * devicePixelRatio));
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      }
+
+      function draw() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        ctx.clearRect(0, 0, w, h);
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.06)';
+        for (let x = 0; x < w; x += 24) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x - 40, h);
+          ctx.stroke();
+        }
+        for (let i = 0; i < 5; i++) {
+          const yBase = h * (0.35 + i * 0.12);
+          ctx.beginPath();
+          ctx.strokeStyle = i % 2 ? 'rgba(0, 212, 255, 0.5)' : 'rgba(255, 170, 0, 0.38)';
+          ctx.lineWidth = 2;
+          for (let x = -20; x < w + 20; x += 4) {
+            const y = yBase + Math.sin((x + tick * 60 + i * 40) * 0.02) * 12;
+            if (x === -20) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+        tick += 0.016;
+        raf = requestAnimationFrame(draw);
+      }
+
+      resize();
+      draw();
+      window.addEventListener('resize', resize);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) cancelAnimationFrame(raf);
+        else draw();
+      });
+    })();
+
     fetchUsage();
-    setInterval(fetchUsage, REFRESH_SEC * 1000);
+    if (!DEMO_MODE) setInterval(fetchUsage, REFRESH_SEC * 1000);
     setInterval(updateStatus, 30000);
   </script>
 </body>

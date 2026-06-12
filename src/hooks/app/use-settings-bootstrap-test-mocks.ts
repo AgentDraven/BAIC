@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   loadGlobalShortcutMock: vi.fn(),
   loadMenubarIconStyleMock: vi.fn(),
   loadMenubarMetricMock: vi.fn(),
+  loadMachineSettingsMock: vi.fn(),
   loadPanelKeepOnTaskbarMock: vi.fn(),
   loadPanelStayOpenWhenPinnedMock: vi.fn(),
   loadPluginSettingsMock: vi.fn(),
@@ -44,9 +45,15 @@ vi.mock("@/lib/settings", () => ({
   DEFAULT_GLOBAL_SHORTCUT: null,
   DEFAULT_MENUBAR_ICON_STYLE: "provider",
   DEFAULT_MENUBAR_METRIC: "default",
+  DEFAULT_MACHINE_SETTINGS: {
+    mode: "local",
+    remoteBaseUrl: "",
+    remotePluginIds: [],
+    setupComplete: false,
+  },
   DEFAULT_RESET_TIMER_DISPLAY_MODE: "relative",
   DEFAULT_PANEL_KEEP_ON_TASKBAR: true,
-  DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED: false,
+  DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED: true,
   DEFAULT_START_ON_LOGIN: false,
   DEFAULT_THEME_MODE: "system",
   DEFAULT_TIME_FORMAT_MODE: "auto",
@@ -56,6 +63,7 @@ vi.mock("@/lib/settings", () => ({
   loadGlobalShortcut: mocks.loadGlobalShortcutMock,
   loadMenubarIconStyle: mocks.loadMenubarIconStyleMock,
   loadMenubarMetric: mocks.loadMenubarMetricMock,
+  loadMachineSettings: mocks.loadMachineSettingsMock,
   loadPanelKeepOnTaskbar: mocks.loadPanelKeepOnTaskbarMock,
   loadPanelStayOpenWhenPinned: mocks.loadPanelStayOpenWhenPinnedMock,
   loadPluginSettings: mocks.loadPluginSettingsMock,
@@ -86,8 +94,10 @@ export function createBootstrapArgs() {
     setStartOnLogin: vi.fn(),
     setMenubarIconStyle: vi.fn(),
     setMenubarMetric: vi.fn(),
+    setMachineSettings: vi.fn(),
     setPanelStayOpenWhenPinned: vi.fn(),
     setPanelKeepOnTaskbar: vi.fn(),
+    onFirstRunSetupNeeded: vi.fn(),
     setLoadingForPlugins: vi.fn(),
     setErrorForPlugins: vi.fn(),
     startBatch: vi.fn().mockResolvedValue(undefined),
@@ -108,6 +118,7 @@ export function resetBootstrapTestMocks() {
   m.loadGlobalShortcutMock.mockReset()
   m.loadMenubarIconStyleMock.mockReset()
   m.loadMenubarMetricMock.mockReset()
+  m.loadMachineSettingsMock.mockReset()
   m.loadPanelKeepOnTaskbarMock.mockReset()
   m.loadPanelStayOpenWhenPinnedMock.mockReset()
   m.loadPluginSettingsMock.mockReset()
@@ -143,6 +154,12 @@ export function resetBootstrapTestMocks() {
   m.loadGlobalShortcutMock.mockResolvedValue("CommandOrControl+Shift+O")
   m.loadMenubarIconStyleMock.mockResolvedValue("provider")
   m.loadMenubarMetricMock.mockResolvedValue("default")
+  m.loadMachineSettingsMock.mockResolvedValue({
+    mode: "local",
+    remoteBaseUrl: "",
+    remotePluginIds: [],
+    setupComplete: true,
+  })
   m.loadStartOnLoginMock.mockResolvedValue(true)
   m.loadPanelStayOpenWhenPinnedMock.mockResolvedValue(false)
   m.loadPanelKeepOnTaskbarMock.mockResolvedValue(false)

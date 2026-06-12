@@ -19,6 +19,15 @@ export type MenubarMetric = "default" | "weekly";
 
 export type GlobalShortcut = string | null;
 
+export type MachineSourceMode = "local" | "remote" | "mixed";
+
+export type MachineSettings = {
+  mode: MachineSourceMode;
+  remoteBaseUrl: string;
+  remotePluginIds: string[];
+  setupComplete: boolean;
+};
+
 export const DEFAULT_PLUGIN_SETTINGS: PluginSettings = {
   order: [],
   disabled: [],
@@ -33,11 +42,18 @@ export const DEFAULT_MENUBAR_ICON_STYLE: MenubarIconStyle = "gauge";
 export const DEFAULT_MENUBAR_METRIC: MenubarMetric = "default";
 export const DEFAULT_GLOBAL_SHORTCUT: GlobalShortcut = null;
 export const DEFAULT_START_ON_LOGIN = false;
-export const DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED = false;
+export const DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED = true;
 export const DEFAULT_PANEL_KEEP_ON_TASKBAR = true;
+export const DEFAULT_MACHINE_SETTINGS: MachineSettings = {
+  mode: "local",
+  remoteBaseUrl: "",
+  remotePluginIds: [],
+  setupComplete: false,
+};
 
 const AUTO_UPDATE_INTERVALS: AutoUpdateIntervalMinutes[] = [5, 15, 30, 60];
 const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
+const MACHINE_SOURCE_MODES: MachineSourceMode[] = ["local", "remote", "mixed"];
 const DISPLAY_MODES: DisplayMode[] = ["used", "left"];
 const RESET_TIMER_DISPLAY_MODES: ResetTimerDisplayMode[] = ["relative", "absolute"];
 const TIME_FORMAT_MODES: TimeFormatMode[] = ["auto", "12h", "24h"];
@@ -84,8 +100,15 @@ export const TIME_FORMAT_OPTIONS: { value: TimeFormatMode; label: string }[] = [
   { value: "24h", label: "24-hour" },
 ];
 
+export const MACHINE_SOURCE_OPTIONS: { value: MachineSourceMode; label: string }[] = [
+  { value: "local", label: "Local" },
+  { value: "remote", label: "Remote" },
+  { value: "mixed", label: "Mixed" },
+];
+
 export const AUTO_UPDATE_INTERVAL_VALUES = AUTO_UPDATE_INTERVALS;
 export const THEME_MODE_VALUES = THEME_MODES;
+export const MACHINE_SOURCE_MODE_VALUES = MACHINE_SOURCE_MODES;
 export const DISPLAY_MODE_VALUES = DISPLAY_MODES;
 export const RESET_TIMER_DISPLAY_MODE_VALUES = RESET_TIMER_DISPLAY_MODES;
 export const TIME_FORMAT_MODE_VALUES = TIME_FORMAT_MODES;

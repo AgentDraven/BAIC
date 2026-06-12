@@ -7,6 +7,7 @@ mod local_http_api;
 mod log_path;
 mod panel;
 mod plugin_engine;
+mod plugin_secrets;
 mod probe_batch;
 mod shortcuts;
 mod tray;
@@ -20,8 +21,8 @@ use tauri_plugin_log::{Target, TargetKind};
 
 use analytics::{spawn_daily_active_rollover_tracker, track_daily_active_if_needed};
 use commands::{
-    get_log_path, hide_panel, init_panel, list_plugins, open_devtools, set_panel_keep_on_taskbar,
-    set_panel_pinned, set_panel_stay_open_when_pinned,
+    get_log_path, has_plugin_env_value, hide_panel, init_panel, list_plugins, open_devtools,
+    set_plugin_env_value, set_panel_keep_on_taskbar, set_panel_pinned, set_panel_stay_open_when_pinned,
 };
 use probe_batch::start_probe_batch;
 #[cfg(desktop)]
@@ -31,6 +32,28 @@ pub struct AppState {
     pub plugins: Vec<plugin_engine::manifest::LoadedPlugin>,
     pub app_data_dir: PathBuf,
     pub app_version: String,
+}
+
+#[cfg(not(target_os = "macos"))]
+fn read_bool_setting(path: &std::path::Path, key: &str) -> Option<bool> {
+    let text = std::fs::read_to_string(path).ok()?;
+    let value: serde_json::Value = serde_json::from_str(text.trim_start_matches('\u{feff}')).ok()?;
+    value.get(key)?.as_bool()
+}
+
+#[cfg(not(target_os = "macos"))]
+fn restore_non_macos_panel_state(app_handle: &tauri::AppHandle, app_data_dir: &std::path::Path) {
+    let settings_path = app_data_dir.join("settings.json");
+    let stay_open = read_bool_setting(&settings_path, "panelStayOpenWhenPinned").unwrap_or(true);
+    let keep_on_taskbar = read_bool_setting(&settings_path, "panelKeepOnTaskbar").unwrap_or(true);
+    panel::set_stay_open_when_pinned(stay_open);
+    panel::set_keep_on_taskbar(keep_on_taskbar);
+
+    let ui_state_path = app_data_dir.join("ui-state.json");
+    if read_bool_setting(&ui_state_path, "panelPinned").unwrap_or(false) {
+        log::info!("Restoring pinned panel overlay from persisted UI state");
+        panel::apply_pinned(app_handle, true);
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -100,6 +123,8 @@ pub fn run() {
             start_probe_batch,
             list_plugins,
             get_log_path,
+            has_plugin_env_value,
+            set_plugin_env_value,
             update_global_shortcut
         ])
         .setup(|app| {
@@ -151,6 +176,9 @@ pub fn run() {
             local_http_api::start_server();
 
             tray::create(app.handle())?;
+
+            #[cfg(not(target_os = "macos"))]
+            restore_non_macos_panel_state(app.handle(), &app_data_dir);
 
             app.handle()
                 .plugin(tauri_plugin_updater::Builder::new().build())?;

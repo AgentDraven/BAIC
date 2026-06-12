@@ -63,6 +63,15 @@ pub fn should_hide_on_blur() -> bool {
     !is_pinned() || !stay_open_when_pinned()
 }
 
+/// Whether the panel window should float above everything.
+///
+/// The pinned widget (with its overlay bar) and the classic tray dropdown stay
+/// on top. The default keep-on-taskbar window mode does NOT — clicking another
+/// window drops the panel behind it, like a normal app window.
+pub fn wants_always_on_top() -> bool {
+    is_pinned() || !keep_on_taskbar()
+}
+
 static PANEL_SHOWN_AT: Mutex<Option<Instant>> = Mutex::new(None);
 
 const SHOW_GRACE: Duration = Duration::from_millis(500);
@@ -96,7 +105,8 @@ pub use macos::{
 mod other;
 #[cfg(not(target_os = "macos"))]
 pub use other::{
-    hide_panel, init, is_visible, position_panel_at_tray_icon, show_panel, toggle_panel,
+    apply_pinned, hide_panel, init, is_visible, position_panel_at_tray_icon, show_panel,
+    toggle_panel,
 };
 
 fn monitor_contains_physical_point(

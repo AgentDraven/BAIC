@@ -1,5 +1,7 @@
+import { MinimaxApiKeySetup } from "@/components/minimax-api-key-setup"
 import { ProviderCard } from "@/components/provider-card"
 import type { PluginDisplayState } from "@/lib/plugin-types"
+
 import type { DisplayMode, ResetTimerDisplayMode, TimeFormatMode } from "@/lib/settings"
 
 interface ProviderDetailPageProps {
@@ -28,7 +30,11 @@ export function ProviderDetailPage({
   }
 
   return (
-    <ProviderCard
+    <>
+      {plugin.meta.id === "minimax" && (
+        <MinimaxApiKeySetup error={plugin.error} onSaved={onRetry} />
+      )}
+      <ProviderCard
       name={plugin.meta.name}
       plan={plugin.data?.plan}
       links={plugin.meta.links}
@@ -46,5 +52,6 @@ export function ProviderDetailPage({
       timeFormatMode={timeFormatMode}
       onResetTimerDisplayModeToggle={onResetTimerDisplayModeToggle}
     />
+    </>
   )
 }

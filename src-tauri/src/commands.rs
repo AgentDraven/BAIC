@@ -5,7 +5,17 @@ use serde::Serialize;
 use crate::log_path;
 use crate::panel;
 use crate::plugin_engine;
+use crate::plugin_secrets;
 use crate::AppState;
+
+fn app_data_dir_from_state(state: &Mutex<AppState>) -> Result<std::path::PathBuf, String> {
+    let locked = state.lock().map_err(|e| e.to_string())?;
+    Ok(locked.app_data_dir.clone())
+}
+
+fn is_whitelisted_env_var(name: &str) -> bool {
+    plugin_engine::host_api::is_whitelisted_env_var(name)
+}
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -51,10 +61,12 @@ pub(crate) fn hide_panel(app_handle: tauri::AppHandle) {
 }
 
 #[tauri::command]
-pub(crate) fn set_panel_pinned(_app_handle: tauri::AppHandle, pinned: bool) {
-    // The window always keeps its taskbar presence on Windows/Linux (see
-    // panel::other::init); pinning only controls the hide-on-blur behavior.
+pub(crate) fn set_panel_pinned(app_handle: tauri::AppHandle, pinned: bool) {
     panel::set_pinned(pinned);
+    #[cfg(not(target_os = "macos"))]
+    panel::apply_pinned(&app_handle, pinned);
+    #[cfg(target_os = "macos")]
+    let _ = app_handle;
 }
 
 #[tauri::command]
@@ -156,4 +168,36 @@ pub(crate) fn list_plugins(state: tauri::State<'_, Mutex<AppState>>) -> Vec<Plug
             }
         })
         .collect()
+}
+
+#[tauri::command]
+pub(crate) fn has_plugin_env_value(
+    state: tauri::State<'_, Mutex<AppState>>,
+    name: String,
+) -> Result<bool, String> {
+    if !is_whitelisted_env_var(&name) {
+        return Err(format!("env var not allowed: {name}"));
+    }
+
+    let app_data_dir = app_data_dir_from_state(state.inner())?;
+    let process_value = std::env::var(&name).ok();
+    Ok(plugin_secrets::is_env_value_available(
+        &app_data_dir,
+        &name,
+        process_value,
+    ))
+}
+
+#[tauri::command]
+pub(crate) fn set_plugin_env_value(
+    state: tauri::State<'_, Mutex<AppState>>,
+    name: String,
+    value: String,
+) -> Result<(), String> {
+    if !is_whitelisted_env_var(&name) {
+        return Err(format!("env var not allowed: {name}"));
+    }
+
+    let app_data_dir = app_data_dir_from_state(state.inner())?;
+    plugin_secrets::set_stored_value(&app_data_dir, &name, &value)
 }

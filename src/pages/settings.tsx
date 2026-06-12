@@ -1,4 +1,5 @@
 import { GlobalShortcutSection } from "@/components/global-shortcut-section";
+import { MachineSourceSection } from "@/components/settings/machine-source-section";
 import {
   AutoRefreshSection,
   ResetTimersSection,
@@ -17,6 +18,7 @@ import {
   type AutoUpdateIntervalMinutes,
   type DisplayMode,
   type GlobalShortcut,
+  type MachineSettings,
   type MenubarIconStyle,
   type MenubarMetric,
   type ResetTimerDisplayMode,
@@ -45,6 +47,8 @@ interface SettingsPageProps {
   traySettingsPreview: TraySettingsPreview;
   globalShortcut: GlobalShortcut;
   onGlobalShortcutChange: (value: GlobalShortcut) => void;
+  machineSettings: MachineSettings;
+  onMachineSettingsChange: (value: MachineSettings) => void;
   startOnLogin: boolean;
   onStartOnLoginChange: (value: boolean) => void;
   panelStayOpenWhenPinned: boolean;
@@ -74,6 +78,8 @@ export function SettingsPage({
   traySettingsPreview,
   globalShortcut,
   onGlobalShortcutChange,
+  machineSettings,
+  onMachineSettingsChange,
   startOnLogin,
   onStartOnLoginChange,
   panelStayOpenWhenPinned,
@@ -83,6 +89,11 @@ export function SettingsPage({
 }: SettingsPageProps) {
   return (
     <div className="py-3 space-y-4">
+      <MachineSourceSection
+        settings={machineSettings}
+        plugins={plugins}
+        onChange={onMachineSettingsChange}
+      />
       <AutoRefreshSection
         autoUpdateInterval={autoUpdateInterval}
         onAutoUpdateIntervalChange={onAutoUpdateIntervalChange}

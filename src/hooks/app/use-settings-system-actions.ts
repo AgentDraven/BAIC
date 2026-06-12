@@ -4,11 +4,13 @@ import {
   getEnabledPluginIds,
   saveAutoUpdateInterval,
   saveGlobalShortcut,
+  saveMachineSettings,
   savePanelKeepOnTaskbar,
   savePanelStayOpenWhenPinned,
   saveStartOnLogin,
   type AutoUpdateIntervalMinutes,
   type GlobalShortcut,
+  type MachineSettings,
   type PluginSettings,
 } from "@/lib/settings"
 
@@ -17,6 +19,7 @@ type UseSettingsSystemActionsArgs = {
   setAutoUpdateInterval: (value: AutoUpdateIntervalMinutes) => void
   setAutoUpdateNextAt: (value: number | null) => void
   setGlobalShortcut: (value: GlobalShortcut) => void
+  setMachineSettings: (value: MachineSettings) => void
   setStartOnLogin: (value: boolean) => void
   setPanelStayOpenWhenPinned: (value: boolean) => void
   setPanelKeepOnTaskbar: (value: boolean) => void
@@ -28,6 +31,7 @@ export function useSettingsSystemActions({
   setAutoUpdateInterval,
   setAutoUpdateNextAt,
   setGlobalShortcut,
+  setMachineSettings,
   setStartOnLogin,
   setPanelStayOpenWhenPinned,
   setPanelKeepOnTaskbar,
@@ -59,6 +63,13 @@ export function useSettingsSystemActions({
       console.error("Failed to update global shortcut:", error)
     })
   }, [setGlobalShortcut])
+
+  const handleMachineSettingsChange = useCallback((value: MachineSettings) => {
+    setMachineSettings(value)
+    void saveMachineSettings(value).catch((error) => {
+      console.error("Failed to save machine settings:", error)
+    })
+  }, [setMachineSettings])
 
   const handleStartOnLoginChange = useCallback((value: boolean) => {
     setStartOnLogin(value)
@@ -93,6 +104,7 @@ export function useSettingsSystemActions({
   return {
     handleAutoUpdateIntervalChange,
     handleGlobalShortcutChange,
+    handleMachineSettingsChange,
     handleStartOnLoginChange,
     handlePanelStayOpenWhenPinnedChange,
     handlePanelKeepOnTaskbarChange,

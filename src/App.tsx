@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react"
+import { LazyStore } from "@tauri-apps/plugin-store"
 import { useShallow } from "zustand/react/shallow"
 import { AppShell } from "@/components/app/app-shell"
 import { useAppPluginViews } from "@/hooks/app/use-app-plugin-views"
@@ -14,14 +15,18 @@ import { useTrayIcon } from "@/hooks/app/use-tray-icon"
 import { useAppPluginStore } from "@/stores/app-plugin-store"
 import { useAppPreferencesStore } from "@/stores/app-preferences-store"
 import { useAppUiStore } from "@/stores/app-ui-store"
+import { isMacPlatform } from "@/lib/platform"
 
 const TRAY_PROBE_DEBOUNCE_MS = 500
+const UI_STATE_STORE_PATH = "ui-state.json"
+const PANEL_PINNED_KEY = "panelPinned"
 
 function App() {
-  const { activeView, setActiveView } = useAppUiStore(
+  const { activeView, setActiveView, setPanelPinned } = useAppUiStore(
     useShallow((state) => ({
       activeView: state.activeView,
       setActiveView: state.setActiveView,
+      setPanelPinned: state.setPanelPinned,
     }))
   )
 
@@ -45,6 +50,7 @@ function App() {
     setMenubarIconStyle,
     menubarMetric,
     setMenubarMetric,
+    setMachineSettings,
     resetTimerDisplayMode,
     setResetTimerDisplayMode,
     setTimeFormatMode,
@@ -64,6 +70,7 @@ function App() {
       setMenubarIconStyle: state.setMenubarIconStyle,
       menubarMetric: state.menubarMetric,
       setMenubarMetric: state.setMenubarMetric,
+      setMachineSettings: state.setMachineSettings,
       resetTimerDisplayMode: state.resetTimerDisplayMode,
       setResetTimerDisplayMode: state.setResetTimerDisplayMode,
       setTimeFormatMode: state.setTimeFormatMode,
@@ -110,6 +117,24 @@ function App() {
     }
   }, [scheduleTrayIconUpdate])
 
+  useEffect(() => {
+    if (isMacPlatform()) return
+
+    const store = new LazyStore(UI_STATE_STORE_PATH)
+    void store
+      .get<boolean>(PANEL_PINNED_KEY)
+      .then((value) => {
+        if (value) {
+          setPanelPinned(true)
+        }
+      })
+      .catch(console.error)
+  }, [setPanelPinned])
+
+  const handleFirstRunSetupNeeded = useCallback(() => {
+    setActiveView("settings")
+  }, [setActiveView])
+
   const { applyStartOnLogin } = useSettingsBootstrap({
     setPluginSettings,
     setPluginsMeta,
@@ -118,12 +143,14 @@ function App() {
     setDisplayMode,
     setMenubarIconStyle,
     setMenubarMetric,
+    setMachineSettings,
     setResetTimerDisplayMode,
     setTimeFormatMode,
     setGlobalShortcut,
     setStartOnLogin,
     setPanelStayOpenWhenPinned,
     setPanelKeepOnTaskbar,
+    onFirstRunSetupNeeded: handleFirstRunSetupNeeded,
     setLoadingForPlugins,
     setErrorForPlugins,
     startBatch,
@@ -153,6 +180,7 @@ function App() {
   const {
     handleAutoUpdateIntervalChange,
     handleGlobalShortcutChange,
+    handleMachineSettingsChange,
     handleStartOnLoginChange,
     handlePanelStayOpenWhenPinnedChange,
     handlePanelKeepOnTaskbarChange,
@@ -161,6 +189,7 @@ function App() {
     setAutoUpdateInterval,
     setAutoUpdateNextAt,
     setGlobalShortcut,
+    setMachineSettings,
     setStartOnLogin,
     setPanelStayOpenWhenPinned,
     setPanelKeepOnTaskbar,
@@ -221,6 +250,7 @@ function App() {
         onMenubarMetricChange: handleMenubarMetricChange,
         traySettingsPreview,
         onGlobalShortcutChange: handleGlobalShortcutChange,
+        onMachineSettingsChange: handleMachineSettingsChange,
         onStartOnLoginChange: handleStartOnLoginChange,
         onPanelStayOpenWhenPinnedChange: handlePanelStayOpenWhenPinnedChange,
         onPanelKeepOnTaskbarChange: handlePanelKeepOnTaskbarChange,

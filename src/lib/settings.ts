@@ -18,6 +18,8 @@ export {
   saveMenubarIconStyle,
   loadMenubarMetric,
   saveMenubarMetric,
+  loadMachineSettings,
+  saveMachineSettings,
 } from "@/lib/settings-display";
 export {
   loadGlobalShortcut,

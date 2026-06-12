@@ -19,6 +19,7 @@ import {
   type GlobalShortcut,
   type MenubarIconStyle,
   type MenubarMetric,
+  type MachineSettings,
   type PluginSettings,
   type ResetTimerDisplayMode,
   type ThemeMode,
@@ -37,8 +38,10 @@ type UseSettingsBootstrapArgs = {
   setStartOnLogin: (value: boolean) => void
   setMenubarIconStyle: (value: MenubarIconStyle) => void
   setMenubarMetric: (value: MenubarMetric) => void
+  setMachineSettings: (value: MachineSettings) => void
   setPanelStayOpenWhenPinned: (value: boolean) => void
   setPanelKeepOnTaskbar: (value: boolean) => void
+  onFirstRunSetupNeeded: () => void
   setLoadingForPlugins: (ids: string[]) => void
   setErrorForPlugins: (ids: string[], error: string) => void
   startBatch: (pluginIds?: string[]) => Promise<string[] | undefined>
@@ -56,8 +59,10 @@ export function useSettingsBootstrap({
   setStartOnLogin,
   setMenubarIconStyle,
   setMenubarMetric,
+  setMachineSettings,
   setPanelStayOpenWhenPinned,
   setPanelKeepOnTaskbar,
+  onFirstRunSetupNeeded,
   setLoadingForPlugins,
   setErrorForPlugins,
   startBatch,
@@ -102,6 +107,10 @@ export function useSettingsBootstrap({
           setStartOnLogin(stored.startOnLogin)
           setMenubarIconStyle(stored.menubarIconStyle)
           setMenubarMetric(stored.menubarMetric)
+          setMachineSettings(stored.machineSettings)
+          if (!stored.machineSettings.setupComplete) {
+            onFirstRunSetupNeeded()
+          }
           setPanelStayOpenWhenPinned(stored.panelStayOpenWhenPinned)
           setPanelKeepOnTaskbar(stored.panelKeepOnTaskbar)
 
@@ -134,6 +143,8 @@ export function useSettingsBootstrap({
     setLoadingForPlugins,
     setMenubarIconStyle,
     setMenubarMetric,
+    setMachineSettings,
+    onFirstRunSetupNeeded,
     setPanelKeepOnTaskbar,
     setPanelStayOpenWhenPinned,
     setPluginSettings,

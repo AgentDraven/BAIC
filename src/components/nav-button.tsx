@@ -22,10 +22,10 @@ export function NavButton({
       onContextMenu={onContextMenu}
       aria-label={ariaLabel}
       className={cn(
-        "relative flex items-center justify-center w-full p-2.5 transition-colors",
-        "hover:bg-accent/70",
+        "relative mx-1.5 flex items-center justify-center rounded-md p-2 transition-colors",
+        "hover:bg-accent/55",
         isActive
-          ? "text-foreground bg-accent/60 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-primary dark:before:bg-page-accent before:rounded-full"
+          ? "bg-accent/70 text-foreground dark:bg-muted/70"
           : "text-muted-foreground"
       )}
     >

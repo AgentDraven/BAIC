@@ -77,8 +77,10 @@ export function PanelPinControl() {
             : "Pin panel (keep open; drag the edges to move it)"
         }
         className={cn(
-          "relative flex items-center justify-center w-full p-2.5 transition-colors hover:bg-accent",
-          pinned ? "text-foreground" : "text-muted-foreground"
+          "relative mx-1.5 flex items-center justify-center rounded-md p-2 transition-colors hover:bg-accent/55",
+          pinned
+            ? "bg-accent/70 text-foreground dark:bg-muted/70"
+            : "text-muted-foreground"
         )}
       >
         {pinned ? <PinOff className="size-5" /> : <Pin className="size-5" />}

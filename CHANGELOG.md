@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.7.10
+
+### New Features
+- Add local/remote/mixed machine source settings with remote usage fetch by @falkoro
+- Add pinned overlay bar for quick-glance usage when the panel is pinned by @falkoro
+- Let users save a MiniMax API key from the provider detail page by @falkoro
+
+### Bug Fixes
+- Fix remote dashboard redirect loop on Cloudflare Pages by @falkoro
+
+### Refactor
+- Subtle panel/nav UI refresh with theme toggle in the side rail by @falkoro
+
+---
+
+### Changelog
+
+**Full Changelog**: [v0.7.9...v0.7.10](https://github.com/falkoro/tokenmaxxing/compare/v0.7.9...v0.7.10)
+
+- [473f8c5](https://github.com/falkoro/tokenmaxxing/commit/473f8c5) feat: remote machine source, pinned overlay bar, and MiniMax API key setup by @falkoro
+- [c502364](https://github.com/falkoro/tokenmaxxing/commit/c502364) fix: remote dashboard redirect loop on Cloudflare Pages by @falkoro
+
 ## v0.6.27
 
 ### Bug Fixes

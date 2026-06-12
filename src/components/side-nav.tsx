@@ -1,5 +1,5 @@
 import { useCallback } from "react"
-import { CircleHelp, Settings } from "lucide-react"
+import { CircleHelp, Moon, Settings, Sun } from "lucide-react"
 import { openUrl } from "@tauri-apps/plugin-opener"
 import { invoke } from "@tauri-apps/api/core"
 import {
@@ -24,6 +24,7 @@ import { usePluginContextMenu } from "@/components/use-plugin-context-menu"
 import { useDarkMode } from "@/hooks/use-dark-mode"
 import { useAppPreferencesStore } from "@/stores/app-preferences-store"
 import { useAppUiStore } from "@/stores/app-ui-store"
+import { saveThemeMode } from "@/lib/settings"
 
 interface SideNavProps {
   activeView: ActiveView
@@ -45,6 +46,8 @@ export function SideNav({
   const isDark = useDarkMode()
   const panelPinned = useAppUiStore((state) => state.panelPinned)
   const keepOnTaskbar = useAppPreferencesStore((state) => state.panelKeepOnTaskbar)
+  const themeMode = useAppPreferencesStore((state) => state.themeMode)
+  const setThemeMode = useAppPreferencesStore((state) => state.setThemeMode)
   const dragRegionProps =
     panelPinned || keepOnTaskbar ? { "data-tauri-drag-region": true } : {}
 
@@ -75,7 +78,7 @@ export function SideNav({
   )
 
   return (
-    <nav {...dragRegionProps} className="flex flex-col w-12 border-r bg-muted/50 dark:bg-card py-3">
+    <nav {...dragRegionProps} className="flex w-12 shrink-0 flex-col py-3">
       <NavButton
         isActive={activeView === "home"}
         onClick={() => onViewChange("home")}
@@ -84,7 +87,7 @@ export function SideNav({
         <GaugeIcon className="size-6 dark:text-page-accent" />
       </NavButton>
 
-      <div {...dragRegionProps} className="flex flex-1 min-h-0 flex-col overflow-y-auto scrollbar-none">
+      <div {...dragRegionProps} className="flex min-h-0 flex-1 flex-col overflow-y-auto scrollbar-none">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -119,6 +122,20 @@ export function SideNav({
         aria-label="Help"
       >
         <CircleHelp className="size-6" />
+      </NavButton>
+
+      <NavButton
+        isActive={themeMode !== "system"}
+        onClick={() => {
+          const next = isDark ? "light" : "dark"
+          setThemeMode(next)
+          saveThemeMode(next).catch((error) => {
+            console.error("Failed to save theme mode:", error)
+          })
+        }}
+        aria-label={isDark ? "Use light theme" : "Use dark theme"}
+      >
+        {isDark ? <Sun className="size-6" /> : <Moon className="size-6" />}
       </NavButton>
 
       <NavButton

@@ -26,6 +26,13 @@ export const defaultSettingsPageProps = {
   },
   globalShortcut: null,
   onGlobalShortcutChange: vi.fn(),
+  machineSettings: {
+    mode: "local" as const,
+    remoteBaseUrl: "",
+    remotePluginIds: [],
+    setupComplete: false,
+  },
+  onMachineSettingsChange: vi.fn(),
   startOnLogin: false,
   onStartOnLoginChange: vi.fn(),
   panelStayOpenWhenPinned: false,

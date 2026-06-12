@@ -1,7 +1,11 @@
 import { render, screen } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { ProviderDetailPage } from "@/pages/provider-detail"
+
+vi.mock("@/components/minimax-api-key-setup", () => ({
+  MinimaxApiKeySetup: () => <div data-testid="minimax-api-key-setup" />,
+}))
 
 describe("ProviderDetailPage", () => {
   it("shows not found when plugin missing", () => {
@@ -43,6 +47,24 @@ describe("ProviderDetailPage", () => {
       />
     )
     expect(screen.getAllByText("Alpha").length).toBeGreaterThan(0)
+  })
+
+  it("shows MiniMax API key setup on the MiniMax detail page", () => {
+    render(
+      <ProviderDetailPage
+        displayMode="used"
+        resetTimerDisplayMode="relative"
+        plugin={{
+          meta: { id: "minimax", name: "MiniMax", iconUrl: "", lines: [] },
+          data: null,
+          loading: false,
+          error: "MiniMax API key missing. Set MINIMAX_API_KEY or MINIMAX_CN_API_KEY.",
+          lastManualRefreshAt: null,
+          lastUpdatedAt: null,
+        }}
+      />
+    )
+    expect(screen.getByTestId("minimax-api-key-setup")).toBeInTheDocument()
   })
 
   it("renders quick links when provided by plugin meta", () => {

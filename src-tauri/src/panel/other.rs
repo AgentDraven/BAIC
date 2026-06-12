@@ -7,17 +7,29 @@
 //! and positioned under the tray icon and hidden again when it loses focus
 //! (the focus-out hide is wired up in `lib.rs` via `on_window_event`).
 
-use tauri::{AppHandle, LogicalPosition, Manager, Position, Size};
+use tauri::{AppHandle, LogicalPosition, LogicalSize, Manager, Position, Size};
 
 use super::{PanelPlacement, compute_placement};
 
-/// Configure the main window for the current mode. In keep-on-taskbar mode the
-/// window is a normal window (not always-on-top). In tray-dropdown mode it is
-/// borderless and always-on-top. Idempotent.
+// When pinned, the React side renders a thin performance bar at the top of the
+// regular full panel (Steam-overlay style quick-glance add-on, not a
+// replacement). The window stays at the regular panel size and React sizes it
+// to fit content; the Rust side only ensures always-on-top and removes the
+// taskbar entry. These constants are the fallback footprint if React's resize
+// hasn't run yet.
+const PINNED_FALLBACK_WIDTH: f64 = 400.0;
+const PINNED_FALLBACK_HEIGHT: f64 = 520.0;
+const PINNED_FALLBACK_TOP_MARGIN: f64 = 10.0;
+
+/// Configure the main window for the current mode. Idempotent.
+/// - pinned: always-on-top floating widget (thin overlay bar), no taskbar entry
+/// - keep-on-taskbar (default): normal window, not always-on-top, keeps its
+///   taskbar button so it can be brought back after dropping behind other windows
+/// - tray-dropdown (keep-on-taskbar off, unpinned): borderless always-on-top dropdown
 pub fn init(app_handle: &AppHandle) -> tauri::Result<()> {
     if let Some(window) = app_handle.get_webview_window("main") {
-        let _ = window.set_always_on_top(!super::keep_on_taskbar());
-        let _ = window.set_skip_taskbar(false);
+        let _ = window.set_always_on_top(super::wants_always_on_top());
+        let _ = window.set_skip_taskbar(super::is_pinned());
     }
     Ok(())
 }
@@ -73,6 +85,66 @@ pub fn toggle_panel(app_handle: &AppHandle) {
     } else {
         log::debug!("toggle_panel: showing panel");
         show_panel(app_handle);
+    }
+}
+
+pub fn apply_pinned(app_handle: &AppHandle, pinned: bool) {
+    super::set_pinned(pinned);
+    let Some(window) = app_handle.get_webview_window("main") else {
+        return;
+    };
+
+    // set_pinned ran above, so wants_always_on_top() reflects the new state:
+    // pinned floats; unpinning reverts to the mode default (normal window in
+    // keep-on-taskbar mode).
+    let _ = window.set_always_on_top(super::wants_always_on_top());
+    let _ = window.set_skip_taskbar(pinned);
+    if pinned {
+        let _ = window.unminimize();
+        let _ = window.show();
+        // Don't force a Steam-overlay size: the React tree now renders a thin
+        // performance bar at the top of the full panel and resizes the
+        // window to fit the panel content. The bar is an extra, not a
+        // replacement. If for some reason the React resize hasn't run yet,
+        // the fallback below gives a sane default that matches the regular
+        // panel footprint.
+        position_pinned_fallback(app_handle);
+        let _ = window.set_focus();
+    }
+}
+
+fn position_pinned_fallback(app_handle: &AppHandle) {
+    let Some(window) = app_handle.get_webview_window("main") else {
+        return;
+    };
+
+    let monitor = window
+        .current_monitor()
+        .ok()
+        .flatten()
+        .or_else(|| window.primary_monitor().ok().flatten());
+    let Some(monitor) = monitor else {
+        log::warn!("position_pinned_fallback: no monitor available");
+        return;
+    };
+
+    let scale = monitor.scale_factor();
+    let origin = monitor.position();
+    let size = monitor.size();
+    let mon_logical_x = origin.x as f64 / scale;
+    let mon_logical_y = origin.y as f64 / scale;
+    let mon_logical_w = size.width as f64 / scale;
+
+    let width = PINNED_FALLBACK_WIDTH.min((mon_logical_w - 24.0).max(320.0));
+    let x = mon_logical_x + ((mon_logical_w - width) / 2.0).max(0.0);
+    let y = mon_logical_y + PINNED_FALLBACK_TOP_MARGIN;
+
+    if let Err(e) = window.set_size(Size::Logical(LogicalSize::new(width, PINNED_FALLBACK_HEIGHT)))
+    {
+        log::warn!("failed to size pinned fallback: {}", e);
+    }
+    if let Err(e) = window.set_position(Position::Logical(LogicalPosition::new(x, y))) {
+        log::warn!("failed to position pinned fallback: {}", e);
     }
 }
 

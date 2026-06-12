@@ -13,6 +13,10 @@ use std::process::Command;
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
+pub(crate) fn is_whitelisted_env_var(name: &str) -> bool {
+    WHITELISTED_ENV_VARS.contains(&name)
+}
+
 const WHITELISTED_ENV_VARS: [&str; 16] = [
     "CODEX_HOME",
     "CLAUDE_CONFIG_DIR",
@@ -371,10 +375,16 @@ fn read_env_from_interactive_shells(name: &str) -> Option<String> {
     None
 }
 
-fn resolve_env_value(name: &str) -> Option<String> {
+fn resolve_env_value(name: &str, app_data_dir: Option<&Path>) -> Option<String> {
     // Prefer the current process env (fast + supports launchctl/terminal-launch).
     if let Some(value) = read_env_from_process(name) {
         return Some(value);
+    }
+
+    if let Some(dir) = app_data_dir {
+        if let Some(value) = crate::plugin_secrets::get_stored_value(dir, name) {
+            return Some(value);
+        }
     }
 
     if let Ok(cache) = terminal_env_cache().lock() {
@@ -738,7 +748,7 @@ pub(crate) fn inject_host_api_with_deadline<'js>(
     inject_log(ctx, &host, plugin_id)?;
     inject_fs(ctx, &host)?;
     inject_crypto(ctx, &host)?;
-    inject_env(ctx, &host, plugin_id)?;
+    inject_env(ctx, &host, plugin_id, app_data_dir)?;
     inject_http(ctx, &host, plugin_id, deadline)?;
     inject_keychain(ctx, &host, plugin_id)?;
     inject_sqlite(ctx, &host)?;
@@ -898,8 +908,14 @@ fn inject_crypto<'js>(ctx: &Ctx<'js>, host: &Object<'js>) -> rquickjs::Result<()
     Ok(())
 }
 
-fn inject_env<'js>(ctx: &Ctx<'js>, host: &Object<'js>, _plugin_id: &str) -> rquickjs::Result<()> {
+fn inject_env<'js>(
+    ctx: &Ctx<'js>,
+    host: &Object<'js>,
+    _plugin_id: &str,
+    app_data_dir: &PathBuf,
+) -> rquickjs::Result<()> {
     let env_obj = Object::new(ctx.clone())?;
+    let app_data = app_data_dir.clone();
     env_obj.set(
         "get",
         Function::new(ctx.clone(), move |name: String| -> Option<String> {
@@ -907,7 +923,7 @@ fn inject_env<'js>(ctx: &Ctx<'js>, host: &Object<'js>, _plugin_id: &str) -> rqui
                 return None;
             }
 
-            resolve_env_value(&name)
+            resolve_env_value(&name, Some(app_data.as_path()))
         })?,
     )?;
     host.set("env", env_obj)?;
@@ -3413,7 +3429,7 @@ mod tests {
             let get: Function = env.get("get").expect("get");
 
             for name in WHITELISTED_ENV_VARS {
-                let expected = resolve_env_value(name);
+                let expected = resolve_env_value(name, None);
                 let value: Option<String> =
                     get.call((name.to_string(),)).expect("get whitelisted var");
                 assert_eq!(value, expected, "{name} should match host env resolver");

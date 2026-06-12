@@ -2,14 +2,17 @@ import { beforeEach, describe, expect, it } from "vitest"
 import {
   DEFAULT_GLOBAL_SHORTCUT,
   DEFAULT_PANEL_KEEP_ON_TASKBAR,
+  DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED,
   DEFAULT_START_ON_LOGIN,
 } from "@/lib/settings-types"
 import {
   loadGlobalShortcut,
   loadPanelKeepOnTaskbar,
+  loadPanelStayOpenWhenPinned,
   loadStartOnLogin,
   saveGlobalShortcut,
   savePanelKeepOnTaskbar,
+  savePanelStayOpenWhenPinned,
   saveStartOnLogin,
 } from "@/lib/settings-system"
 import { getSettingsStoreMocks } from "@/test/settings-store-mock"
@@ -64,6 +67,15 @@ describe("settings system", () => {
 
   it("loads default keep-on-taskbar when missing", async () => {
     await expect(loadPanelKeepOnTaskbar()).resolves.toBe(DEFAULT_PANEL_KEEP_ON_TASKBAR)
+  })
+
+  it("loads default stay-open-when-pinned when missing", async () => {
+    await expect(loadPanelStayOpenWhenPinned()).resolves.toBe(DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED)
+  })
+
+  it("saves stay-open-when-pinned value", async () => {
+    await savePanelStayOpenWhenPinned(false)
+    await expect(loadPanelStayOpenWhenPinned()).resolves.toBe(false)
   })
 
   it("saves keep-on-taskbar value", async () => {

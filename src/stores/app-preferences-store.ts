@@ -5,6 +5,7 @@ import {
   DEFAULT_GLOBAL_SHORTCUT,
   DEFAULT_MENUBAR_ICON_STYLE,
   DEFAULT_MENUBAR_METRIC,
+  DEFAULT_MACHINE_SETTINGS,
   DEFAULT_RESET_TIMER_DISPLAY_MODE,
   DEFAULT_PANEL_KEEP_ON_TASKBAR,
   DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED,
@@ -16,6 +17,7 @@ import {
   type GlobalShortcut,
   type MenubarIconStyle,
   type MenubarMetric,
+  type MachineSettings,
   type ResetTimerDisplayMode,
   type ThemeMode,
   type TimeFormatMode,
@@ -31,6 +33,7 @@ type AppPreferencesStore = {
   startOnLogin: boolean
   menubarIconStyle: MenubarIconStyle
   menubarMetric: MenubarMetric
+  machineSettings: MachineSettings
   panelStayOpenWhenPinned: boolean
   panelKeepOnTaskbar: boolean
   setAutoUpdateInterval: (value: AutoUpdateIntervalMinutes) => void
@@ -42,6 +45,7 @@ type AppPreferencesStore = {
   setStartOnLogin: (value: boolean) => void
   setMenubarIconStyle: (value: MenubarIconStyle) => void
   setMenubarMetric: (value: MenubarMetric) => void
+  setMachineSettings: (value: MachineSettings) => void
   setPanelStayOpenWhenPinned: (value: boolean) => void
   setPanelKeepOnTaskbar: (value: boolean) => void
   resetState: () => void
@@ -57,6 +61,7 @@ const initialState = {
   startOnLogin: DEFAULT_START_ON_LOGIN,
   menubarIconStyle: DEFAULT_MENUBAR_ICON_STYLE,
   menubarMetric: DEFAULT_MENUBAR_METRIC,
+  machineSettings: DEFAULT_MACHINE_SETTINGS,
   panelStayOpenWhenPinned: DEFAULT_PANEL_STAY_OPEN_WHEN_PINNED,
   panelKeepOnTaskbar: DEFAULT_PANEL_KEEP_ON_TASKBAR,
 }
@@ -72,6 +77,7 @@ export const useAppPreferencesStore = create<AppPreferencesStore>((set) => ({
   setStartOnLogin: (value) => set({ startOnLogin: value }),
   setMenubarIconStyle: (value) => set({ menubarIconStyle: value }),
   setMenubarMetric: (value) => set({ menubarMetric: value }),
+  setMachineSettings: (value) => set({ machineSettings: value }),
   setPanelStayOpenWhenPinned: (value) => set({ panelStayOpenWhenPinned: value }),
   setPanelKeepOnTaskbar: (value) => set({ panelKeepOnTaskbar: value }),
   resetState: () => set(initialState),

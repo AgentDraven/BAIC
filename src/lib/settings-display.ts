@@ -5,12 +5,14 @@ import {
   DEFAULT_DISPLAY_MODE,
   DEFAULT_MENUBAR_ICON_STYLE,
   DEFAULT_MENUBAR_METRIC,
+  DEFAULT_MACHINE_SETTINGS,
   DEFAULT_RESET_TIMER_DISPLAY_MODE,
   DEFAULT_THEME_MODE,
   DEFAULT_TIME_FORMAT_MODE,
   DISPLAY_MODE_VALUES,
   MENUBAR_ICON_STYLE_VALUES,
   MENUBAR_METRIC_VALUES,
+  MACHINE_SOURCE_MODE_VALUES,
   RESET_TIMER_DISPLAY_MODE_VALUES,
   THEME_MODE_VALUES,
   TIME_FORMAT_MODE_VALUES,
@@ -18,6 +20,7 @@ import {
   type DisplayMode,
   type MenubarIconStyle,
   type MenubarMetric,
+  type MachineSettings,
   type ResetTimerDisplayMode,
   type ThemeMode,
   type TimeFormatMode,
@@ -30,6 +33,7 @@ const RESET_TIMER_DISPLAY_MODE_KEY = "resetTimerDisplayMode";
 const TIME_FORMAT_MODE_KEY = "timeFormatMode";
 const MENUBAR_ICON_STYLE_KEY = "menubarIconStyle";
 const MENUBAR_METRIC_KEY = "menubarMetric";
+const MACHINE_SETTINGS_KEY = "machineSettings";
 
 const store = getSettingsStore();
 
@@ -149,5 +153,33 @@ export async function loadMenubarMetric(): Promise<MenubarMetric> {
 
 export async function saveMenubarMetric(metric: MenubarMetric): Promise<void> {
   await store.set(MENUBAR_METRIC_KEY, metric);
+  await store.save();
+}
+
+function normalizeMachineSettings(value: unknown): MachineSettings {
+  if (typeof value !== "object" || value === null) {
+    return { ...DEFAULT_MACHINE_SETTINGS };
+  }
+  const stored = value as Partial<MachineSettings>;
+  const mode = MACHINE_SOURCE_MODE_VALUES.includes(stored.mode as MachineSettings["mode"])
+    ? stored.mode as MachineSettings["mode"]
+    : DEFAULT_MACHINE_SETTINGS.mode;
+  const remotePluginIds = Array.isArray(stored.remotePluginIds)
+    ? stored.remotePluginIds.filter((id): id is string => typeof id === "string" && id.length > 0)
+    : DEFAULT_MACHINE_SETTINGS.remotePluginIds;
+  return {
+    mode,
+    remoteBaseUrl: typeof stored.remoteBaseUrl === "string" ? stored.remoteBaseUrl : "",
+    remotePluginIds,
+    setupComplete: typeof stored.setupComplete === "boolean" ? stored.setupComplete : false,
+  };
+}
+
+export async function loadMachineSettings(): Promise<MachineSettings> {
+  return normalizeMachineSettings(await store.get<unknown>(MACHINE_SETTINGS_KEY));
+}
+
+export async function saveMachineSettings(settings: MachineSettings): Promise<void> {
+  await store.set(MACHINE_SETTINGS_KEY, normalizeMachineSettings(settings));
   await store.save();
 }

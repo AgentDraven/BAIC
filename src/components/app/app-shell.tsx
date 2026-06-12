@@ -1,5 +1,6 @@
 import { useShallow } from "zustand/react/shallow"
 import { AppContent, type AppContentActionProps } from "@/components/app/app-content"
+import { PinnedOverlayBar } from "@/components/app/pinned-overlay-bar"
 import { PanelFooter } from "@/components/panel-footer"
 import { SideNav, type NavPlugin, type PluginContextAction } from "@/components/side-nav"
 import type { DisplayPluginState } from "@/hooks/app/use-app-plugin-views"
@@ -47,12 +48,14 @@ export function AppShell({
     setActiveView,
     showAbout,
     setShowAbout,
+    panelPinned,
   } = useAppUiStore(
     useShallow((state) => ({
       activeView: state.activeView,
       setActiveView: state.setActiveView,
       showAbout: state.showAbout,
       setShowAbout: state.setShowAbout,
+      panelPinned: state.panelPinned,
     }))
   )
 
@@ -67,6 +70,7 @@ export function AppShell({
     showAbout,
     setShowAbout,
     displayPlugins,
+    panelPinned,
   })
 
   const appVersion = useAppVersion()
@@ -80,6 +84,11 @@ export function AppShell({
     ? VERTICAL_OVERHEAD_MAC_PX
     : VERTICAL_OVERHEAD_OTHER_PX
 
+  // When pinned on Windows/Linux, show a thin performance bar at the top of
+  // the regular panel (Steam-overlay style quick-glance widget). The full
+  // panel — side nav, plugin content, footer — is still rendered below.
+  const showPinnedBar = panelPinned && !isMac
+
   return (
     <div
       ref={containerRef}
@@ -88,10 +97,19 @@ export function AppShell({
     >
       {isMac && <div className="tray-arrow" />}
       <div
-        className="relative bg-card rounded-2xl overflow-hidden select-none w-full max-w-105 border border-border/70 ring-1 ring-black/[0.04] dark:ring-white/[0.06] shadow-xl flex flex-col"
+        className="relative bg-card/90 rounded-2xl overflow-hidden select-none w-full max-w-105 border border-border/70 ring-1 ring-black/[0.04] dark:ring-white/[0.06] shadow-xl backdrop-blur-xl flex flex-col"
         style={maxPanelHeightPx ? { maxHeight: `${maxPanelHeightPx - verticalOverheadPx}px` } : undefined}
       >
-        <div className="flex flex-1 min-h-0 flex-row">
+        {showPinnedBar && (
+          <PinnedOverlayBar
+            activeView={activeView}
+            displayPlugins={displayPlugins}
+            traySettingsPreview={appContentProps.traySettingsPreview}
+            onViewChange={setActiveView}
+            onRefreshAll={onRefreshAll}
+          />
+        )}
+        <div className="flex min-h-0 flex-1 flex-row">
           <SideNav
             activeView={activeView}
             onViewChange={setActiveView}
@@ -100,7 +118,7 @@ export function AppShell({
             isPluginRefreshAvailable={isPluginRefreshAvailable}
             onReorder={onNavReorder}
           />
-          <div className="flex-1 flex flex-col px-3 pt-2 pb-1.5 min-w-0 bg-card dark:bg-muted/50">
+          <div className="flex min-w-0 flex-1 flex-col px-3 pt-2 pb-1.5">
             <div className="relative flex-1 min-h-0">
               <div ref={scrollRef} className="h-full overflow-y-auto scrollbar-none">
                 <AppContent
@@ -111,7 +129,7 @@ export function AppShell({
                 />
               </div>
               <div
-                className={`pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-card dark:from-muted/50 to-transparent transition-opacity duration-200 ${canScrollDown ? "opacity-100" : "opacity-0"}`}
+                className={`pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-card/95 dark:from-muted/80 to-transparent transition-opacity duration-200 ${canScrollDown ? "opacity-100" : "opacity-0"}`}
               />
             </div>
             <PanelFooter
