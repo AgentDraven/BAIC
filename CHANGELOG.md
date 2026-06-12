@@ -1,6 +1,11 @@
 ﻿# CHANGELOG
 
 
+
+## [0.2.0] - 2026-06-12
+
+### Added
+- baseline: MERIT structure streamlined
 ## [0.1.10] - 2026-06-12
 
 ### Changed
