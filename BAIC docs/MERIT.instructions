@@ -1,0 +1,21 @@
+﻿# MERIT.instructions â€” repo pointer (do not edit)
+
+**Git SSOT (Private Vault):** [github.com/AgentDraven/merit-private-vault](https://github.com/AgentDraven/merit-private-vault) â†’ `instructions/MERIT.instructions`
+
+| Layer | Location |
+|-------|----------|
+| **Edit** | `AgentDraven/merit-private-vault/instructions/MERIT.instructions` (private repo only) |
+| **Runtime** | `%USERPROFILE%\HumanBala\MERIT.instructions` after `install.ps1 sync` |
+| **Repo pointer** | `BAIC docs/MERIT.instructions` (this file) |
+
+**Read order for agents:** L1 â†’ `%USERPROFILE%\HumanBala\MERIT.instructions` (deployed from vault). **Edit** universal policy only in the private vault â€” never fork full L1 into this repo.
+
+## Instruction chain
+
+1. `%USERPROFILE%\HumanBala\MERIT.instructions` (L1)
+2. `%USERPROFILE%\HumanBala\AgentDraven.instructions` (L2 â€” persona)
+3. `BAIC.instructions` at repo root when present (L3)
+4. `BAIC docs/INDEX.md` â€” documentation front door when present
+
+Closeout: MERIT **Â§G** hygiene â†’ **Â§VIII.F** (`.\scripts\merit.ps1 mXin`) â†’ **Â§H** 3-3 in chat. See `AGENTS.md` and `BAIC.instructions`.
+
