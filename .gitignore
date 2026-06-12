@@ -1,4 +1,4 @@
-
+﻿
 # Python
 __pycache__/
 *.py[cod]
@@ -24,3 +24,5 @@ web/dist/
 # IDE
 .codex/
 .pytest_cache/
+
+.herenow/

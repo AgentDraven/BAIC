@@ -16,7 +16,7 @@ Open **http://127.0.0.1:8765/** · Tests: `python test_baic.py` (22 tests)
 
 ## Getting Started
 
-Full setup and git workflow: **[Bootstrapping Guide](BAIC%20docs/BOOTSTRAPPING.md)**
+Full setup and git workflow: **[Bootstrapping Guide](BAIC%20docs/BOOTSTRAPPING.md)** · Operator closeout: **`BAIC.instructions`**
 
 ### Operator script (single entry point)
 
