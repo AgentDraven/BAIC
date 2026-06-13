@@ -1,5 +1,23 @@
 # BAIC Documentation Index
 
+
+<!-- merit:cert-visibility:start -->
+## MERIT certification (vault SSOT)
+
+| Field | Value |
+|-------|-------|
+| **Project** | baic |
+| **Certified** | no |
+| **Level** | none |
+| **Issued** | 2026-06-13 04:46:25 |
+| **Roles** | — |
+
+**Interlocks:** none registered.
+
+Registry SSOT: `merit-private-vault/cfg/certification-registry.json` · interlocks: `cfg/interlock-registry.json` · program: `cfg/merit-certification-program.json`
+
+Refresh: `python scripts/meritcert.py refresh-index` (from this repo) · operator steps: vault `docs/vault_usage.md` §3
+<!-- merit:cert-visibility:end -->
 <a id="index"></a>
 
 **TokenMaxxing2Zero Control Plane** · baseline see [VERSION](../VERSION)
