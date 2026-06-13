@@ -5,6 +5,11 @@
 
 
 
+
+## [0.8.9] - 2026-06-13
+
+### Changed
+- chore: refresh INDEX after MERIT-8.8 baseline
 ## [0.8.8] - 2026-06-13
 
 ### Added

@@ -1,6 +1,5 @@
 # BAIC Documentation Index
 
-
 <!-- merit:cert-visibility:start -->
 ## MERIT certification (vault SSOT)
 
