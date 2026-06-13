@@ -2,6 +2,11 @@
 
 
 
+
+## [0.2.1] - 2026-06-12
+
+### Changed
+- chore: add vault compliance shims
 ## [0.2.0] - 2026-06-12
 
 ### Added
