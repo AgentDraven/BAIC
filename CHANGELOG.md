@@ -6,6 +6,11 @@
 
 
 
+
+## [0.8.10] - 2026-06-13
+
+### Changed
+- chore(wave-0): gitignore hygiene patch closeout
 ## [0.8.9] - 2026-06-13
 
 ### Changed
