@@ -11,6 +11,11 @@
 
 
 
+
+## [0.8.15] - 2026-06-14
+
+### Changed
+- chore: repo_hygiene_check shim, AGENTS L3 pointer, remove empty cfg/theme.md
 ## [0.8.14] - 2026-06-13
 
 ### Changed
