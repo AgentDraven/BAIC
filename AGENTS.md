@@ -4,7 +4,8 @@
 
 1. `%USERPROFILE%\HumanBala\MERIT.instructions` (L1)
 2. `%USERPROFILE%\HumanBala\AgentDraven.instructions` (L2)
-3. `BAIC.instructions` at repo root when present (L3)
+3. `BAIC docs/MERIT.instructions` — L1 repo pointer (do not fork L1 policy)
+4. `BAIC.instructions` at repo root when present (L3)
 4. Product SSOT under **`BAIC docs/`** — start at [BAIC docs/INDEX.md](BAIC%20docs/INDEX.md)
 
 **Private vault:** clone `github.com/AgentDraven/merit-private-vault` → `~/AgentDraven/merit-private-vault`
