@@ -26,3 +26,9 @@ web/dist/
 .pytest_cache/
 
 .herenow/
+
+# MERIT file sprawl hygiene (MERIT.instructions VII.E)
+**/.obsidian/
+.cursor/settings.json
+cfg/.bootstrap_state.json
+scripts/.bootstrap_state.json
