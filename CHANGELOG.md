@@ -9,6 +9,11 @@
 
 
 
+
+## [0.8.13] - 2026-06-13
+
+### Changed
+- fix: baic doc links to archived SSOT paths
 ## [0.8.12] - 2026-06-13
 
 ### Changed
