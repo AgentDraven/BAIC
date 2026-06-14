@@ -6,7 +6,7 @@ Wave 6 3-doc SSOT.`n
 
 # BAIC User Guide
 
-Operator guide for the TokenMaxxing Control Plane. Architecture: [TECHNICAL_HLD_LLD.md](TECHNICAL_HLD_LLD.md).
+Operator guide for the TokenMaxxing Control Plane. Architecture: [../.archive/docs/TECHNICAL_HLD_LLD.md](../.archive/docs/TECHNICAL_HLD_LLD.md).
 
 ---
 
@@ -59,7 +59,7 @@ flowchart TB
 |------|----------|
 | **User** | This guide + running `run_baic.py` |
 | **Admin** | [provider_registry.json](../cfg/provider_registry.json) + [PRD Â§6](input/BAIC_PRD.md#provider-registry) |
-| **Developer** | [bridge/README.md](../bridge/README.md) + [TECHNICAL](TECHNICAL_HLD_LLD.md) |
+| **Developer** | [bridge/README.md](../bridge/README.md) + [TECHNICAL](../.archive/docs/TECHNICAL_HLD_LLD.md) |
 
 ---
 
@@ -85,9 +85,9 @@ flowchart TB
 
 ## Concepts
 
-- [Hub-and-Spoke](CONCEPTS_GUIDE.md#hub-and-spoke)  
-- [Metrics profile](CONCEPTS_GUIDE.md#metrics-profile) â€” USD vs compute vs allowance  
-- [Quota swap](CONCEPTS_GUIDE.md#quota-swap)  
+- [Hub-and-Spoke](../.archive/docs/CONCEPTS_GUIDE.md#hub-and-spoke)  
+- [Metrics profile](../.archive/docs/CONCEPTS_GUIDE.md#metrics-profile) â€” USD vs compute vs allowance  
+- [Quota swap](../.archive/docs/CONCEPTS_GUIDE.md#quota-swap)  
 
 ---
 

@@ -6,7 +6,7 @@ Wave 6 3-doc SSOT. Legacy: `.archive/docs/`.`n
 
 # BAIC Technical HLD / LLD
 
-Architecture reference with diagrams. Product requirements: [BAIC_PRD.md](input/BAIC_PRD.md). Concepts: [CONCEPTS_GUIDE.md](CONCEPTS_GUIDE.md).
+Architecture reference with diagrams. Product requirements: [BAIC_PRD.md](input/BAIC_PRD.md). Concepts: [.archive/docs/CONCEPTS_GUIDE.md](../.archive/docs/CONCEPTS_GUIDE.md).
 
 ---
 
