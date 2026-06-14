@@ -8,6 +8,11 @@
 
 
 
+
+## [0.8.12] - 2026-06-13
+
+### Changed
+- chore(wave-6): refresh INDEX cert visibility block
 ## [0.8.11] - 2026-06-13
 
 ### Changed
