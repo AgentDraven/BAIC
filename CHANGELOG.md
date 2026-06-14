@@ -10,6 +10,11 @@
 
 
 
+
+## [0.8.14] - 2026-06-13
+
+### Changed
+- fix: MERIT hyperlink format on baic_usage
 ## [0.8.13] - 2026-06-13
 
 ### Changed
