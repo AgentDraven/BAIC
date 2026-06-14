@@ -7,6 +7,11 @@
 
 
 
+
+## [0.8.11] - 2026-06-13
+
+### Changed
+- feat(wave-6): baic 3-doc SSOT rename
 ## [0.8.10] - 2026-06-13
 
 ### Changed
