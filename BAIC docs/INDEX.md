@@ -26,3 +26,27 @@ Refresh: `python scripts/meritcert.py refresh-index` (from this repo) · operato
 | [baic_usage.md](baic_usage.md) | Operator & user guide |
 
 Legacy: `.archive/docs/` · deep input: [input/](input/)
+
+<!-- merit:repo-hygiene:start -->
+## Repo hygiene
+
+| Field | Value |
+|-------|-------|
+| **Status** | `clean` |
+| **Updated** | 2026-06-14 05:56 UTC |
+| **Git-tracked** | `.md` 15 · `.json` 9 · `.py` 55 |
+| **Sprawl** | `pass` · profile `phase_product` |
+| **Hyperlinks** | Found 0 issue(s) in BAIC docs/: |
+| **Root floaters** | 0 |
+| **Zero-byte files** | 0 |
+| **Version mismatches** | 0 |
+
+### Sprawl groups
+
+| Group | Count | Cap | Status |
+|-------|------:|----:|--------|
+| product-docs | 3 | 3 | pass |
+| cfg-json | 6 | 6 | pass |
+
+Refresh: `python scripts/meritcert.py refresh-index` · validate: `python scripts/compliance/validate_json_sprawl.py --repo . --project baic`
+<!-- merit:repo-hygiene:end -->

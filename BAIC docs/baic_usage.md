@@ -58,7 +58,7 @@ flowchart TB
 | Role | You need |
 |------|----------|
 | **User** | This guide + running `run_baic.py` |
-| **Admin** | [provider_registry.json](../cfg/provider_registry.json) + [PRD Â§6](input/BAIC_PRD.md#provider-registry) |
+| **Admin** | [provider_registry.json](../cfg/provider_registry.json) + [PRD Â§6](input/BAIC_PRD.md#provider-registry) [[input/BAIC_PRD#^provider-registry]] |
 | **Developer** | [bridge/README.md](../bridge/README.md) + [TECHNICAL](../.archive/docs/TECHNICAL_HLD_LLD.md) |
 
 ---
@@ -85,9 +85,9 @@ flowchart TB
 
 ## Concepts
 
-- [Hub-and-Spoke](../.archive/docs/CONCEPTS_GUIDE.md#hub-and-spoke)  
-- [Metrics profile](../.archive/docs/CONCEPTS_GUIDE.md#metrics-profile) â€” USD vs compute vs allowance  
-- [Quota swap](../.archive/docs/CONCEPTS_GUIDE.md#quota-swap)  
+- [Hub-and-Spoke](../.archive/docs/CONCEPTS_GUIDE.md#hub-and-spoke) [[../.archive/docs/CONCEPTS_GUIDE#^hub-and-spoke|(obsidian)]]  
+- [Metrics profile](../.archive/docs/CONCEPTS_GUIDE.md#metrics-profile) [[../.archive/docs/CONCEPTS_GUIDE#^metrics-profile|(obsidian)]] â€” USD vs compute vs allowance  
+- [Quota swap](../.archive/docs/CONCEPTS_GUIDE.md#quota-swap) [[../.archive/docs/CONCEPTS_GUIDE#^quota-swap|(obsidian)]]  
 
 ---
 
