@@ -1,12 +1,13 @@
 ﻿<a id="contents"></a>
 # baic_usage.md ^contents
 
-Wave 6 3-doc SSOT.`n
+Wave 6 3-doc SSOT. Architecture: [baic_design.md](baic_design.md).
+
 ---
 
 # BAIC User Guide
 
-Operator guide for the TokenMaxxing Control Plane. Architecture: [../.archive/docs/TECHNICAL_HLD_LLD.md](../.archive/docs/TECHNICAL_HLD_LLD.md).
+Operator guide for the TokenMaxxing Control Plane.
 
 ---
 
@@ -20,34 +21,77 @@ python run_baic.py
 
 Browser opens **http://127.0.0.1:8765/** (API + UI on one port).
 
+Stub demo (no secrets):
+
+```powershell
+python run_baic.py --stub
+```
+
+---
+
+## Secrets and layered env (L2 → L3)
+
+BAIC follows the MERIT **`*.instructions`** chain for secrets — same pattern as other AgentDraven repos.
+
+| Tier | File | Role |
+|------|------|------|
+| **L2 persona** | `%USERPROFILE%\HumanBala\env\AgentDraven\.env.local` | Shared operator identity (`GITHUB_TOKEN`, `GIT_USER_EMAIL`) |
+| **L3 repo** | `BAIC/.env.local` | Project keys — **wins** on duplicates |
+
+**Setup:**
+
+1. Copy `.env.local.example` → `.env.local`
+2. Set `MERIT_PERSONA=AgentDraven`
+3. Fill provider keys (see table below)
+
+**Load env (PowerShell session):**
+
+```powershell
+. $HOME\HumanBala\scripts\Import-MeritEnv.ps1 -RepoPath (Get-Location)
+```
+
+**Validate scaffold:**
+
+```powershell
+python run_baic.py --validate-config
+```
+
+Vault deploy (optional): `merit-private-vault/scripts/deploy-env.ps1 -Project baic` merges vault persona + project env into L3.
+
+Detail: [IAR/MERITUTILS_ENV.md](IAR/MERITUTILS_ENV.md)
+
+### Provider keys in `.env.local`
+
+| Env var | Provider kind |
+|---------|---------------|
+| `GOOGLE_APPLICATION_CREDENTIALS`, `GOOGLE_CLOUD_PROJECT` | hyperscaler (Google) |
+| `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY` | hyperscaler (Azure) |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | hyperscaler (AWS) |
+| `OCI_*` | hyperscaler (OCI) |
+| `GROQ_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY` | **llm_api** (direct APIs) |
+| `CURSOR_API_TOKEN`, `GITHUB_TOKEN`, `GOOGLE_ONE_CLIENT_ID` | consumer_frontend |
+
+Model routing SSOT for dirt sibling: `dirt/cfg/llm_providers.json` (endpoints/models); secrets stay in env only.
+
 ---
 
 ## UI tour
 
 ### Global Ledger (Hub)
 
-```mermaid
-flowchart TB
-  KPI[KPI Strip: runway, OOP, USD liquidity]
-  CONS[Consumer cards: Cursor, Copilot, Google One]
-  INFRA[Infra cards: Google, Azure, AWS, OCI]
-  DIRT[DIRT registry log strip]
-  KPI --> CONS
-  KPI --> INFRA
-  INFRA -->|Enter console| SPOKE
-```
-
 | Section | Action |
 |---------|--------|
 | Consumer card | Click CTA (e.g. Troubleshoot Sync) |
-| Infra card | **Enter console** â†’ Spoke |
+| Infra / llm_api card | **Enter console** → Spoke |
 | DIRT strip | Read-only system events |
+| Config rail (left) | Registry summary; future admin HND |
+| X-Ray (right) | Diagnostics stream (MERIT §II.H) |
 
-### Google Spoke (example)
+### Provider Spokes
 
-- **Block A** â€” AI Studio projects, TPM ceiling, 2026 pricing matrix  
-- **Block B** â€” Vertex promo pools, guardrails, swap ops  
-- **Cost gauge** â€” Recharts bar vs $15 hard cap  
+- **Hyperscaler** — promo pools, TPM, cost gauge, capability matrix blocks
+- **Consumer** — subscription allowance, routing CTAs
+- **LLM API** (`groq`, `openai`, `gemini`, `anthropic`) — BYOK block + model list + `api_base` header
 
 **Back to Hub** link top-left.
 
@@ -57,19 +101,29 @@ flowchart TB
 
 | Role | You need |
 |------|----------|
-| **User** | This guide + running `run_baic.py` |
-| **Admin** | [provider_registry.json](../cfg/provider_registry.json) + [PRD Â§6](input/BAIC_PRD.md#provider-registry) [[input/BAIC_PRD#^provider-registry]] |
-| **Developer** | [bridge/README.md](../bridge/README.md) + [TECHNICAL](../.archive/docs/TECHNICAL_HLD_LLD.md) |
+| **User** | This guide + `run_baic.py` |
+| **Admin** | [provider_registry.json](../cfg/provider_registry.json) + [PRD §6](input/BAIC_PRD.md#provider-registry) |
+| **Developer** | [bridge/README.md](../bridge/README.md) + [baic_design.md](baic_design.md) |
 
 ---
 
 ## Admin: add a provider (no code)
 
-1. Copy fields from [provider_registry.example.json](../cfg/provider_registry.example.json)  
-2. Set `hierarchy[]` if not default `billing_account â†’ project â†’ byok`  
-3. Point `bridge_module` at existing or new `bridge.<name>`  
-4. Restart `run_baic.py`  
-5. Closeout with `merit.ps1 mXin`
+1. Copy fields from [provider_registry.example.json](../cfg/provider_registry.example.json)
+2. Set `kind`: `hyperscaler` | `consumer_frontend` | `llm_api`
+3. Set `hierarchy[]` — `llm_api` uses `["byok"]` only
+4. Point `bridge_module` at `bridge.<name>`
+5. Add secrets to `.env.local.example` + `cfg/secrets.example.json`
+6. Restart `run_baic.py`
+7. Closeout with `merit.ps1 mXin`
+
+---
+
+## MERIT HND / merit_workbench (waiting on meritutils)
+
+Admin grid+inspector surfaces (provider registry, eNAT browser, model matrix) will use shared **`merit_workbench`** from meritutils — **not** a local fork in `web/`.
+
+**Status:** BLOCKED on meritutils **BAI-MTU-01…08**. See [IAR/MERITUTILS_WORKBENCH.md](IAR/MERITUTILS_WORKBENCH.md).
 
 ---
 
@@ -79,17 +133,9 @@ flowchart TB
 |---------|-----|
 | Blank UI | Run `cd web && npm run build` |
 | API error on Hub | Delete `output/baic_state.db` and restart (re-seeds demo) |
-| Port in use | Change `cfg/config.json` â†’ `api_port` |
-
----
-
-## Concepts
-
-- [Hub-and-Spoke](../.archive/docs/CONCEPTS_GUIDE.md#hub-and-spoke) [[../.archive/docs/CONCEPTS_GUIDE#^hub-and-spoke|(obsidian)]]  
-- [Metrics profile](../.archive/docs/CONCEPTS_GUIDE.md#metrics-profile) [[../.archive/docs/CONCEPTS_GUIDE#^metrics-profile|(obsidian)]] â€” USD vs compute vs allowance  
-- [Quota swap](../.archive/docs/CONCEPTS_GUIDE.md#quota-swap) [[../.archive/docs/CONCEPTS_GUIDE#^quota-swap|(obsidian)]]  
+| Port in use | Change `cfg/config.json` → `api_port` |
+| Live mode fails | Check `.env.local`; run `--validate-config` |
 
 ---
 
 MERIT closeout: `.\scripts\merit.ps1 mXin` after doc or cfg changes.
-

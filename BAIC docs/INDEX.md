@@ -25,6 +25,13 @@ Refresh: `python scripts/meritcert.py refresh-index` (from this repo) · operato
 | [baic_design.md](baic_design.md) | Architecture, HLD/LLD |
 | [baic_usage.md](baic_usage.md) | Operator & user guide |
 
+### IAR (cross-repo handoffs — MERIT §0.D)
+
+| Doc | Provider | Status |
+|-----|----------|--------|
+| [IAR/MERITUTILS_WORKBENCH.md](IAR/MERITUTILS_WORKBENCH.md) | meritutils — **`merit_workbench`** | **PENDING** (BAI-MTU-01…) |
+| [IAR/MERITUTILS_ENV.md](IAR/MERITUTILS_ENV.md) | HumanBala layered env | **ACCEPT** (platform shipped) |
+
 Legacy: `.archive/docs/` · deep input: [input/](input/)
 
 <!-- merit:repo-hygiene:start -->
@@ -33,8 +40,8 @@ Legacy: `.archive/docs/` · deep input: [input/](input/)
 | Field | Value |
 |-------|-------|
 | **Status** | `clean` |
-| **Updated** | 2026-06-14 05:56 UTC |
-| **Git-tracked** | `.md` 15 · `.json` 9 · `.py` 55 |
+| **Updated** | 2026-06-14 08:48 UTC |
+| **Git-tracked** | `.md` 14 · `.json` 9 · `.py` 56 |
 | **Sprawl** | `pass` · profile `phase_product` |
 | **Hyperlinks** | Found 0 issue(s) in BAIC docs/: |
 | **Root floaters** | 0 |

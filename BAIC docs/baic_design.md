@@ -1,12 +1,15 @@
 ﻿<a id="contents"></a>
 # baic_design.md ^contents
 
-Wave 6 3-doc SSOT. Legacy: `.archive/docs/`.`n
+Wave 6 3-doc SSOT. Legacy: `.archive/docs/`.
+
+Cross-repo handoffs: [IAR/](IAR/) per MERIT §0.D.
+
 ---
 
 # BAIC Technical HLD / LLD
 
-Architecture reference with diagrams. Product requirements: [BAIC_PRD.md](input/BAIC_PRD.md). Concepts: [.archive/docs/CONCEPTS_GUIDE.md](../.archive/docs/CONCEPTS_GUIDE.md).
+Architecture reference with diagrams. Product requirements: [BAIC_PRD.md](input/BAIC_PRD.md). Operator guide: [baic_usage.md](baic_usage.md). Concepts: [.archive/docs/CONCEPTS_GUIDE.md](../.archive/docs/CONCEPTS_GUIDE.md).
 
 ---
 
@@ -22,12 +25,14 @@ C4Context
   System_Ext(google, "Google AI / Vertex")
   System_Ext(azure, "Azure OpenAI")
   System_Ext(aws, "AWS Bedrock")
+  System_Ext(llm, "Direct LLM APIs")
   Rel(operator, baic, "HTTPS")
   Rel(admin, baic, "cfg/ + Admin API")
   Rel(dev, baic, "bridge/ code")
   Rel(baic, google, "Proxy via bridge")
   Rel(baic, azure, "Proxy via bridge")
   Rel(baic, aws, "Proxy via bridge")
+  Rel(baic, llm, "groq openai gemini anthropic")
 ```
 
 ---
@@ -59,8 +64,11 @@ flowchart TB
     G[google]
     AZ[azure]
     OTH[aws, oci, cursor, ...]
+    LLM[groq, openai, gemini, anthropic]
   end
   CFG[(cfg/*.json)]
+  ENV[(.env.local L3)]
+  HB[(HumanBala/env L2)]
   SQLITE[(output/baic_state.db)]
 
   HUB --> R1
@@ -72,6 +80,8 @@ flowchart TB
   HS --> REPO
   PL --> BR
   PL --> CFG
+  PL --> ENV
+  ENV --> HB
   REPO --> PORT
   PORT --> SQL
   SQL --> SQLITE
@@ -175,7 +185,52 @@ Static UI: `/` when `web/dist/` exists (built).
 
 ---
 
-## 7. Test harness
+## 7. Provider registry (11 providers)
+
+| Kind | IDs | Hierarchy |
+|------|-----|-----------|
+| **hyperscaler** | `google_cloud`, `microsoft_azure`, `amazon_aws`, `oracle_oci` | billing → project → byok (OCI: compartment → compute_pool) |
+| **consumer_frontend** | `cursor_pro`, `github_copilot`, `google_one_ai` | subscription → seat/credit_pool → routing_profile |
+| **llm_api** | `groq`, `openai`, `gemini`, `anthropic` | `byok` only — direct API keys (mirrors `dirt/cfg/llm_providers.json`) |
+
+SSOT: `cfg/provider_registry.json` · bridges: `bridge/llm_api.py` + thin stubs · spoke: `LLM_API_CONSOLE`.
+
+---
+
+## 8. Layered secrets (MERIT env chain)
+
+Precedence: **L2 persona** (`HumanBala/env/<Persona>/.env.local`) → **L3 repo** (`.env.local`, repo wins).
+
+| Layer | Loader |
+|-------|--------|
+| Python | `HumanBala/lib/merit_env.py` via `core/merit_env.py` |
+| PowerShell | `HumanBala/scripts/Import-MeritEnv.ps1` |
+| BAIC startup | `core/config_loader.load_merged_provider_secrets()` |
+
+Detail: [IAR/MERITUTILS_ENV.md](IAR/MERITUTILS_ENV.md) · example keys: `.env.local.example`.
+
+---
+
+<a id="merit-workbench"></a>
+## 9. MERIT HND / `merit_workbench` (planned)
+
+Per MERIT L1 §II.E.1, staged operator surfaces use **grid + inspector** in the **center column**. X-Ray (§II.H) stays on the right rail.
+
+| BAIC surface | HND mode | Status |
+|--------------|----------|--------|
+| Admin provider registry | `workbench` | **BLOCKED** — wait meritutils `merit_workbench` |
+| eNAT entity browser | `workbench` | **BLOCKED** |
+| LLM API model list (Spoke) | `readonly` | **BLOCKED** |
+| Capability matrix admin | `readonly` | **BLOCKED** |
+| Hub cards / Spoke gauges | not HND | **shipped** |
+
+**Do not fork** grid/inspector DOM in `web/`. Implement thin React adapters after **BAI-MTU-01…08** ACCEPT.
+
+Requirements SSOT: [IAR/MERITUTILS_WORKBENCH.md](IAR/MERITUTILS_WORKBENCH.md) · reference: DIRT `workbench-kit.*` → meritutils **`merit_workbench`** (not `@meritutils/hnd`).
+
+---
+
+## 10. Test harness
 
 | Suite | File | Count |
 |-------|------|-------|
@@ -183,37 +238,37 @@ Static UI: `/` when `web/dist/` exists (built).
 | Integration | `tests/test_api_integration.py` | FastAPI TestClient |
 | Runner | `python test_baic.py` | wraps pytest |
 
-**Last run:** 22 passed Â· ruff clean.
+**Last run:** 40 passed · ruff clean.
 
 ---
 
-## 8. Persona Ã— capability matrix
+## 11. Persona x capability matrix
 
 | Capability | User | Admin | Developer |
 |------------|:----:|:-----:|:---------:|
-| View Hub / Spoke | âœ“ | âœ“ | âœ“ |
-| Trigger CTAs | âœ“ | âœ“ | âœ“ |
-| Edit provider_registry.json | | âœ“ | âœ“ |
-| Add bridge module | | | âœ“ |
-| Change DB backend | | | âœ“ |
-| Run test_baic.py | | âœ“ | âœ“ |
+| View Hub / Spoke | yes | yes | yes |
+| Trigger CTAs | yes | yes | yes |
+| Edit provider_registry.json | | yes | yes |
+| Add bridge module | | | yes |
+| Change DB backend | | | yes |
+| Run test_baic.py | | yes | yes |
+| Admin HND workbench | | future | yes |
 
 ---
 
-## 9. Directory map
+## 12. Directory map
 
-```
+`
 BAIC/
-â”œâ”€â”€ run_baic.py          # Operations entry
-â”œâ”€â”€ test_baic.py         # Test entry
-â”œâ”€â”€ core/                # hub_service, arbitrage, api, provider_loader
-â”œâ”€â”€ db/                  # Modular persistence
-â”œâ”€â”€ bridge/<provider>/   # Vendor adapters
-â”œâ”€â”€ cfg/                 # SSOT JSON
-â”œâ”€â”€ web/                 # React UI â†’ dist/
-â”œâ”€â”€ tests/               # pytest
-â””â”€â”€ BAIC docs/           # This file + guides (MERIT {Name} docs/)
-```
+├── run_baic.py          # Operations entry
+├── test_baic.py         # Test entry
+├── core/                # hub_service, arbitrage, api, merit_env, provider_loader
+├── db/                  # Modular persistence
+├── bridge/<provider>/   # Vendor adapters (+ llm_api stubs)
+├── cfg/                 # SSOT JSON
+├── web/                 # React UI -> dist/
+├── tests/               # pytest
+└── BAIC docs/           # design + usage + IAR/
+`
 
 See [INDEX.md](INDEX.md) for navigation.
-
