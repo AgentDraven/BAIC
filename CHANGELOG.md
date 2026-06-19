@@ -12,6 +12,15 @@
 
 
 
+## [0.8.16] - 2026-06-08
+
+### Added
+- IAR handoffs: MERITUTILS_WORKBENCH.md (BAI-MTU-* for merit_workbench) and MERITUTILS_ENV.md (layered env).
+- Design/usage SSOT: llm_api, merit_env chain, HND plan in baic_design.md and baic_usage.md.
+
+### Changed
+- BAIC docs/INDEX.md IAR section per MERIT section 0.D.
+
 ## [0.8.15] - 2026-06-14
 
 ### Changed
