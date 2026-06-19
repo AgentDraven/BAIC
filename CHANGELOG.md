@@ -13,6 +13,11 @@
 
 
 
+## [0.8.18] - 2026-06-19
+
+### Changed
+- IAR MERITUTILS_WORKBENCH: Phase 0 **ACK with feedback** for `@meritutils/merit_workbench`; capability opt-out table; BAI-MWB-V* IDs.
+
 ## [0.8.17] - 2026-06-19
 
 ### Changed

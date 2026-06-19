@@ -1,177 +1,115 @@
 # MERITUTILS ↔ BAIC — `merit_workbench` (IAR)
 
 **Requester:** BAIC (`BAI`) — **consumer / control plane**  
-**Provider:** meritutils (`MTU`) — shared UI utility **`merit_workbench`**  
-**Policy:** MERIT L1 §0.D IAR Code of Honor · L1 §II.E.1 HND · L1 §II.H X-Ray · L1 §II.J Mobile-First  
-**Normative refs:** `merit-private-vault/instructions/MERIT.instructions` §E.1 · DIRT `DIRT docs/IAR/MERIT_HND.md` (reference implementation)
+**Provider:** meritutils (`MTU`) — **`@meritutils/merit_workbench`**  
+**Policy:** MERIT L1 §0.D IAR Code of Honor · L1 §II.E.1 merit_workbench pattern · L1 §II.H X-Ray · L1 §II.J Mobile-First  
+**Normative provider SSOT:** `meritutils/Meritutils docs/IAR/MERIT_WORKBENCH.md` — **review & ACK before BAIC integration**  
+**Design SSOT:** `meritutils/Meritutils docs/merit_workbench_design.md`  
+**Reference:** DIRT `DIRT docs/IAR/MERIT_HND.md` (reference implementation)
 
-> **Naming:** **HND** = Hand-and-Detail UX pattern (GRID + INSPECTOR + Action Bar). **`merit_workbench`** = meritutils package/module name — **not** `@meritutils/hnd`.
+> **Naming:** **HND / merit_workbench pattern** = L1 §II.E.1 (grid + inspector). **`@meritutils/merit_workbench`** = npm package — **not** `@meritutils/hnd`.
 
-**IDs:** Provider rows **BAI-MTU-01…** · Consumer validation **BAI-MTU-V01…**
+**IDs:** Provider gate **MUU-MWB-01…12** (MW.1) · Consumer validation **BAI-MWB-V01…06**
+
+**Phase 0:** BAIC is **not** in the meritutils Phase 1 gate (DIRT + SomaTune + meritsubs must ACK first). This IAR records BAIC plan + sign-off for **post-MW.1** integration.
 
 ---
 
 ## EXECUTIVE ACTION NEEDED
 
-**meritutils agent:** Implement **`merit_workbench`** from DIRT `workbench-kit.*` (see DIRT `MERIT_HND.md` §5). BAIC is **blocked** on admin/eNAT HND surfaces until **BAI-MTU-01…08** ACCEPT.
+**meritutils agent:** Phase 1 (MW.1) proceeds when **DIRT, SomaTune, meritsubs** all ACK in provider IAR §9. BAIC integration **BLOCKED** until **MUU-MWB-01…12 ACCEPT** and **BAI-MWB-V01…06**.
 
-**BAIC agent:** **WAIT** on meritutils — keep React Hub/Spoke cards; integrate `merit_workbench` only after **BAI-MTU-V01** pass. Do not fork grid/inspector DOM in `web/`.
+**BAIC agent:** **ACK** provider plan (§9 below). Do **not** fork grid/inspector in `web/`. Wait for MW.1 package before adapters BW.4–BW.6.
 
 ---
 
 ## 1. Purpose (PRD summary)
 
-BAIC is the **TokenMaxxing Control Plane** — Hub (portfolio ledger) + Spoke (per-provider console) + Config rail + X-Ray (MERIT §II.H). Today:
+BAIC is the **TokenMaxxing Control Plane** — Hub + Spoke + Config rail + X-Ray (MERIT §II.H).
 
-| Surface | Today | Target with `merit_workbench` |
-|---------|-------|-------------------------------|
-| Hub provider cards | React `ProviderCardView` grid | **unchanged** (marketing cards, not HND) |
-| Spoke console | Block templates + Recharts | **unchanged** for Alpha; optional model rows later |
-| **Admin provider registry** | JSON-only + stub `/api/v1/admin/providers` | **HND workbench** — grid of 11 providers, inspector for hierarchy/secrets |
-| **eNAT entity browser** | SQLite only via API | **HND workbench** — billing_account → project → byok rows |
-| **LLM API spoke** | `LLM_API_CONSOLE` + model list bind | **HND** — model grid + endpoint inspector |
-| **Capability matrix (admin)** | `cfg/model_capability_matrix.json` | **HND readonly** — platform × model grid |
-| **DIRT event log** | Hub strip read-only | Optional **readonly HND** in Config rail |
+| Surface | Today | Target with `@meritutils/merit_workbench` |
+|---------|-------|-------------------------------------------|
+| Hub provider cards | React `ProviderCardView` | **unchanged** (not HND) |
+| Spoke console | Block templates + Recharts | **unchanged** Alpha; optional model HND later |
+| **Admin provider registry** | stub `/api/v1/admin/providers` | **`MeritWorkbenchLayout`** — 11 providers |
+| **eNAT entity browser** | SQLite via API | **`workbench`** — hierarchy rows |
+| **LLM API spoke models** | `LLM_API_CONSOLE` bind | **`readonly`** — model grid |
+| **Capability matrix (admin)** | JSON SSOT | **`readonly`** |
+| **DIRT event log** | Hub strip | optional **`readonly`** in Config rail |
 
-HND lives in the **center column** (admin routes or Spoke sub-panels). X-Ray remains orthogonal (right rail / mobile overlay).
+HND in **center column**; X-Ray orthogonal (right rail / mobile overlay).
 
-### 1.1 Goals (must-have for BAIC v1 integration)
+### 1.1 Consumer requirements (BAI-MWB gate)
 
-| ID | Requirement | BAIC evidence / bind point |
-|----|-------------|----------------------------|
-| BAI-G1 | Sortable searchable grid + checkbox multi-select | Admin provider list from `GET /api/v1/admin/providers` |
-| BAI-G2 | Inspector chrome: title, F/◀/▶/L nav, status, body, actions | Provider `display_name`, `hierarchy[]`, `bridge_module`, secrets mask |
-| BAI-G3 | MERIT Action Bar (Save · Disable · Archive — tier-gated) | Future `PUT /api/v1/admin/providers/{id}` |
-| BAI-G4 | Summary strip with X/Y/Z tooltip semantics | eNAT entity counts per tier |
-| BAI-G5 | Readonly mode for capability matrix + DIRT rows | `mode: 'readonly'` |
-| BAI-G6 | React adapter or vanilla mount in Config rail | `web/src/components/` — thin wrapper only |
-| BAI-G7 | CSS theme hooks match BAIC Tailwind tokens (`baic-*`) | `web/src/index.css` |
-| BAI-G8 | Mobile-First: grid full-screen → inspector overlay | `MobileFirstShell` center host |
-| BAI-G9 | No subscriber-facing HND acronyms | L1 §E.1 `aboveTheLine` / `belowTheLine` |
+| ID | Requirement | Bind point |
+|----|-------------|------------|
+| BAI-G1 | Sortable searchable grid + checkbox | `GET /api/v1/admin/providers` |
+| BAI-G2 | Inspector F/◀/(n/N)/▶/L over selection | registry + masked secrets |
+| BAI-G3 | Action bar Save (future admin CRUD) | `PUT /api/v1/admin/providers/{id}` |
+| BAI-G4 | Summary strip X/Y/Z (eNAT counts) | optional — see §8 opt-out |
+| BAI-G5 | `readonly` for matrix + DIRT rows | `mode: 'readonly'` |
+| BAI-G6 | React host: mount via ref + `useEffect` | Config rail — see §9 feedback |
+| BAI-G7 | Theme `merit-dark` → BAIC `baic-*` vars | `web/src/index.css` |
+| BAI-G8 | Mobile-First stack | `MobileFirstShell` |
+| BAI-G9 | No HND acronyms above the line | L1 §E.1 |
 
-### 1.2 Non-goals (BAIC-owned)
+### 1.2 Non-goals
 
-- Arbitrage engine, proxy routing, bridge vendor SDK calls
-- Hub KPI card layout (not HND)
-- Playwright harness (stays in BAIC; contract in §4)
-
-### 1.3 Cross-repo alignment
-
-| Repo | IAR | Package target |
-|------|-----|----------------|
-| DIRT | `DIRT docs/IAR/MERIT_HND.md` | Reference `workbench-kit.js` → **`merit_workbench`** |
-| SomaTune | `SomaTune docs/IAR/MERITUTILS_HND.md` | `@meritutils/workbench` (alias — consolidate to **`merit_workbench`**) |
-| meritsubs | `meritsubs docs/IAR/MERITUTILS_HND.md` | ops portal grid |
-| **BAIC** | **this doc** | React admin + eNAT browser |
-
-**meritutils SSOT:** one package name **`merit_workbench`** exporting DIRT parity surface (§5.3 in DIRT IAR).
+- Hub KPI cards, arbitrage, bridge SDK calls, CoC chain (DIRT-owned)
 
 ---
 
-## 2. High-level design (HLD)
+## 2. HLD — adapter seam
 
 ```mermaid
 flowchart TB
   subgraph baic_ui ["BAIC web/ React"]
-    HUB[Hub cards — not HND]
-    SPOKE[Spoke blocks]
-    CFG[Config rail — admin host]
-    XR[X-Ray Terminal]
+    HUB[Hub — not HND]
+    CFG[Config rail admin host]
+    XR[X-Ray]
   end
-
-  subgraph adapters ["BAIC adapters (L3)"]
+  subgraph adapters ["L3 adapters"]
     PA[admin-workbench-adapter.tsx]
     EA[enat-workbench-adapter.tsx]
-    LA[llm-api-model-adapter.tsx]
   end
-
-  subgraph mtu ["meritutils merit_workbench"]
-    WK[Grid · Inspector · ActionBar · Summary]
+  subgraph pkg ["@meritutils/merit_workbench"]
+    WK[MeritWorkbenchLayout · mountMeritWorkbenchPanel]
   end
-
-  subgraph api ["BAIC FastAPI"]
-    ADM["/api/v1/admin/providers"]
-    ENAT[eNAT repository]
-  end
-
-  CFG --> PA
-  CFG --> EA
-  SPOKE --> LA
-  PA --> WK
-  EA --> WK
-  LA --> WK
-  PA --> ADM
-  EA --> ENAT
-  XR -.->|orthogonal| WK
+  CFG --> PA --> WK
+  CFG --> EA --> WK
+  XR -.-> WK
 ```
 
-**Load order (static or Vite):** `merit_workbench` bundle → BAIC adapter → React mount point in Config rail.
+**Load order:** `merit_workbench` bundle → BAIC adapter → React mount.
 
 ---
 
-## 3. Low-level design (LLD) — BAIC bind points
+## 3. LLD — bind points
 
-### 3.1 Admin provider grid columns
+### 3.1 Admin provider grid
 
 | Column | Source |
 |--------|--------|
 | ID | `provider_id` |
 | Display | `display_name` |
-| Kind | `kind` (`hyperscaler` \| `consumer_frontend` \| `llm_api`) |
+| Kind | `hyperscaler` \| `consumer_frontend` \| `llm_api` |
 | Bridge | `bridge_module` |
 | Hierarchy | `hierarchy.join(' → ')` |
-| Status | loaded bridge yes/no + secrets configured |
+| Status | bridge loaded + secrets configured |
 
-Row id: `provider_id`. Inspector body: JSON pretty-print of registry entry + `secrets_configured` flags (never raw keys).
+Inspector: registry JSON + masked secrets (never raw keys).
 
-### 3.2 eNAT entity grid columns
+### 3.2 eNAT / LLM API / matrix
 
-| Column | Source |
-|--------|--------|
-| Path | `hierarchy_path` |
-| Tier | `tier` |
-| Name | `name` |
-| Provider | `provider_id` |
-| Active | `active` |
-
-Inspector: latest `METRIC_SNAPSHOTS` for path (TPM, cost, promo balance per `metrics_profile`).
-
-### 3.3 LLM API model grid (Spoke sub-panel)
-
-From `cfg/provider_registry.json` + `model_capability_matrix.json`:
-
-| Column | Source |
-|--------|--------|
-| Model | model id |
-| Endpoint | `endpoint_key` |
-| Available | boolean |
-| Pricing ref | `pricing_ref` |
-
-### 3.4 HND id minting (operator rows)
-
-Prefix **`BAI-ADM`** for admin-created eNAT rows (future CRUD):
-
-```javascript
-// consumer adapter — after merit_workbench ships mintHnd or rowToHnd
-// BAI-ADM-20260608-a3f2
-```
+See prior columns in `baic_design.md` §9. Row id prefix **`BAI-ADM`** via `mintHnd('BAI-ADM')`.
 
 ---
 
-## 4. Provider acceptance (meritutils agent)
+## 4. Provider acceptance (mirror — do not duplicate SSOT)
 
-| ID | Criterion | Evidence |
-|----|-----------|----------|
-| **BAI-MTU-01** | Package **`merit_workbench`** exports DIRT §5.3 parity APIs | `packages/merit_workbench/` + README |
-| **BAI-MTU-02** | `renderDataGrid` sort + search + checkbox | unit test |
-| **BAI-MTU-03** | `renderInspectorChrome` + F/◀/▶/L selection walk | unit test |
-| **BAI-MTU-04** | `renderMeritActionBar` wide/stacked | demo HTML |
-| **BAI-MTU-05** | `buildSelectionTooltip` X/Y/Z copy | unit test |
-| **BAI-MTU-06** | `readonly` mode (no +New) | demo |
-| **BAI-MTU-07** | ESM + global `window.merit_workbench` shim (DIRT compat) | DIRT adapter green |
-| **BAI-MTU-08** | CSS vars doc for dark control-plane theme | theme.css |
+See meritutils **MUU-MWB-01…15** in `Meritutils docs/IAR/MERIT_WORKBENCH.md` §7.
 
-**Cross-gate:** DIRT MH.7 parity checklist (DIRT IAR §5.3) must pass before BAIC integration.
+BAIC integration requires minimum **MUU-MWB-01…12** (MW.1).
 
 ---
 
@@ -179,33 +117,66 @@ Prefix **`BAI-ADM`** for admin-created eNAT rows (future CRUD):
 
 | ID | Probe | Pass |
 |----|-------|------|
-| **BAI-MTU-V01** | Config rail admin tab mounts provider HND; ≥11 rows | pending |
-| **BAI-MTU-V02** | Inspector shows hierarchy + masked secrets state | pending |
-| **BAI-MTU-V03** | eNAT entity grid lists seed rows; inspector shows metrics | pending |
-| **BAI-MTU-V04** | LLM API spoke model grid (groq/openai/gemini/anthropic) | pending |
-| **BAI-MTU-V05** | Mobile: grid → inspector overlay | pending |
-| **BAI-MTU-V06** | No regression Hub/Spoke without admin tab open | pending |
+| **BAI-MWB-V01** | Config rail admin tab; ≥11 provider rows | pending |
+| **BAI-MWB-V02** | Inspector hierarchy + masked secrets | pending |
+| **BAI-MWB-V03** | eNAT grid + metric inspector | pending |
+| **BAI-MWB-V04** | LLM API model grid (4 providers) | pending |
+| **BAI-MWB-V05** | Mobile grid → inspector overlay | pending |
+| **BAI-MWB-V06** | Hub/Spoke unchanged when admin closed | pending |
 
 ---
 
-## 6. BAIC tracker
+## 6. Tracker
 
-| ID | Item | Owner | Status | Evidence |
-|----|------|-------|--------|----------|
-| BW.1 | Publish IAR (this doc) | AgentDraven | `[x]` | `BAIC docs/IAR/MERITUTILS_WORKBENCH.md` |
-| BW.2 | Document env + llm_api in design/usage | AgentDraven | `[x]` | `baic_design.md` · `baic_usage.md` |
-| BW.3 | meritutils **`merit_workbench`** package | meritutils | `[ ]` | BAI-MTU-01…08 |
-| BW.4 | BAIC React admin adapter | Priya | `[ ]` | After BW.3 |
-| BW.5 | eNAT + LLM API HND panels | Priya | `[ ]` | After BW.4 |
-| BW.6 | Consumer validation BAI-MTU-V01…06 | AgentDraven | `[ ]` | After BW.5 |
+| ID | Item | Owner | Status |
+|----|------|-------|--------|
+| BW.1 | Publish IAR | AgentDraven | `[x]` |
+| BW.2 | design/usage SSOT | AgentDraven | `[x]` |
+| BW.3 | Phase 0 provider plan ACK | BAIC agent | `[x]` §9 |
+| BW.4 | meritutils MW.1 package | meritutils | `[ ]` |
+| BW.5 | React admin adapters | Priya | `[ ]` after BW.4 |
+| BW.6 | BAI-MWB-V01…06 | AgentDraven | `[ ]` after BW.5 |
 
 ---
 
-## 7. Escalation
+## 7. Capability opt-out (explicit)
+
+BAIC uses **grid + inspector** for admin surfaces; **no SCOUT CoC chain**. Package ships comprehensive default; we opt out via `features`:
+
+| Surface | mode | actionBar | summary | downstream | chain | coc E2E |
+|---------|------|-----------|---------|------------|-------|---------|
+| Admin → Providers | `workbench` | partial (save future) | **opt-out** | **opt-out** | **opt-out** | **opt-out** |
+| Admin → eNAT entities | `workbench` | partial | optional summary | **opt-out** | **opt-out** | **opt-out** |
+| Spoke → LLM API models | `readonly` | **opt-out** | **opt-out** | **opt-out** | **opt-out** | **opt-out** |
+| Admin → capability matrix | `readonly` | **opt-out** | **opt-out** | **opt-out** | **opt-out** | **opt-out** |
+| Config → DIRT events | `readonly` | **opt-out** | **opt-out** | **opt-out** | **opt-out** | **opt-out** |
+
+We do **not** request meritutils omit Action Bar / CoC modules from the package.
+
+---
+
+## 8. Provider plan review & sign-off
+
+**Reviewed:** `meritutils/Meritutils docs/IAR/MERIT_WORKBENCH.md` + `merit_workbench_design.md` (2026-06-19)
+
+| Field | Value |
+|-------|-------|
+| Comprehensive default OK? | **yes** |
+| Opt-out declared? | **yes** — §7 above |
+| Sign-off | **ACK with feedback** |
+| Feedback | (1) Document **React/Vite embed** pattern for `MeritWorkbenchLayout` (ref host + unmount) in `merit_workbench_design.md` — BAIC Config rail is React 18, not vanilla static. (2) Confirm **`merit-dark`** CSS var map for Tailwind consumers (`--mu-hnd-*` → `--baic-*` bridge table in theme doc). (3) BAIC does **not** block MW.1 — gate remains DIRT + SomaTune + meritsubs §9. |
+| Reviewer | BAIC agent (AgentDraven L3) |
+| Date | 2026-06-19 |
+
+Integration remains **BLOCKED** until **MUU-MWB-01…12 ACCEPT** and **BAI-MWB-V01…06**.
+
+---
+
+## 9. Escalation
 
 | Date | Issue | Resolution |
 |------|-------|------------|
-| — | — | No disputes |
+| — | — | — |
 
 ---
 
@@ -213,6 +184,7 @@ Prefix **`BAI-ADM`** for admin-created eNAT rows (future CRUD):
 
 | Date | Change |
 |------|--------|
-| 2026-06-08 | Initial IAR — BAIC admin/eNAT/llm_api HND requirements for **`merit_workbench`** |
+| 2026-06-08 | Initial IAR |
+| 2026-06-19 | Aligned to meritutils Phase 0 SSOT; §7 opt-out; §8 **ACK with feedback**; IDs **BAI-MWB-V*** |
 
-**Cross-links:** [baic_design.md § merit_workbench](../baic_design.md#merit-workbench) · [MERITUTILS_ENV.md](MERITUTILS_ENV.md) · DIRT [MERIT_HND.md](../../../dirt/DIRT%20docs/IAR/MERIT_HND.md)
+**Cross-links:** [baic_design.md § merit_workbench](../baic_design.md#merit-workbench) · [MERITUTILS_ENV.md](MERITUTILS_ENV.md)
