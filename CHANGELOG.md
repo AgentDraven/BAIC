@@ -13,6 +13,11 @@
 
 
 
+
+## [0.8.19] - 2026-06-20
+
+### Changed
+- (baseline) created new vercel CDN baseline across provider and consuerm
 ## [0.8.18] - 2026-06-19
 
 ### Changed
