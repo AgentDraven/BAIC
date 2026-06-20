@@ -29,7 +29,7 @@ Refresh: `python scripts/meritcert.py refresh-index` (from this repo) · operato
 
 | Doc | Provider | Status |
 |-----|----------|--------|
-| [IAR/MERITUTILS_WORKBENCH.md](IAR/MERITUTILS_WORKBENCH.md) | meritutils — **`@meritutils/merit_workbench`** | **ACK with feedback** (Phase 0); integration blocked on MW.1 |
+| [IAR/MERITUTILS_WORKBENCH.md](IAR/MERITUTILS_WORKBENCH.md) | meritutils — **`merit_workbench@0.3.2` PAR** | **PAR shell wired**; stringent audit **PENDING** |
 | [IAR/MERITUTILS_ENV.md](IAR/MERITUTILS_ENV.md) | HumanBala layered env | **ACCEPT** (platform shipped) |
 
 Legacy: `.archive/docs/` · deep input: [input/](input/)

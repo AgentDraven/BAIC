@@ -119,11 +119,17 @@ Model routing SSOT for dirt sibling: `dirt/cfg/llm_providers.json` (endpoints/mo
 
 ---
 
-## MERIT HND / merit_workbench (waiting on meritutils)
+## merit_workbench (PAR CDN)
 
-Admin grid+inspector surfaces (provider registry, eNAT browser, model matrix) will use shared **`merit_workbench`** from meritutils — **not** a local fork in `web/`.
+Admin grid+inspector surfaces use **`merit_workbench`** from meritutils **PAR CDN** — not a local fork or npm vendoring.
 
-**Status:** BLOCKED on meritutils **BAI-MTU-01…08**. See [IAR/MERITUTILS_WORKBENCH.md](IAR/MERITUTILS_WORKBENCH.md).
+| Item | Value |
+|------|-------|
+| **Pin** | `meritutils/merit_workbench@0.3.2` |
+| **Load** | `web/index.html` → `pkg-meritutils.vercel.app` |
+| **SSOT** | `cfg/merit_par_pins.json` · [IAR/MERITUTILS_WORKBENCH.md](IAR/MERITUTILS_WORKBENCH.md) §0 |
+
+**Status:** PAR shell **wired**; tenant adapters **PENDING** — see **BAI-MWB-V01…06**.
 
 ---
 

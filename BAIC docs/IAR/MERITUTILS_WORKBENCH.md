@@ -9,17 +9,51 @@
 
 > **Naming:** **HND / merit_workbench pattern** = L1 §II.E.1 (grid + inspector). **`@meritutils/merit_workbench`** = npm package — **not** `@meritutils/hnd`.
 
-**IDs:** Provider gate **MUU-MWB-01…12** (MW.1) · Consumer validation **BAI-MWB-V01…06**
+**IDs:** Provider gate **MUU-MWB-01…12** (MW.1) · Consumer validation **BAI-MWB-V01…06** · PAR pin **meritutils/merit_workbench@0.3.2**
 
-**Phase 0:** BAIC is **not** in the meritutils Phase 1 gate (DIRT + SomaTune + meritsubs must ACK first). This IAR records BAIC plan + sign-off for **post-MW.1** integration.
+**PAR SSOT:** DIRT `DIRT docs/IAR/MERIT_HND.md` §0.2 · §0.8 · §11 · vault `cfg/par-registry.json`  
+**Delivery:** `https://pkg-meritutils.vercel.app` — **no vendored** `meritutils` bytes in BAIC repo.
+
+**Phase 0:** ACK recorded. **MW-PAR-GATE:** PASS (provider). Consumer stringent audit: **PENDING** until adapters mount from PAR CDN.
+
+---
+
+## 0. PAR consumer lane (merit_workbench)
+
+### 0.1 IAR pin
+
+| Field | Value |
+|-------|-------|
+| **Pin** | `meritutils/merit_workbench@0.3.2` |
+| **CDN base** | `https://pkg-meritutils.vercel.app` (`MERIT_PAR_BASE`) |
+| **JS** | `{base}/merit_workbench/0.3.2/merit-workbench.js` |
+| **CSS** | `{base}/merit_workbench/0.3.2/merit-workbench.css` |
+| **Local SSOT** | `cfg/merit_par_pins.json` |
+| **Shell load** | `web/index.html` (SRI from vault `par-registry.json`) |
+
+### 0.2 Stringent audit row (DIRT §0.2 exemplar)
+
+| Provider | Consumer | Capability | PAR load | No copy in consumer? | Verdict |
+|----------|----------|------------|----------|----------------------|---------|
+| meritutils | **BAIC** | Config rail admin · Spoke model grid (planned) | CDN | **yes** (no `static/vendor/meritutils`) | **PENDING** — shell wired; adapters not mounted |
+
+### 0.3 Tenant adapters (BAIC-owned — no provider bytes)
+
+| Surface | Adapter (planned) | API |
+|---------|-------------------|-----|
+| Config → Providers | `web/src/adapters/admin-provider-workbench.tsx` | `GET /api/v1/admin/providers` |
+| Config → eNAT | `web/src/adapters/enat-workbench.tsx` | `GET /api/v1/admin/entities` (TBD) |
+| Spoke → llm_api models | `web/src/adapters/llm-model-workbench.tsx` | platform models API |
+
+Load order: **PAR CDN** (`window.merit_workbench`) → tenant adapter → React mount. **No** npm import of `@meritutils/merit_workbench` in production web build.
 
 ---
 
 ## EXECUTIVE ACTION NEEDED
 
-**meritutils agent:** Phase 1 (MW.1) proceeds when **DIRT, SomaTune, meritsubs** all ACK in provider IAR §9. BAIC integration **BLOCKED** until **MUU-MWB-01…12 ACCEPT** and **BAI-MWB-V01…06**.
+**meritutils agent:** **MUU-MWB-01…12 ACCEPT** · **MW-PAR-GATE PASS**. BAIC loads **`merit_workbench`** from PAR CDN only.
 
-**BAIC agent:** **ACK** provider plan (§9 below). Do **not** fork grid/inspector in `web/`. Wait for MW.1 package before adapters BW.4–BW.6.
+**BAIC agent:** PAR shell in `web/index.html` + pin in `cfg/merit_par_pins.json`. Implement tenant adapters (§0.3); run **BAI-MWB-V01…06**; then `meritcert interlock meritutils baic`.
 
 ---
 
@@ -132,10 +166,11 @@ BAIC integration requires minimum **MUU-MWB-01…12** (MW.1).
 |----|------|-------|--------|
 | BW.1 | Publish IAR | AgentDraven | `[x]` |
 | BW.2 | design/usage SSOT | AgentDraven | `[x]` |
-| BW.3 | Phase 0 provider plan ACK | BAIC agent | `[x]` §9 |
-| BW.4 | meritutils MW.1 package | meritutils | `[ ]` |
-| BW.5 | React admin adapters | Priya | `[ ]` after BW.4 |
-| BW.6 | BAI-MWB-V01…06 | AgentDraven | `[ ]` after BW.5 |
+| BW.3 | Phase 0 provider plan ACK | BAIC agent | `[x]` §8 |
+| BW.4 | meritutils MW.1 + PAR | meritutils | `[x]` `@0.3.2` on PAR CDN |
+| BW.4a | PAR pin + `index.html` shell | BAIC agent | `[x]` §0 |
+| BW.5 | Tenant adapters (PAR global) | Priya | `[ ]` §0.3 |
+| BW.6 | BAI-MWB-V01…06 stringent PASS | AgentDraven | `[ ]` |
 
 ---
 
@@ -185,6 +220,6 @@ Integration remains **BLOCKED** until **MUU-MWB-01…12 ACCEPT** and **BAI-MWB-V
 | Date | Change |
 |------|--------|
 | 2026-06-08 | Initial IAR |
-| 2026-06-19 | Aligned to meritutils Phase 0 SSOT; §7 opt-out; §8 **ACK with feedback**; IDs **BAI-MWB-V*** |
+| 2026-06-20 | PAR consumer lane: pin `meritutils/merit_workbench@0.3.2`, `cfg/merit_par_pins.json`, CDN in `web/index.html` |
 
 **Cross-links:** [baic_design.md § merit_workbench](../baic_design.md#merit-workbench) · [MERITUTILS_ENV.md](MERITUTILS_ENV.md)

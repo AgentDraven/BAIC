@@ -1,0 +1,21 @@
+{
+  "schema": "merit.par.consumer.pins.v1",
+  "merit_par_base": "https://pkg-meritutils.vercel.app",
+  "pins": [
+    {
+      "provider_id": "meritutils",
+      "package": "merit_workbench",
+      "version": "0.3.2",
+      "pin": "meritutils/merit_workbench@0.3.2",
+      "cdn": {
+        "js": "https://pkg-meritutils.vercel.app/merit_workbench/0.3.2/merit-workbench.js",
+        "css": "https://pkg-meritutils.vercel.app/merit_workbench/0.3.2/merit-workbench.css"
+      },
+      "sri": {
+        "js": "sha384-CUnjvwJ6u1j3//xfx7UNnS70SQ/PP1Qvuq/pJY2iSHCBslz0oQAFJmqelvJM1v1e",
+        "css": "sha384-cj7xW4P00KvTcivdwA9RSe8rJkPHvE08ciDwNGOqO0NxKZVM36Qosevt+v+pAXlf"
+      },
+      "registry_ref": "merit-private-vault/cfg/par-registry.json"
+    }
+  ]
+}
