@@ -1,4 +1,4 @@
-﻿<a id="contents"></a>
+<a id="contents"></a>
 # baic_usage.md ^contents
 
 Wave 6 3-doc SSOT. Architecture: [baic_design.md](baic_design.md).
@@ -102,14 +102,14 @@ Model routing SSOT for dirt sibling: `dirt/cfg/llm_providers.json` (endpoints/mo
 | Role | You need |
 |------|----------|
 | **User** | This guide + `run_baic.py` |
-| **Admin** | [provider_registry.json](../cfg/provider_registry.json) + [PRD §6](input/BAIC_PRD.md#provider-registry) |
+| **Admin** | provider_registry.json + [PRD §6](input/BAIC_PRD.md#provider-registry) |
 | **Developer** | [bridge/README.md](../bridge/README.md) + [baic_design.md](baic_design.md) |
 
 ---
 
 ## Admin: add a provider (no code)
 
-1. Copy fields from [provider_registry.example.json](../cfg/provider_registry.example.json)
+1. Copy fields from provider_registry.example.json
 2. Set `kind`: `hyperscaler` | `consumer_frontend` | `llm_api`
 3. Set `hierarchy[]` — `llm_api` uses `["byok"]` only
 4. Point `bridge_module` at `bridge.<name>`

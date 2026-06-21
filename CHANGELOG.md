@@ -1,5 +1,10 @@
 ﻿# CHANGELOG
 
+## [0.8.20] - 2026-06-21
+
+- MERIT hyperlink remediation across active documentation
+- Three-doc, foundation, and 40-test compliance verified
+
 
 
 

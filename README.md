@@ -16,7 +16,7 @@ Open **http://127.0.0.1:8765/** · Tests: `python test_baic.py` (22 tests)
 
 ## Getting Started
 
-Full setup and git workflow: **[Bootstrapping Guide](BAIC%20docs/BOOTSTRAPPING.md)** · Operator closeout: **`BAIC.instructions`**
+Full setup and git workflow: **Bootstrapping Guide** · Operator closeout: **`BAIC.instructions`**
 
 ### Operator script (single entry point)
 
@@ -34,10 +34,10 @@ Full setup and git workflow: **[Bootstrapping Guide](BAIC%20docs/BOOTSTRAPPING.m
 | Document | Description |
 |----------|-------------|
 | [BAIC docs/INDEX.md](BAIC%20docs/INDEX.md) | **Start here** — persona routes + diagram |
-| [USER_GUIDE.md](BAIC%20docs/USER_GUIDE.md) | Operator UI tour |
-| [TECHNICAL_HLD_LLD.md](BAIC%20docs/TECHNICAL_HLD_LLD.md) | ER, OID, API, modular DB |
-| [CONCEPTS_GUIDE.md](BAIC%20docs/CONCEPTS_GUIDE.md) | Concepts + bibliography |
-| [COMPLETION_REPORT.md](BAIC%20docs/COMPLETION_REPORT.md) | Alpha implementation sign-off |
+| USER_GUIDE.md | Operator UI tour |
+| TECHNICAL_HLD_LLD.md | ER, OID, API, modular DB |
+| CONCEPTS_GUIDE.md | Concepts + bibliography |
+| COMPLETION_REPORT.md | Alpha implementation sign-off |
 | [PRD / HLD / LLD](BAIC%20docs/input/BAIC_PRD.md) | Product requirements |
 | [AGENTS.md](AGENTS.md) | Cursor agent bootstrap |
 
@@ -67,4 +67,4 @@ flowchart LR
   CORE --> BR[bridge/]
 ```
 
-See [TECHNICAL_HLD_LLD.md](BAIC%20docs/TECHNICAL_HLD_LLD.md) for full diagrams.
+See TECHNICAL_HLD_LLD.md for full diagrams.

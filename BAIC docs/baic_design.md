@@ -1,4 +1,4 @@
-﻿<a id="contents"></a>
+<a id="contents"></a>
 # baic_design.md ^contents
 
 Wave 6 3-doc SSOT. Legacy: `.archive/docs/`.
@@ -9,7 +9,7 @@ Cross-repo handoffs: [IAR/](IAR/) per MERIT §0.D.
 
 # BAIC Technical HLD / LLD
 
-Architecture reference with diagrams. Product requirements: [BAIC_PRD.md](input/BAIC_PRD.md). Operator guide: [baic_usage.md](baic_usage.md). Concepts: [.archive/docs/CONCEPTS_GUIDE.md](../.archive/docs/CONCEPTS_GUIDE.md).
+Architecture reference with diagrams. Product requirements: [BAIC_PRD.md](input/BAIC_PRD.md). Operator guide: [baic_usage.md](baic_usage.md). Concepts: .archive/docs/CONCEPTS_GUIDE.md.
 
 ---
 
