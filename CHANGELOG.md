@@ -1,5 +1,10 @@
 ﻿# CHANGELOG
 
+## [0.8.21] - 2026-06-21
+
+- Added AgentDraven SOTU report for MERIT foundation role and provider-consumer boundary
+- Linked SOTU from the active docs index
+
 ## [0.8.20] - 2026-06-21
 
 - MERIT hyperlink remediation across active documentation

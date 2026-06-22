@@ -34,6 +34,10 @@ Refresh: `python scripts/meritcert.py refresh-index` (from this repo) · operato
 
 Legacy: `.archive/docs/` · deep input: [input/](input/)
 
+## AgentDraven SOTU
+
+- [IAR/SOTU.md](IAR/SOTU.md) — executive MERIT role, provider/consumer state, and next closeout action.
+
 <!-- merit:repo-hygiene:start -->
 ## Repo hygiene
 
