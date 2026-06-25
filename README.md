@@ -1,97 +1,89 @@
-# Tokenmaxxing — track all your AI coding subscriptions in one place
+# Tokenmaxxing — every AI coding subscription, one glance
 
-See your usage at a glance from your menu/task bar. No digging through dashboards.
+Claude, Codex, Cursor, Copilot, Grok, Kimi, Z.ai… all your AI usage in your task
+bar. No dashboards, no tab-digging, no mental math.
 
-> **Tokenmaxxing is a community fork of [OpenUsage](https://github.com/robinebers/openusage) by [Robin Ebers](https://github.com/robinebers).**
-> It is **not** affiliated with, endorsed by, or an official part of OpenUsage. The goal of this fork is to bring the app to **Windows and Linux** in addition to macOS. All original credit for the design and the vast majority of the code goes to the OpenUsage authors — see [CREDITS.md](CREDITS.md).
+<p align="center">
+  <img src="docs/media/panel.png" alt="Tokenmaxxing panel showing Claude, Codex, Cursor, Copilot and Grok usage with progress bars, plan badges and pace indicators" width="340">
+</p>
+
+> **The Windows + Linux build of [OpenUsage](https://github.com/robinebers/openusage).**
+> OpenUsage is a gorgeous macOS menu-bar app by [Robin Ebers](https://github.com/robinebers) — and it only runs on macOS.
+> Tokenmaxxing is the community port that brings it to **Windows and Linux**. Not affiliated with or endorsed by OpenUsage; all original design and credit go to its authors — see [CREDITS.md](CREDITS.md).
 
 ## Platform status
 
 | Platform | Status |
 |----------|--------|
-| **macOS** (Apple Silicon & Intel) | ✅ Works (inherited from OpenUsage) |
-| **Windows** | ✅ Builds (NSIS installer via CI) — beta, feedback welcome |
-| **Linux** | ✅ Works — deb / rpm / AppImage, verified on a live system |
+| **Windows** | ✅ NSIS installer, auto-updates. Beta — feedback welcome. |
+| **Linux** | ✅ deb / rpm / AppImage, auto-updates. Verified on a live system. |
+| **macOS** | Use **[OpenUsage](https://github.com/robinebers/openusage)** — it's native there and this fork doesn't ship a macOS build. |
 
-The macOS dropdown uses a native `NSPanel`; on Windows/Linux it's a borderless always-on-top Tauri window. Port details in [PORTING.md](PORTING.md).
+The panel is a borderless, always-on-top window driven by a global shortcut. (On macOS, OpenUsage uses a native `NSPanel`; that code is kept but unshipped — port notes in [PORTING.md](PORTING.md).)
 
 ## Download
 
 **[⬇ Latest release](https://github.com/falkoro/tokenmaxxing/releases/latest)** — pick your platform:
 
-- **Windows**: `Tokenmaxxing_<version>_x64-setup.exe` (SmartScreen will warn — unsigned; *More info → Run anyway*)
+- **Windows**: `Tokenmaxxing_<version>_x64-setup.exe` (SmartScreen warns — unsigned; *More info → Run anyway*)
 - **Debian/Ubuntu**: `Tokenmaxxing_<version>_amd64.deb`
 - **Fedora/openSUSE**: `Tokenmaxxing-<version>-1.x86_64.rpm`
 - **Any Linux**: `Tokenmaxxing_<version>_amd64.AppImage` (`chmod +x`, then run)
 
-The app **auto-updates** on Windows/Linux: it checks GitHub releases every 15 minutes and updates in place (builds from v0.7.0 onward).
+It **auto-updates**: checks GitHub releases every 15 minutes and updates in place. Fresh per-commit builds are also published as [Build Desktop artifacts](../../actions/workflows/build-desktop.yml) (requires GitHub login).
 
-Fresh builds for every `master` push are also available as [Build Desktop run artifacts](../../actions/workflows/build-desktop.yml) (requires GitHub login). Any machine running the app — Windows or Linux — can also serve its usage to other machines via the [remote web dashboard](remote/README.md).
+## What it does
 
-## What It Does
+Tokenmaxxing lives in your task bar and shows how much of each AI subscription you've burned — progress bars, plan badges, and pace indicators that warn you *before* you run dry.
 
-Tokenmaxxing lives in your menu/task bar and shows how much of your AI coding subscriptions you've used. Progress bars, badges, and clear labels. No mental math required.
+- **One glance.** Every AI tool, one panel.
+- **Pace-aware.** Green/amber/red dots flag when you're on track to run out early.
+- **Always fresh.** Refreshes on a schedule you pick.
+- **Global shortcut.** Toggle the panel from anywhere.
+- **Plugin-based.** New providers ship without app updates.
+- **[Local HTTP API](docs/local-http-api.md).** Read your usage from `127.0.0.1:6736`.
+- **[Proxy support](docs/proxy.md).** Route provider requests through SOCKS5 / HTTP.
+- **[Remote dashboard](remote/README.md).** Serve your usage to other machines.
 
-- **One glance.** All your AI tools, one panel.
-- **Always up-to-date.** Refreshes automatically on a schedule you pick.
-- **Global shortcut.** Toggle the panel from anywhere with a customizable keyboard shortcut.
-- **Lightweight.** Opens instantly, stays out of your way.
-- **Plugin-based.** New providers get added without updating the whole app.
-- **[Local HTTP API](docs/local-http-api.md).** Other apps can read your usage data from `127.0.0.1:6736`.
-- **[Proxy support](docs/proxy.md).** Route provider HTTP requests through a SOCKS5 or HTTP proxy.
+## Supported providers
 
-## Supported Providers
+[Amp](docs/providers/amp.md) ·
+[Claude](docs/providers/claude.md) ·
+[Codex](docs/providers/codex.md) ·
+[Copilot](docs/providers/copilot.md) ·
+[Cursor](docs/providers/cursor.md) ·
+[Devin](docs/providers/devin.md) ·
+[Factory / Droid](docs/providers/factory.md) ·
+[Grok](docs/providers/grok.md) ·
+[JetBrains AI Assistant](docs/providers/jetbrains-ai-assistant.md) ·
+[Kimi Code](docs/providers/kimi.md) ·
+[Kiro](docs/providers/kiro.md) ·
+[MiniMax](docs/providers/minimax.md) ·
+[OpenCode Go](docs/providers/opencode-go.md) ·
+[Perplexity](docs/providers/perplexity.md) ·
+[Synthetic](docs/providers/synthetic.md) ·
+[Z.ai](docs/providers/zai.md)
 
-- [**Amp**](docs/providers/amp.md) / free tier, bonus, credits
-- [**Antigravity**](docs/providers/antigravity.md) / all models
-- [**Claude**](docs/providers/claude.md) / session, weekly, extra usage, local token usage (ccusage)
-- [**Codex**](docs/providers/codex.md) / session, weekly, reviews, credits
-- [**Copilot**](docs/providers/copilot.md) / premium, chat, completions
-- [**Cursor**](docs/providers/cursor.md) / credits, total usage, auto usage, API usage, on-demand, CLI auth
-- [**Factory / Droid**](docs/providers/factory.md) / standard, premium tokens
-- [**Grok**](docs/providers/grok.md) / credits used, plan, pay-as-you-go cap
-- [**JetBrains AI Assistant**](docs/providers/jetbrains-ai-assistant.md) / quota, remaining
-- [**Kiro**](docs/providers/kiro.md) / credits, bonus credits, overages
-- [**Kimi Code**](docs/providers/kimi.md) / session, weekly
-- [**MiniMax**](docs/providers/minimax.md) / coding plan session
-- [**OpenCode Go**](docs/providers/opencode-go.md) / 5h, weekly, monthly spend limits
-- [**Devin**](docs/providers/devin.md) / weekly quota, extra usage
-- [**Z.ai**](docs/providers/zai.md) / session, weekly, web searches
-
-Want a provider that's not listed? [Open an issue.](https://github.com/falkoro/tokenmaxxing/issues/new)
+Missing one? [Open an issue.](https://github.com/falkoro/tokenmaxxing/issues/new) (Antigravity is ported but macOS-only for now — pending a cross-platform auth path.)
 
 ## Credits
 
-Tokenmaxxing is a fork of **[OpenUsage](https://github.com/robinebers/openusage)** by **[Robin Ebers](https://github.com/robinebers)** (MIT licensed). OpenUsage was in turn inspired by [CodexBar](https://github.com/steipete/CodexBar) by [@steipete](https://github.com/steipete). Full attribution in [CREDITS.md](CREDITS.md).
-
-This fork uses a different name and icon per the upstream [trademark policy](https://github.com/robinebers/openusage/blob/main/TRADEMARK.md): the "OpenUsage" name and logo are trademarks of Robin Ebers and are **not** used here.
+A fork of **[OpenUsage](https://github.com/robinebers/openusage)** by **[Robin Ebers](https://github.com/robinebers)** (MIT), itself inspired by [CodexBar](https://github.com/steipete/CodexBar). Full attribution in [CREDITS.md](CREDITS.md). Per the upstream [trademark policy](https://github.com/robinebers/openusage/blob/main/TRADEMARK.md), the "OpenUsage" name and logo are **not** used here — different name, different icon.
 
 ## License
 
-[MIT](LICENSE) — see the license for the original copyright notice, which is retained.
+[MIT](LICENSE) — the original copyright notice is retained.
 
 ---
 
 <details>
 <summary><strong>Build from source</strong></summary>
 
-> **Warning**: The `master` branch may contain unreleased / in-progress (Windows/Linux) work and may not be stable.
+> **Warning**: `master` may contain unreleased Windows/Linux work and may be unstable.
 
-### Stack
+**Stack:** [Tauri 2](https://tauri.app) (Rust + system webview) · React 19 + TypeScript + Vite · Bun · plugin-based providers (`plugins/`).
 
-- **[Tauri 2](https://tauri.app)** (Rust backend + system webview)
-- **React 19 + TypeScript + Vite** frontend
-- **Bun** package manager
-- Plugin-based providers (bundled JS plugins in `plugins/`)
-
-### Prerequisites
-
-- [Rust](https://rustup.rs) toolchain
-- [Bun](https://bun.sh)
-- Platform Tauri prerequisites: see <https://tauri.app/start/prerequisites/>
-  (Linux needs `webkit2gtk`/`libgtk` dev packages; Windows needs the WebView2 runtime + MSVC build tools.)
-
-### Run
+**Prerequisites:** [Rust](https://rustup.rs), [Bun](https://bun.sh), and your platform's [Tauri prerequisites](https://tauri.app/start/prerequisites/) (Linux: `webkit2gtk`/`libgtk` dev packages; Windows: WebView2 runtime + MSVC build tools).
 
 ```bash
 bun install

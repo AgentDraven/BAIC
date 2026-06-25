@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.7.14
+
+### Release focus
+- Position the project as the **Windows + Linux** build of OpenUsage; macOS is no longer a shipped target (use upstream OpenUsage). The cfg-gated macOS code is kept and still compile-checked, but its CI leg is now best-effort and never blocks a Win/Linux release.
+- New README with a panel screenshot and an accurate 16-provider list (adds Perplexity + Synthetic; Antigravity remains macOS-only/pending).
+
+### Performance
+- Size-optimized Rust release profile (fat LTO, single codegen unit, symbol strip, `opt-level = "s"`) for smaller installers and faster cold start.
+- Lazy-load the Settings page and the About/Changelog dialogs so the usage panel paints faster on launch.
+
+---
+
 ## v0.7.10
 
 ### New Features

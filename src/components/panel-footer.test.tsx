@@ -187,7 +187,7 @@ describe("PanelFooter", () => {
 
     render(<Harness />)
     await userEvent.click(screen.getByRole("button", { name: /Tokenmaxxing/ }))
-    expect(screen.getByText("Open source on")).toBeInTheDocument()
+    expect(await screen.findByText("Open source on")).toBeInTheDocument()
 
     // Close via Escape to exercise AboutDialog onClose path.
     await userEvent.keyboard("{Escape}")

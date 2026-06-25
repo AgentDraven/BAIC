@@ -1,6 +1,9 @@
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { AboutDialog } from "@/components/about-dialog";
+
+const AboutDialog = lazy(() =>
+  import("@/components/about-dialog").then((m) => ({ default: m.AboutDialog }))
+);
 import type { UpdateStatus } from "@/hooks/use-app-update";
 import { useNowTicker } from "@/hooks/use-now-ticker";
 import { getDataSourceLabel } from "@/lib/data-source";
@@ -155,7 +158,9 @@ export function PanelFooter({
         )}
       </div>
       {showAbout && (
-        <AboutDialog version={version} onClose={onCloseAbout} />
+        <Suspense fallback={null}>
+          <AboutDialog version={version} onClose={onCloseAbout} />
+        </Suspense>
       )}
     </>
   );

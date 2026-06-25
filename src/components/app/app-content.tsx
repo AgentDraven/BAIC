@@ -1,7 +1,11 @@
+import { lazy, Suspense } from "react"
 import { useShallow } from "zustand/react/shallow"
 import { OverviewPage } from "@/pages/overview"
 import { ProviderDetailPage } from "@/pages/provider-detail"
-import { SettingsPage } from "@/pages/settings"
+
+const SettingsPage = lazy(() =>
+  import("@/pages/settings").then((m) => ({ default: m.SettingsPage }))
+)
 import type { DisplayPluginState } from "@/hooks/app/use-app-plugin-views"
 import type { SettingsPluginState } from "@/hooks/app/use-settings-plugin-list"
 import type { TraySettingsPreview } from "@/hooks/app/use-tray-icon"
@@ -120,36 +124,38 @@ export function AppContent({
 
   if (activeView === "settings") {
     return (
-      <SettingsPage
-        plugins={settingsPlugins}
-        onReorder={onReorder}
-        onToggle={onToggle}
-        autoUpdateInterval={autoUpdateInterval}
-        onAutoUpdateIntervalChange={onAutoUpdateIntervalChange}
-        themeMode={themeMode}
-        onThemeModeChange={onThemeModeChange}
-        displayMode={displayMode}
-        onDisplayModeChange={onDisplayModeChange}
-        resetTimerDisplayMode={resetTimerDisplayMode}
-        onResetTimerDisplayModeChange={onResetTimerDisplayModeChange}
-        timeFormatMode={timeFormatMode}
-        onTimeFormatModeChange={onTimeFormatModeChange}
-        menubarIconStyle={menubarIconStyle}
-        onMenubarIconStyleChange={onMenubarIconStyleChange}
-        menubarMetric={menubarMetric}
-        onMenubarMetricChange={onMenubarMetricChange}
-        traySettingsPreview={traySettingsPreview}
-        globalShortcut={globalShortcut}
-        onGlobalShortcutChange={onGlobalShortcutChange}
-        machineSettings={machineSettings}
-        onMachineSettingsChange={onMachineSettingsChange}
-        startOnLogin={startOnLogin}
-        onStartOnLoginChange={onStartOnLoginChange}
-        panelStayOpenWhenPinned={panelStayOpenWhenPinned}
-        onPanelStayOpenWhenPinnedChange={onPanelStayOpenWhenPinnedChange}
-        panelKeepOnTaskbar={panelKeepOnTaskbar}
-        onPanelKeepOnTaskbarChange={onPanelKeepOnTaskbarChange}
-      />
+      <Suspense fallback={null}>
+        <SettingsPage
+          plugins={settingsPlugins}
+          onReorder={onReorder}
+          onToggle={onToggle}
+          autoUpdateInterval={autoUpdateInterval}
+          onAutoUpdateIntervalChange={onAutoUpdateIntervalChange}
+          themeMode={themeMode}
+          onThemeModeChange={onThemeModeChange}
+          displayMode={displayMode}
+          onDisplayModeChange={onDisplayModeChange}
+          resetTimerDisplayMode={resetTimerDisplayMode}
+          onResetTimerDisplayModeChange={onResetTimerDisplayModeChange}
+          timeFormatMode={timeFormatMode}
+          onTimeFormatModeChange={onTimeFormatModeChange}
+          menubarIconStyle={menubarIconStyle}
+          onMenubarIconStyleChange={onMenubarIconStyleChange}
+          menubarMetric={menubarMetric}
+          onMenubarMetricChange={onMenubarMetricChange}
+          traySettingsPreview={traySettingsPreview}
+          globalShortcut={globalShortcut}
+          onGlobalShortcutChange={onGlobalShortcutChange}
+          machineSettings={machineSettings}
+          onMachineSettingsChange={onMachineSettingsChange}
+          startOnLogin={startOnLogin}
+          onStartOnLoginChange={onStartOnLoginChange}
+          panelStayOpenWhenPinned={panelStayOpenWhenPinned}
+          onPanelStayOpenWhenPinnedChange={onPanelStayOpenWhenPinnedChange}
+          panelKeepOnTaskbar={panelKeepOnTaskbar}
+          onPanelKeepOnTaskbarChange={onPanelKeepOnTaskbarChange}
+        />
+      </Suspense>
     )
   }
 
