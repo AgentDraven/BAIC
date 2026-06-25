@@ -1,91 +1,86 @@
-# Contributing to OpenUsage
+# Contributing to Tokenmaxxing
 
-OpenUsage accepts contributions, but has a high quality bar. Read this entire document before opening a PR.
+Tokenmaxxing is the **Windows + Linux** community fork of
+[OpenUsage](https://github.com/robinebers/openusage). Contributions are welcome, with a
+high quality bar. Read this whole document before opening a PR.
+
+> macOS-specific work belongs **upstream** in [OpenUsage](https://github.com/robinebers/openusage) —
+> this fork focuses on Windows and Linux. Cross-platform/Win/Linux fixes belong here.
 
 ## Philosophy
 
-OpenUsage is highly opinionated. It focuses on clean design, fast performance, and a great user experience. The feature set is intentionally limited to core functionality: tracking AI coding subscription usage, nothing more. Contributions that try to expand that scope, add unnecessary complexity, or compromise the UX will be closed.
-
-If you're unsure whether your idea fits, open an issue first.
+Tokenmaxxing (like OpenUsage) is highly opinionated: clean design, fast performance, great
+UX. The scope is intentionally narrow — tracking AI coding-subscription usage, nothing more.
+PRs that expand scope, add unnecessary complexity, or compromise the UX will be closed.
+Unsure if your idea fits? [Open an issue](https://github.com/falkoro/tokenmaxxing/issues/new) first.
 
 ## Ground Rules
 
 - No feature creep. If it's not about usage tracking, it doesn't belong here.
-- No AI-generated commit messages. Write your own.
-- Test your changes. If it touches UI, include before/after screenshots.
+- Test your changes. UI changes require before/after screenshots.
 - Keep it simple. Don't over-engineer.
 - One PR per concern. Don't bundle unrelated changes.
-- Match the existing design language. OpenUsage has a specific look and feel.
+- Match the existing design language and code patterns.
 
-## License Agreement
+## License
 
-By submitting a pull request, you agree that your contribution is licensed under the [MIT License](LICENSE) that covers this project.
+By submitting a PR you agree your contribution is licensed under the [MIT License](LICENSE).
 
-## How to Contribute
+## How to contribute
 
-### Fork and PR workflow
+### Fork & PR
 
 1. Fork the repo
-2. Create a branch (`feat/my-change`, `fix/some-bug`, etc.)
-3. Make your changes
-4. Run `bun run build` and `bun run test` to verify nothing is broken
-5. Open a PR against `main`
+2. Branch (`feat/my-change`, `fix/some-bug`)
+3. Make your change
+4. Run `bun run build` and `bun run test` — both must pass
+5. Open a PR against **`master`**
 
 ### Add a provider plugin
 
-Each provider is a plugin. See the [Plugin API docs](docs/plugins/api.md) for the full spec.
+Each provider is a plugin (see the [Plugin API docs](docs/plugins/api.md)):
 
-1. Create a new folder under `plugins/` with your provider name
+1. Create a folder under `plugins/` named for your provider
 2. Add `plugin.json` (metadata) and `plugin.js` (implementation)
-3. Add documentation in `docs/providers/`
-4. Test it locally with `bun tauri dev`
+3. Add docs under `docs/providers/`
+4. Test locally with `bun tauri dev`
 5. Open a PR with screenshots showing it working
 
-You can also [open an issue](https://github.com/robinebers/openusage/issues/new?template=new_provider.yml) to request a provider without building it yourself.
+Or [open an issue](https://github.com/falkoro/tokenmaxxing/issues/new) to request a provider.
 
 ### Fix a bug
 
 1. Reference the issue number in your PR
-2. Describe the root cause and fix
+2. Describe the root cause and the fix
 3. Include before/after screenshots for UI bugs
-4. Add a regression test if applicable
+4. Add a regression test where it fits
 
-### Request a feature
+### Larger features
 
-Don't open a PR for large features without discussing first. [Open an issue](https://github.com/robinebers/openusage/issues/new?template=feature_request.yml) and make your case.
+Don't open a PR for a large feature without discussing it first —
+[open an issue](https://github.com/falkoro/tokenmaxxing/issues/new) and make your case.
 
-## What Gets Accepted
+## What gets accepted
 
-- Bug fixes with clear descriptions
-- New provider plugins that follow the Plugin API
-- Documentation improvements
-- Performance improvements with benchmarks
-- Accessibility improvements
+Bug fixes with clear descriptions · new provider plugins following the Plugin API ·
+documentation improvements · performance improvements with benchmarks · accessibility improvements.
 
-## What Gets Rejected
+## What gets rejected
 
-- Features that expand the scope beyond usage tracking
-- Changes that compromise speed, simplicity, or the existing UX
-- PRs without testing evidence
-- Code with no clear purpose or explanation
-- Cosmetic-only changes without prior discussion
+Scope creep beyond usage tracking · changes that hurt speed/simplicity/UX ·
+PRs without testing evidence · code with no clear purpose · cosmetic-only changes without prior discussion.
 
-## Code Standards
+## Code standards
 
-- TypeScript for frontend (`src/`)
-- Rust for backend (`src-tauri/`)
-- Follow existing patterns in the codebase
-- No new dependencies without justification
+- TypeScript for the frontend (`src/`), Rust for the backend (`src-tauri/`)
+- Follow existing patterns; no new dependencies without justification
 
-## Maintainers
+## Maintainers & releases
 
-- [@robinebers](https://github.com/robinebers) (lead)
-- [@validatedev](https://github.com/validatedev)
-- [@davidarny](https://github.com/davidarny)
-
-All PRs require approval from at least 2 maintainers before merging.
-Release tags (`v*`) are owner-managed and can only be created by [@robinebers](https://github.com/robinebers).
+- [@falkoro](https://github.com/falkoro) maintains this fork.
+- PRs need **1 maintainer approval** before merging (CI must be green).
+- Release tags (`v*`) are owner-managed by [@falkoro](https://github.com/falkoro) and trigger the published Windows/Linux build.
 
 ## Questions?
 
-Open a [bug report](https://github.com/robinebers/openusage/issues/new?template=bug_report.yml) or [feature request](https://github.com/robinebers/openusage/issues/new?template=feature_request.yml) using the issue templates.
+Open an [issue](https://github.com/falkoro/tokenmaxxing/issues/new) using the templates.
