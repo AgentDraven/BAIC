@@ -8,7 +8,7 @@ bar. No dashboards, no tab-digging, no mental math.
 </p>
 
 > **The Windows + Linux build of [OpenUsage](https://github.com/robinebers/openusage).**
-> OpenUsage is a gorgeous macOS menu-bar app by [Robin Ebers](https://github.com/robinebers) — and it only runs on macOS.
+> OpenUsage is a macOS menu-bar app by [Robin Ebers](https://github.com/robinebers) — and it only runs on macOS.
 > Tokenmaxxing is the community port that brings it to **Windows and Linux**. Not affiliated with or endorsed by OpenUsage; all original design and credit go to its authors — see [CREDITS.md](CREDITS.md).
 
 ## Platform status
@@ -16,7 +16,7 @@ bar. No dashboards, no tab-digging, no mental math.
 | Platform | Status |
 |----------|--------|
 | **Windows** | ✅ NSIS installer, auto-updates. Beta — feedback welcome. |
-| **Linux** | ✅ deb / rpm / AppImage, auto-updates. Verified on a live system. |
+| **Linux** | ✅ deb / rpm / AppImage, auto-updates. |
 | **macOS** | Use **[OpenUsage](https://github.com/robinebers/openusage)** — it's native there and this fork doesn't ship a macOS build. |
 
 The panel is a borderless, always-on-top window driven by a global shortcut. (On macOS, OpenUsage uses a native `NSPanel`; that code is kept but unshipped — port notes in [PORTING.md](PORTING.md).)
