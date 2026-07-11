@@ -212,7 +212,7 @@ Detail: [IAR/MERITUTILS_ENV.md](IAR/MERITUTILS_ENV.md) · example keys: `.env.lo
 ---
 
 <a id="merit-workbench"></a>
-## 9. MERIT HND / `merit_workbench` (planned)
+## 9. MERIT HND / `merit_workbench` (planned) ^merit-workbench
 
 Per MERIT L1 §II.E.1, staged operator surfaces use **grid + inspector** in the **center column**. X-Ray (§II.H) stays on the right rail.
 

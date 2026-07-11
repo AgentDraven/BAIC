@@ -1,0 +1,16 @@
+{
+  "schema": "meritutils.consumer.v1",
+  "consumer_id": "baic",
+  "provider_id": "meritutils",
+  "promocode_default": "FREEASINTRO",
+  "affiliate_code": "BAIC",
+  "packages": [
+    { "name": "merit_workbench", "version": "0.4.0", "pin": "meritutils/merit_workbench@0.4.0" },
+    { "name": "merit_usage_meter", "version": "0.1.1", "pin": "meritutils/merit_usage_meter@0.1.1" }
+  ],
+  "usage_policy": {
+    "default_promocode_when_missing": "FREEASINTRO",
+    "billable_mode": "intro_free",
+    "m4fi_scope": "excluded"
+  }
+}

@@ -222,4 +222,4 @@ Integration remains **BLOCKED** until **MUU-MWB-01…12 ACCEPT** and **BAI-MWB-V
 | 2026-06-08 | Initial IAR |
 | 2026-06-20 | PAR consumer lane: pin `meritutils/merit_workbench@0.3.2`, `cfg/merit_par_pins.json`, CDN in `web/index.html` |
 
-**Cross-links:** [baic_design.md § merit_workbench](../baic_design.md#merit-workbench) · [MERITUTILS_ENV.md](MERITUTILS_ENV.md)
+**Cross-links:** [baic_design.md § merit_workbench](../baic_design.md#merit-workbench) [[baic_design#^merit-workbench|(obsidian)]] · [MERITUTILS_ENV.md](MERITUTILS_ENV.md)

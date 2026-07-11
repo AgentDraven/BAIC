@@ -102,7 +102,7 @@ Model routing SSOT for dirt sibling: `dirt/cfg/llm_providers.json` (endpoints/mo
 | Role | You need |
 |------|----------|
 | **User** | This guide + `run_baic.py` |
-| **Admin** | provider_registry.json + [PRD §6](input/BAIC_PRD.md#provider-registry) |
+| **Admin** | provider_registry.json + [PRD §6](input/BAIC_PRD.md#provider-registry) [[input/BAIC_PRD#^provider-registry]] |
 | **Developer** | [bridge/README.md](../bridge/README.md) + [baic_design.md](baic_design.md) |
 
 ---
@@ -120,6 +120,8 @@ Model routing SSOT for dirt sibling: `dirt/cfg/llm_providers.json` (endpoints/mo
 ---
 
 ## merit_workbench (PAR CDN)
+
+BAIC declares its meritutils consumer lane in `cfg/meritutils_consumer.json`. Missing promo codes resolve to `FREEASINTRO`, and BAIC reports affiliate code `BAIC`. Registry promotion remains separate from this local usage baseline.
 
 Admin grid+inspector surfaces use **`merit_workbench`** from meritutils **PAR CDN** — not a local fork or npm vendoring.
 
