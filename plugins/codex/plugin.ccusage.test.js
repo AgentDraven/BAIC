@@ -76,5 +76,9 @@ describe("codex plugin ccusage usage trend", () => {
       type: "text",
       value: "50%",
     })
+    expect(result.metrics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: "tokens.total", value: 450, source: "local-log" }),
+      expect.objectContaining({ key: "tokens.model", model: "gpt-5.5" }),
+    ]))
   })
 })

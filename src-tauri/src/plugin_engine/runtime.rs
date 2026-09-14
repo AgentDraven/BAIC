@@ -2,6 +2,7 @@ use crate::plugin_engine::host_api;
 use crate::plugin_engine::manifest::LoadedPlugin;
 use rquickjs::{Array, Context, Ctx, Error, Object, Promise, Runtime, Value};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
@@ -67,6 +68,22 @@ pub struct PluginOutput {
     pub plan: Option<String>,
     pub lines: Vec<MetricLine>,
     pub icon_url: String,
+    #[serde(default)]
+    pub metrics: Vec<UsageMetric>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UsageMetric {
+    pub key: String,
+    pub value: f64,
+    pub unit: String,
+    pub model: Option<String>,
+    pub source: String,
+    pub confidence: Option<f64>,
+    pub resets_at: Option<String>,
+    pub period_duration_ms: Option<u64>,
+    pub source_url: Option<String>,
 }
 
 pub fn run_probe(plugin: &LoadedPlugin, app_data_dir: &PathBuf, app_version: &str) -> PluginOutput {
@@ -221,6 +238,11 @@ fn run_probe_with_timeout(
             Ok(_) => vec![error_line("no lines returned".to_string())],
             Err(msg) => vec![error_line(msg)],
         };
+        let mut metrics = parse_metrics(&result).unwrap_or_else(|message| {
+            log::warn!("plugin {} returned invalid metrics: {}", plugin_id, message);
+            Vec::new()
+        });
+        append_derived_quota_metrics(&lines, &mut metrics);
 
         PluginOutput {
             provider_id: plugin_id,
@@ -228,8 +250,179 @@ fn run_probe_with_timeout(
             plan,
             lines,
             icon_url,
+            metrics,
         }
     })
+}
+
+fn parse_metrics(result: &Object) -> Result<Vec<UsageMetric>, String> {
+    let Some(value) = result.get::<_, Value>("metrics").ok() else {
+        return Ok(Vec::new());
+    };
+    if value.is_null() || value.is_undefined() {
+        return Ok(Vec::new());
+    }
+    let metrics: Array = value.into_array().ok_or("metrics must be an array")?;
+    let mut out = Vec::new();
+    for idx in 0..metrics.len() {
+        let metric: Object = metrics
+            .get(idx)
+            .map_err(|_| format!("invalid metric at index {}", idx))?;
+        let key = metric
+            .get::<_, String>("key")
+            .map_err(|_| format!("metric {} missing key", idx))?;
+        let value = metric
+            .get::<_, Value>("value")
+            .map_err(|_| format!("metric {} missing value", idx))?
+            .as_number()
+            .ok_or_else(|| format!("metric {} value must be a number", idx))?;
+        let unit = metric
+            .get::<_, String>("unit")
+            .map_err(|_| format!("metric {} missing unit", idx))?;
+        let source = metric
+            .get::<_, String>("source")
+            .map_err(|_| format!("metric {} missing source", idx))?;
+        let valid_unit = matches!(
+            unit.as_str(),
+            "tokens" | "requests" | "dollars" | "seconds" | "items" | "ratio"
+        );
+        let valid_source = matches!(source.as_str(), "provider" | "local-log" | "estimated");
+        if key.trim().is_empty()
+            || !value.is_finite()
+            || value < 0.0
+            || !valid_unit
+            || !valid_source
+        {
+            return Err(format!(
+                "metric {} has invalid key, value, unit, or source",
+                idx
+            ));
+        }
+        let model = metric
+            .get::<_, String>("model")
+            .ok()
+            .filter(|s| !s.trim().is_empty());
+        let confidence = metric
+            .get::<_, Value>("confidence")
+            .ok()
+            .and_then(|v| v.as_number())
+            .filter(|n| n.is_finite() && (0.0..=1.0).contains(n));
+        let resets_at = metric
+            .get::<_, String>("resetsAt")
+            .ok()
+            .filter(|s| !s.trim().is_empty());
+        let period_duration_ms = metric
+            .get::<_, Value>("periodDurationMs")
+            .ok()
+            .and_then(|v| v.as_number())
+            .filter(|n| n.is_finite() && *n > 0.0)
+            .map(|n| n as u64);
+        let source_url = metric
+            .get::<_, String>("sourceUrl")
+            .ok()
+            .filter(|s| !s.trim().is_empty());
+        out.push(UsageMetric {
+            key,
+            value,
+            unit,
+            model,
+            source,
+            confidence,
+            resets_at,
+            period_duration_ms,
+            source_url,
+        });
+    }
+    Ok(out)
+}
+
+fn append_derived_quota_metrics(lines: &[MetricLine], metrics: &mut Vec<UsageMetric>) {
+    let mut existing_keys: HashSet<String> =
+        metrics.iter().map(|metric| metric.key.clone()).collect();
+    for line in lines {
+        let MetricLine::Progress {
+            label,
+            used,
+            limit,
+            format,
+            resets_at,
+            period_duration_ms,
+            ..
+        } = line
+        else {
+            continue;
+        };
+        let slug = label
+            .chars()
+            .map(|character| {
+                if character.is_ascii_alphanumeric() {
+                    character.to_ascii_lowercase()
+                } else {
+                    '-'
+                }
+            })
+            .collect::<String>()
+            .split('-')
+            .filter(|part| !part.is_empty())
+            .collect::<Vec<_>>()
+            .join("-");
+        if slug.is_empty() || !used.is_finite() || !limit.is_finite() || *limit <= 0.0 {
+            continue;
+        }
+        let (used_key, limit_key, unit, used_value, limit_value) = match format {
+            ProgressFormat::Percent => (
+                format!("quota.{}.utilization", slug),
+                None,
+                "ratio",
+                (*used / *limit).clamp(0.0, 1.0),
+                None,
+            ),
+            ProgressFormat::Dollars => (
+                format!("quota.{}.used", slug),
+                Some(format!("quota.{}.limit", slug)),
+                "dollars",
+                *used,
+                Some(*limit),
+            ),
+            ProgressFormat::Count { .. } => (
+                format!("quota.{}.used", slug),
+                Some(format!("quota.{}.limit", slug)),
+                "items",
+                *used,
+                Some(*limit),
+            ),
+        };
+        if !existing_keys.contains(&used_key) {
+            existing_keys.insert(used_key.clone());
+            metrics.push(UsageMetric {
+                key: used_key,
+                value: used_value,
+                unit: unit.to_string(),
+                model: None,
+                source: "provider".to_string(),
+                confidence: Some(0.9),
+                resets_at: resets_at.clone(),
+                period_duration_ms: *period_duration_ms,
+                source_url: None,
+            });
+        }
+        if let (Some(limit_key), Some(limit_value)) = (limit_key, limit_value) {
+            if !existing_keys.contains(&limit_key) {
+                existing_keys.insert(limit_key.clone());
+                metrics.push(UsageMetric {
+                    key: limit_key,
+                    value: limit_value,
+                    unit: unit.to_string(),
+                    model: None,
+                    source: "provider".to_string(),
+                    confidence: Some(0.9),
+                    resets_at: resets_at.clone(),
+                    period_duration_ms: *period_duration_ms,
+                    source_url: None,
+                });
+            }
+        }
+    }
 }
 
 fn parse_lines(result: &Object) -> Result<Vec<MetricLine>, String> {
@@ -637,7 +830,10 @@ fn parse_bar_chart_line<'js>(
     }
 
     if points.is_empty() {
-        errors.push(format!("barChart line at index {} has no valid points", idx));
+        errors.push(format!(
+            "barChart line at index {} has no valid points",
+            idx
+        ));
         return (None, errors);
     }
 
@@ -679,6 +875,7 @@ fn error_output(plugin: &LoadedPlugin, message: String) -> PluginOutput {
         plan: None,
         lines: vec![error_line(message)],
         icon_url: plugin.icon_data_url.clone(),
+        metrics: Vec::new(),
     }
 }
 
@@ -832,6 +1029,45 @@ mod tests {
     }
 
     #[test]
+    fn derived_quota_metrics_preserve_units_and_normalize_percent() {
+        let lines = vec![
+            MetricLine::Progress {
+                label: "Weekly Requests".to_string(),
+                used: 25.0,
+                limit: 100.0,
+                format: ProgressFormat::Count {
+                    suffix: " requests".to_string(),
+                },
+                resets_at: None,
+                period_duration_ms: None,
+                color: None,
+            },
+            MetricLine::Progress {
+                label: "Session".to_string(),
+                used: 75.0,
+                limit: 100.0,
+                format: ProgressFormat::Percent,
+                resets_at: None,
+                period_duration_ms: None,
+                color: None,
+            },
+        ];
+        let mut metrics = Vec::new();
+        append_derived_quota_metrics(&lines, &mut metrics);
+
+        assert!(metrics.iter().any(|metric| {
+            metric.key == "quota.weekly-requests.used"
+                && metric.value == 25.0
+                && metric.unit == "items"
+        }));
+        assert!(metrics.iter().any(|metric| {
+            metric.key == "quota.session.utilization"
+                && metric.value == 0.75
+                && metric.unit == "ratio"
+        }));
+    }
+
+    #[test]
     fn bar_chart_line_round_trips_from_builder() {
         let plugin = test_plugin(
             r#"
@@ -884,5 +1120,54 @@ mod tests {
             json["points"].as_array().expect("points array").len(),
             MAX_BAR_CHART_POINTS
         );
+    }
+
+    #[test]
+    fn optional_v01_metrics_round_trip_from_probe() {
+        let plugin = test_plugin(
+            r#"
+            globalThis.__openusage_plugin = {
+                probe() {
+                    return {
+                        lines: [{ type: "text", label: "Status", value: "ok" }],
+                        metrics: [{
+                            key: "tokens.total",
+                            value: 1234,
+                            unit: "tokens",
+                            model: "small-model",
+                            source: "local-log",
+                            confidence: 1
+                        }]
+                    };
+                }
+            };
+            "#,
+        );
+
+        let output = run_probe(&plugin, &temp_app_dir("v01-metrics"), "0.0.0");
+        assert_eq!(output.metrics.len(), 1);
+        assert_eq!(output.metrics[0].key, "tokens.total");
+        assert_eq!(output.metrics[0].value, 1234.0);
+        assert_eq!(output.metrics[0].source, "local-log");
+    }
+
+    #[test]
+    fn invalid_optional_v01_metrics_do_not_break_lines() {
+        let plugin = test_plugin(
+            r#"
+            globalThis.__openusage_plugin = {
+                probe() {
+                    return {
+                        lines: [{ type: "text", label: "Status", value: "ok" }],
+                        metrics: [{ key: "tokens.total", value: -1, unit: "tokens", source: "provider" }]
+                    };
+                }
+            };
+            "#,
+        );
+
+        let output = run_probe(&plugin, &temp_app_dir("v01-invalid-metrics"), "0.0.0");
+        assert_eq!(output.lines.len(), 1);
+        assert!(output.metrics.is_empty());
     }
 }

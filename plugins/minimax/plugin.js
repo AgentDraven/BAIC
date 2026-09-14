@@ -443,7 +443,15 @@
     if (parsed.resetsAt) line.resetsAt = parsed.resetsAt
     if (parsed.periodDurationMs !== null) line.periodDurationMs = parsed.periodDurationMs
 
-    const result = { lines: [ctx.line.progress(line)] }
+    const result = {
+      lines: [ctx.line.progress(line)],
+      metrics: parsed.isPercent
+        ? []
+        : [
+            { key: "requests.prompt.used", value: Math.max(0, parsed.used * valueMultiplier), unit: "requests", source: "provider", confidence: 1, sourceUrl: successfulEndpoint === "CN" ? CN_PRIMARY_USAGE_URL : GLOBAL_PRIMARY_USAGE_URL },
+            { key: "requests.prompt.limit", value: Math.max(0, parsed.total * valueMultiplier), unit: "requests", source: "provider", confidence: 1, sourceUrl: successfulEndpoint === "CN" ? CN_PRIMARY_USAGE_URL : GLOBAL_PRIMARY_USAGE_URL },
+          ],
+    }
     if (parsed.planName) {
       const regionLabel = successfulEndpoint === "CN" ? " (CN)" : " (GLOBAL)"
       result.plan = parsed.planName + regionLabel

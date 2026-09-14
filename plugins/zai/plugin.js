@@ -126,6 +126,15 @@
 
     const used = typeof tokenLimit.percentage === "number" ? tokenLimit.percentage : 0
     const resetsAt = tokenLimit.nextResetTime ? ctx.util.toIso(tokenLimit.nextResetTime) : undefined
+    const metrics = []
+    const sessionLimit = Number(tokenLimit.usage)
+    const sessionUsed = Number(tokenLimit.currentValue)
+    if (Number.isFinite(sessionUsed) && sessionUsed >= 0) {
+      metrics.push({ key: "tokens.session.used", value: sessionUsed, unit: "tokens", source: "provider", confidence: 1, sourceUrl: QUOTA_URL })
+    }
+    if (Number.isFinite(sessionLimit) && sessionLimit > 0) {
+      metrics.push({ key: "tokens.session.limit", value: sessionLimit, unit: "tokens", source: "provider", confidence: 1, sourceUrl: QUOTA_URL })
+    }
 
     const progressOpts = {
       label: "Session",
@@ -141,6 +150,14 @@
 
     const weeklyTokenLimit = findLimit(limits, "TOKENS_LIMIT", 6)
     if (weeklyTokenLimit) {
+      const weeklyUsedValue = Number(weeklyTokenLimit.currentValue)
+      const weeklyLimitValue = Number(weeklyTokenLimit.usage)
+      if (Number.isFinite(weeklyUsedValue) && weeklyUsedValue >= 0) {
+        metrics.push({ key: "tokens.weekly.used", value: weeklyUsedValue, unit: "tokens", source: "provider", confidence: 1, sourceUrl: QUOTA_URL })
+      }
+      if (Number.isFinite(weeklyLimitValue) && weeklyLimitValue > 0) {
+        metrics.push({ key: "tokens.weekly.limit", value: weeklyLimitValue, unit: "tokens", source: "provider", confidence: 1, sourceUrl: QUOTA_URL })
+      }
       const weeklyUsed = Number.isFinite(weeklyTokenLimit.percentage) ? weeklyTokenLimit.percentage : 0
       const weeklyResetsAt = weeklyTokenLimit.nextResetTime ? ctx.util.toIso(weeklyTokenLimit.nextResetTime) : undefined
 
@@ -181,7 +198,7 @@
       lines.push(ctx.line.progress(webOpts))
     }
 
-    return { plan, lines }
+    return { plan, lines, metrics }
   }
 
   globalThis.__openusage_plugin = { id: "zai", probe }

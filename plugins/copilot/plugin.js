@@ -143,6 +143,36 @@
     });
   }
 
+  function addQuotaMetric(ctx, metrics, key, snapshot, resetDate) {
+    if (!snapshot || typeof snapshot.percent_remaining !== "number") return;
+    const remaining = Math.max(0, Math.min(100, snapshot.percent_remaining));
+    metrics.push({
+      key: "quota." + key + ".utilization",
+      value: (100 - remaining) / 100,
+      unit: "ratio",
+      source: "provider",
+      confidence: 0.9,
+      sourceUrl: USAGE_URL,
+      resetsAt: ctx.util.toIso(resetDate),
+      periodDurationMs: 30 * 24 * 60 * 60 * 1000,
+    });
+  }
+
+  function addLimitedQuotaMetric(ctx, metrics, key, remaining, total, resetDate) {
+    if (typeof remaining !== "number" || typeof total !== "number" || total <= 0) return;
+    const used = Math.max(0, Math.min(total, total - remaining));
+    metrics.push({
+      key: "quota." + key + ".utilization",
+      value: used / total,
+      unit: "ratio",
+      source: "provider",
+      confidence: 0.9,
+      sourceUrl: USAGE_URL,
+      resetsAt: ctx.util.toIso(resetDate),
+      periodDurationMs: 30 * 24 * 60 * 60 * 1000,
+    });
+  }
+
   function probe(ctx) {
     const cred = loadToken(ctx);
     if (!cred) {
@@ -209,6 +239,7 @@
     ctx.host.log.info("usage fetch succeeded");
 
     const lines = [];
+    const metrics = [];
     let plan = null;
     if (data.copilot_plan) {
       plan = ctx.fmt.planLabel(data.copilot_plan);
@@ -224,6 +255,7 @@
         data.quota_reset_date,
       );
       if (premiumLine) lines.push(premiumLine);
+      addQuotaMetric(ctx, metrics, "premium", snapshots.premium_interactions, data.quota_reset_date);
 
       const chatLine = makeProgressLine(
         ctx,
@@ -232,6 +264,7 @@
         data.quota_reset_date,
       );
       if (chatLine) lines.push(chatLine);
+      addQuotaMetric(ctx, metrics, "chat", snapshots.chat, data.quota_reset_date);
     }
 
     // Free tier: limited_user_quotas
@@ -242,9 +275,11 @@
 
       const chatLine = makeLimitedProgressLine(ctx, "Chat", lq.chat, mq.chat, resetDate);
       if (chatLine) lines.push(chatLine);
+      addLimitedQuotaMetric(ctx, metrics, "chat", lq.chat, mq.chat, resetDate);
 
       const completionsLine = makeLimitedProgressLine(ctx, "Completions", lq.completions, mq.completions, resetDate);
       if (completionsLine) lines.push(completionsLine);
+      addLimitedQuotaMetric(ctx, metrics, "completions", lq.completions, mq.completions, resetDate);
     }
 
     if (lines.length === 0) {
@@ -257,7 +292,7 @@
       );
     }
 
-    return { plan: plan, lines: lines };
+    return { plan: plan, lines: lines, metrics: metrics };
   }
 
   globalThis.__openusage_plugin = { id: "copilot", probe };

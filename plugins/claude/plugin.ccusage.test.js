@@ -87,5 +87,10 @@ describe("claude plugin ccusage usage trend", () => {
       type: "text",
       value: "50%",
     })
+    expect(result.metrics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: "tokens.total", value: 450, source: "local-log" }),
+      expect.objectContaining({ key: "cost.estimated", value: 2, source: "estimated" }),
+      expect.objectContaining({ key: "tokens.model", model: "claude-opus-4-1-20250805" }),
+    ]))
   })
 })

@@ -155,8 +155,27 @@ globalThis.__openusage_plugin = {
 `probe(ctx)` must return (or resolve to):
 
 ```javascript
-{ lines: MetricLine[] }
+{ lines: MetricLine[], metrics?: UsageMetric[] }
 ```
+
+### Optional v01 usage metrics
+
+Plugins may emit structured evidence alongside `lines`. This is additive; older plugins can omit `metrics`.
+
+```javascript
+metrics: [{
+  key: "tokens.total",
+  value: 9200000,
+  unit: "tokens",
+  model: "claude-sonnet",
+  source: "local-log", // provider | local-log | estimated
+  confidence: 1
+}]
+```
+
+`value` must be finite and non-negative. Supported units are `tokens`, `requests`, `dollars`, `seconds`, `items`, and `ratio`. A `ratio` is normalized to `0..1` for utilization. Consumers must preserve `source` and `confidence`; estimated values are not verified usage.
+
+Optional `resetsAt`, `periodDurationMs`, and `sourceUrl` fields preserve reset-window and evidence provenance. They must not be used to imply freshness if the metric itself is stale.
 
 ### Line Types
 

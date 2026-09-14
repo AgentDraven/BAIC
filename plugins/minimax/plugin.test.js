@@ -260,6 +260,10 @@ describe("minimax plugin", () => {
     expect(line.format.suffix).toBe("prompts")
     expect(line.resetsAt).toBe("2023-11-15T03:13:20.000Z")
     expect(line.periodDurationMs).toBe(18000000)
+    expect(result.metrics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: "requests.prompt.used", value: 120, unit: "requests", source: "provider" }),
+      expect.objectContaining({ key: "requests.prompt.limit", value: 300, unit: "requests", source: "provider" }),
+    ]))
   })
 
   it("treats current_interval_usage_count as remaining prompts", async () => {

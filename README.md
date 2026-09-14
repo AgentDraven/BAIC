@@ -42,6 +42,16 @@ Tokenmaxxing lives in your task bar and shows how much of each AI subscription y
 - **Global shortcut.** Toggle the panel from anywhere.
 - **Plugin-based.** New providers ship without app updates.
 - **[Local HTTP API](docs/local-http-api.md).** Read your usage from `127.0.0.1:6736`.
+- **v01 measurement contract.** Optional structured token/model/source metrics with [compatibility and benchmark guidance](docs/baic-v01-compatibility.md).
+- **Budget-aware routing.** The tested [`rankModels`](src/lib/model-recommendation.ts) utility selects a capable model using observed success, quota headroom, capacity, latency, and budget.
+- **Outcome benchmarking.** The tested [`summarizeBenchmark`](src/lib/benchmark-metrics.ts) utilities report acceptance, test-pass rate, median/p90 tokens and latency, rework, and cost per accepted task, grouped by provider, model, plan, and task class.
+- **Reproducible task suite.** The v01 benchmark tasks and acceptance gates are defined in [`docs/benchmark-suite.v01.json`](docs/benchmark-suite.v01.json), with three required runs per candidate.
+- **Benchmark evidence gate.** Validate collected JSON/JSONL results with `npm run benchmark:validate -- path/to/results.json`; under-sampled or malformed candidates are rejected before routing decisions.
+- **Conservative model routing.** Feed candidates matching the [v01 candidate schema](docs/model-candidates.v01.schema.json) to `npm run model:recommend -- candidates.json routine 15`; the command applies tier, budget, confidence, and 10% headroom gates before ranking.
+- **Adoption evidence.** Broad-usage claims require an explicit denominator; the privacy boundary and reporting gates are documented in [`docs/adoption-measurement.md`](docs/adoption-measurement.md).
+- **Acceptance boundary.** The [v01 completion matrix](docs/v01-completion-matrix.md) separates implemented local evidence from live-provider and adoption proof still required.
+- **Live benchmark runbook.** Use the [authenticated benchmark runbook](docs/live-benchmark-runbook.md) to collect comparable three-run samples without exposing provider credentials.
+- **Coverage audit.** Run `npm run metrics:coverage` to distinguish explicit structured-metric providers from runtime-derived quota coverage and line-only providers.
 - **[Proxy support](docs/proxy.md).** Route provider requests through SOCKS5 / HTTP.
 - **[Remote dashboard](remote/README.md).** Serve your usage to other machines.
 

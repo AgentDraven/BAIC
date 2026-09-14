@@ -9,6 +9,19 @@ export type BarChartPoint = {
   valueLabel?: string
 }
 
+/** Optional structured evidence used by the v01 metrics API. */
+export type UsageMetric = {
+  key: string
+  value: number
+  unit: "tokens" | "requests" | "dollars" | "seconds" | "items" | "ratio"
+  model?: string
+  source: "provider" | "local-log" | "estimated"
+  confidence?: number
+  resetsAt?: string
+  periodDurationMs?: number
+  sourceUrl?: string
+}
+
 export type MetricLine =
   | { type: "text"; label: string; value: string; color?: string; subtitle?: string }
   | {
@@ -41,6 +54,7 @@ export type PluginOutput = {
   plan?: string
   lines: MetricLine[]
   iconUrl: string
+  metrics?: UsageMetric[]
 }
 
 export type PluginMeta = {

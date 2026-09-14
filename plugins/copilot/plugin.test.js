@@ -248,6 +248,25 @@ describe("copilot plugin", () => {
     expect(premium.resetsAt).toBe("2099-01-15T00:00:00.000Z");
   });
 
+  it("emits provider-backed normalized quota metrics", async () => {
+    const ctx = makePluginTestContext();
+    setKeychainToken(ctx, "tok");
+    mockUsageOk(ctx);
+    const plugin = await loadPlugin();
+    const result = plugin.probe(ctx);
+    expect(result.metrics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        key: "quota.premium.utilization",
+        value: 0.2,
+        unit: "ratio",
+        source: "provider",
+        confidence: 0.9,
+        resetsAt: "2099-01-15T00:00:00.000Z",
+      }),
+      expect.objectContaining({ key: "quota.chat.utilization", value: 0.05 }),
+    ]));
+  });
+
   it("clamps usedPercent to 0 when percent_remaining > 100", async () => {
     const ctx = makePluginTestContext();
     setKeychainToken(ctx, "tok");

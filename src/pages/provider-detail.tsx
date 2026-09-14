@@ -42,6 +42,7 @@ export function ProviderDetailPage({
       loading={plugin.loading}
       error={plugin.error}
       lines={plugin.data?.lines ?? []}
+      metrics={plugin.data?.metrics ?? []}
       skeletonLines={plugin.meta.lines}
       lastManualRefreshAt={plugin.lastManualRefreshAt}
       lastUpdatedAt={plugin.lastUpdatedAt}

@@ -1,4 +1,7 @@
-use super::cache::{cache_state, enabled_snapshots_ordered};
+use super::cache::{
+    cache_state, clear_metrics_history, enabled_snapshots_ordered, import_metrics_export,
+    metrics_export, metrics_history, metrics_summary, MetricsExport,
+};
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -103,13 +106,51 @@ fn handle_connection(mut stream: TcpStream, _permit: ConnectionPermit) {
     let _ = stream.set_read_timeout(Some(CONNECTION_TIMEOUT));
     let _ = stream.set_write_timeout(Some(CONNECTION_TIMEOUT));
 
-    // Read request (up to 4 KB is plenty for a request line + headers)
-    let mut buf = [0u8; 4096];
-    let n = match stream.read(&mut buf) {
-        Ok(n) => n,
-        Err(_) => return,
+    const MAX_REQUEST_BYTES: usize = 256 * 1024;
+    let mut bytes = Vec::with_capacity(8192);
+    let mut chunk = [0u8; 8192];
+    let content_length = loop {
+        let n = match stream.read(&mut chunk) {
+            Ok(0) => break None,
+            Ok(n) => n,
+            Err(_) => return,
+        };
+        bytes.extend_from_slice(&chunk[..n]);
+        if bytes.len() > MAX_REQUEST_BYTES {
+            let _ = stream.write_all(response_payload_too_large().as_bytes());
+            return;
+        }
+        let header_end = bytes.windows(4).position(|window| window == b"\r\n\r\n");
+        if let Some(header_end) = header_end {
+            let headers = String::from_utf8_lossy(&bytes[..header_end]);
+            let length = headers
+                .lines()
+                .find_map(|line| {
+                    let (name, value) = line.split_once(':')?;
+                    name.eq_ignore_ascii_case("content-length")
+                        .then(|| value.trim().parse::<usize>().ok())
+                        .flatten()
+                })
+                .unwrap_or(0);
+            break Some((header_end + 4, length));
+        }
     };
-    let request = String::from_utf8_lossy(&buf[..n]);
+    let Some((header_end, body_length)) = content_length else {
+        return;
+    };
+    while bytes.len() < header_end.saturating_add(body_length) {
+        let n = match stream.read(&mut chunk) {
+            Ok(0) => break,
+            Ok(n) => n,
+            Err(_) => return,
+        };
+        bytes.extend_from_slice(&chunk[..n]);
+        if bytes.len() > MAX_REQUEST_BYTES {
+            let _ = stream.write_all(response_payload_too_large().as_bytes());
+            return;
+        }
+    }
+    let request = String::from_utf8_lossy(&bytes);
 
     // Parse request line: "METHOD /path HTTP/1.x\r\n..."
     let first_line = request.lines().next().unwrap_or("");
@@ -125,16 +166,55 @@ fn handle_connection(mut stream: TcpStream, _permit: ConnectionPermit) {
         path
     };
 
-    let response = route(method, path);
+    let body_end = header_end.saturating_add(body_length).min(bytes.len());
+    let body = &bytes[header_end..body_end];
+    let response = route_with_body(method, path, body);
     let _ = stream.write_all(response.as_bytes());
     let _ = stream.flush();
 }
 
 fn route(method: &str, path: &str) -> String {
+    route_with_body(method, path, &[])
+}
+
+fn route_with_body(method: &str, path: &str, body: &[u8]) -> String {
     // Match routes
     if path == "/v1/usage" {
         return match method {
             "GET" => handle_get_usage_collection(),
+            "OPTIONS" => response_no_content(),
+            _ => response_method_not_allowed(),
+        };
+    }
+
+    if path == "/v1/metrics" {
+        return match method {
+            "GET" => handle_get_metrics(),
+            "OPTIONS" => response_no_content(),
+            _ => response_method_not_allowed(),
+        };
+    }
+
+    if path == "/v1/metrics/history" {
+        return match method {
+            "GET" => handle_get_metrics_history(),
+            "DELETE" => handle_delete_metrics_history(),
+            "OPTIONS" => response_no_content(),
+            _ => response_method_not_allowed(),
+        };
+    }
+
+    if path == "/v1/metrics/export" {
+        return match method {
+            "GET" => handle_get_metrics_export(),
+            "OPTIONS" => response_no_content(),
+            _ => response_method_not_allowed(),
+        };
+    }
+
+    if path == "/v1/metrics/import" {
+        return match method {
+            "POST" => handle_post_metrics_import(body),
             "OPTIONS" => response_no_content(),
             _ => response_method_not_allowed(),
         };
@@ -151,6 +231,37 @@ fn route(method: &str, path: &str) -> String {
     }
 
     response_not_found("not_found")
+}
+
+fn handle_get_metrics() -> String {
+    let body = serde_json::to_string(&metrics_summary()).unwrap_or_else(|_| "{}".to_string());
+    response_json(200, "OK", &body)
+}
+
+fn handle_get_metrics_history() -> String {
+    let body = serde_json::to_string(&metrics_history()).unwrap_or_else(|_| "[]".to_string());
+    response_json(200, "OK", &body)
+}
+
+fn handle_get_metrics_export() -> String {
+    let body = serde_json::to_string(&metrics_export()).unwrap_or_else(|_| "{}".to_string());
+    response_json(200, "OK", &body)
+}
+
+fn handle_post_metrics_import(body: &[u8]) -> String {
+    let export = match serde_json::from_slice::<MetricsExport>(body) {
+        Ok(export) => export,
+        Err(error) => return response_bad_request(&format!("invalid_metrics_export: {}", error)),
+    };
+    match import_metrics_export(export) {
+        Ok(imported) => response_json(200, "OK", &format!(r#"{{"importedPoints":{}}}"#, imported)),
+        Err(error) => response_bad_request(&error),
+    }
+}
+
+fn handle_delete_metrics_history() -> String {
+    clear_metrics_history();
+    response_no_content()
 }
 
 fn handle_get_usage_collection() -> String {
@@ -186,7 +297,7 @@ fn handle_get_usage_single(provider_id: &str) -> String {
 
 const CORS_HEADERS: &str = "\
 Access-Control-Allow-Origin: *\r\n\
-Access-Control-Allow-Methods: GET, OPTIONS\r\n\
+Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS\r\n\
 Access-Control-Allow-Headers: Content-Type";
 
 fn response_json(status: u16, reason: &str, body: &str) -> String {
@@ -222,6 +333,15 @@ fn response_service_unavailable() -> String {
     response_json(503, "Service Unavailable", body)
 }
 
+fn response_bad_request(error_code: &str) -> String {
+    let body = format!(r#"{{"error":"{}"}}"#, error_code.replace('"', "'"));
+    response_json(400, "Bad Request", &body)
+}
+
+fn response_payload_too_large() -> String {
+    response_json(413, "Payload Too Large", r#"{"error":"payload_too_large"}"#)
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::cache::{cache_state, CachedPluginSnapshot};
@@ -234,6 +354,7 @@ mod tests {
             display_name: name.to_string(),
             plan: Some("Pro".to_string()),
             lines: vec![],
+            metrics: vec![],
             fetched_at: "2026-03-26T08:15:30Z".to_string(),
         }
     }
@@ -248,6 +369,42 @@ mod tests {
     fn route_unknown_path_returns_404() {
         let resp = route("GET", "/v2/something");
         assert!(resp.starts_with("HTTP/1.1 404"));
+    }
+
+    #[test]
+    fn route_get_metrics_returns_v01_summary() {
+        let resp = route("GET", "/v1/metrics");
+        assert!(resp.starts_with("HTTP/1.1 200"));
+        assert!(resp.contains("schemaVersion"));
+        assert!(resp.contains("v01"));
+    }
+
+    #[test]
+    fn route_get_metrics_history_returns_json_array() {
+        let resp = route("GET", "/v1/metrics/history");
+        assert!(resp.starts_with("HTTP/1.1 200"));
+        assert!(resp.contains("\r\n\r\n["));
+    }
+
+    #[test]
+    #[serial]
+    fn route_delete_metrics_history_returns_no_content() {
+        let resp = route("DELETE", "/v1/metrics/history");
+        assert!(resp.starts_with("HTTP/1.1 204"));
+    }
+
+    #[test]
+    fn route_get_metrics_export_returns_v01_document() {
+        let resp = route("GET", "/v1/metrics/export");
+        assert!(resp.starts_with("HTTP/1.1 200"));
+        assert!(resp.contains("\"schemaVersion\":\"v01\""));
+        assert!(resp.contains("\"points\":["));
+    }
+
+    #[test]
+    fn route_post_metrics_import_rejects_invalid_json() {
+        let resp = route_with_body("POST", "/v1/metrics/import", b"not-json");
+        assert!(resp.starts_with("HTTP/1.1 400"));
     }
 
     #[test]
@@ -310,7 +467,7 @@ mod tests {
     fn route_options_on_provider_returns_204() {
         let resp = route("OPTIONS", "/v1/usage/claude");
         assert!(resp.starts_with("HTTP/1.1 204"));
-        assert!(resp.contains("Access-Control-Allow-Methods: GET, OPTIONS"));
+        assert!(resp.contains("Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS"));
     }
 
     #[test]

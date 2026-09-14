@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.7.15
+
+### v01 measurement and routing
+- Add structured usage metrics with units, model attribution, confidence, reset windows, and source URLs.
+- Add bounded local metric history with versioned export/import/delete API routes.
+- Add benchmark validation, conservative lower-subscription model recommendations, provider coverage auditing, and adoption privacy controls.
+- Add provider-backed Copilot and Antigravity quota metrics and document the live benchmark runbook.
+
+### Verification
+- Full JavaScript suite: 80 test files, 1,147 tests passed.
+- Production build and `npm ci --dry-run` passed.
+- Native Rust test binary compiles; runtime execution remains subject to host application-control policy.
+
 ## v0.7.14
 
 ### Release focus

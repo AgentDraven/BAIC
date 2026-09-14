@@ -173,6 +173,10 @@ describe("zai plugin", () => {
     expect(line.limit).toBe(100)
     expect(line.format).toEqual({ kind: "percent" })
     expect(line.periodDurationMs).toBe(5 * 60 * 60 * 1000)
+    expect(result.metrics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ key: "tokens.session.used", value: 1900000, source: "provider" }),
+      expect.objectContaining({ key: "tokens.session.limit", value: 800000000, source: "provider" }),
+    ]))
   })
 
   it("extracts plan name from subscription response", async () => {

@@ -11,7 +11,7 @@ import { UsageSparkline } from "@/components/usage-sparkline"
 import { PluginError } from "@/components/plugin-error"
 import { useNowTicker } from "@/hooks/use-now-ticker"
 import { REFRESH_COOLDOWN_MS, type DisplayMode, type ResetTimerDisplayMode, type TimeFormatMode } from "@/lib/settings"
-import type { ManifestLine, MetricLine, PluginLink } from "@/lib/plugin-types"
+import type { ManifestLine, MetricLine, PluginLink, UsageMetric } from "@/lib/plugin-types"
 import { groupLinesByType } from "@/lib/group-lines-by-type"
 import { clamp01, formatCountNumber, formatFixedPrecisionNumber } from "@/lib/utils"
 import { calculateDeficit, calculatePaceStatus, type PaceStatus } from "@/lib/pace-status"
@@ -26,6 +26,7 @@ interface ProviderCardProps {
   loading?: boolean
   error?: string | null
   lines?: MetricLine[]
+  metrics?: UsageMetric[]
   skeletonLines?: ManifestLine[]
   lastManualRefreshAt?: number | null
   lastUpdatedAt?: number | null
@@ -101,6 +102,7 @@ export function ProviderCard({
   loading = false,
   error = null,
   lines = [],
+  metrics = [],
   skeletonLines = [],
   lastManualRefreshAt,
   lastUpdatedAt,
@@ -136,7 +138,7 @@ export function ProviderCard({
 
   // "has ever loaded" — true if either we have a prior success timestamp,
   // or the parent is passing lines directly (tests + legacy state paths).
-  const hasStaleData = lastUpdatedAt != null || filteredLines.length > 0
+  const hasStaleData = lastUpdatedAt != null || filteredLines.length > 0 || metrics.length > 0
   const isRefreshingWithData = loading && hasStaleData
 
   const tickerIntervalMs = cooldownRemainingMs > 0 ? 1000 : 30_000
@@ -337,6 +339,14 @@ export function ProviderCard({
                   ))}
                 </Fragment>
               )
+            )}
+            {scopeFilter === "all" && metrics.length > 0 && (
+              <div className="border-t border-border/50 pt-2 text-[10px] text-muted-foreground" aria-label="Usage evidence summary">
+                <span>Evidence: {metrics.filter((metric) => metric.source !== "estimated").length} verified</span>
+                {metrics.some((metric) => metric.source === "estimated") && (
+                  <span> · {metrics.filter((metric) => metric.source === "estimated").length} estimated</span>
+                )}
+              </div>
             )}
           </div>
         )}

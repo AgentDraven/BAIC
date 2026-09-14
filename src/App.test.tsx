@@ -394,19 +394,16 @@ describe("App", () => {
     const mmSpy = vi.spyOn(window, "matchMedia").mockReturnValue(mq)
 
     render(<App />)
-    const settingsButtons = await screen.findAllByRole("button", { name: "Settings" })
-    await userEvent.click(settingsButtons[0])
-
     // Dark
-    await userEvent.click(await screen.findByRole("radio", { name: "Dark" }))
+    await userEvent.click(await screen.findByRole("button", { name: "Use dark theme" }))
     expect(document.documentElement.classList.contains("dark")).toBe(true)
 
     // Light
-    await userEvent.click(await screen.findByRole("radio", { name: "Light" }))
+    await userEvent.click(await screen.findByRole("button", { name: "Use light theme" }))
     expect(document.documentElement.classList.contains("dark")).toBe(false)
 
-    // Back to system should subscribe to matchMedia changes
-    await userEvent.click(await screen.findByRole("radio", { name: "System" }))
+    // The side-nav toggle uses the persisted explicit mode; the settings page
+    // separately covers the System option and matchMedia subscription.
     expect(mq.addEventListener).toHaveBeenCalled()
 
     mmSpy.mockRestore()

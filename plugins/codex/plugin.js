@@ -488,6 +488,35 @@
       .sort((a, b) => b.tokens - a.tokens || a.name.localeCompare(b.name))
   }
 
+  function collectStructuredMetrics(daily) {
+    let totalTokens = 0
+    let totalCost = 0
+    let hasCost = false
+    for (let i = 0; i < daily.length; i++) {
+      const day = daily[i]
+      const tokens = Number(day && day.totalTokens)
+      if (Number.isFinite(tokens) && tokens >= 0) totalTokens += tokens
+      const cost = usageCostUsd(day)
+      if (cost != null) {
+        totalCost += cost
+        hasCost = true
+      }
+    }
+
+    const metrics = []
+    if (totalTokens > 0) {
+      metrics.push({ key: "tokens.total", value: totalTokens, unit: "tokens", source: "local-log", confidence: 1 })
+    }
+    if (hasCost) {
+      metrics.push({ key: "cost.estimated", value: totalCost, unit: "dollars", source: "estimated", confidence: 0.8 })
+    }
+    const models = collectModelUsage(daily)
+    for (let i = 0; i < models.length; i++) {
+      metrics.push({ key: "tokens.model", value: models[i].tokens, unit: "tokens", model: models[i].name, source: "local-log", confidence: 1 })
+    }
+    return metrics
+  }
+
   function percentLabel(value) {
     if (value > 0 && value < 0.1) return "<0.1%"
     const rounded = Math.round(value * 10) / 10
@@ -755,8 +784,10 @@
       }
 
       const tokenUsageResult = queryTokenUsage(ctx)
+      let structuredMetrics = []
       if (tokenUsageResult.status === "ok") {
         const tokenUsage = tokenUsageResult.data
+        structuredMetrics = collectStructuredMetrics(tokenUsage.daily)
         const now = new Date()
         const todayKey = dayKeyFromDate(now)
         const yesterday = new Date(now.getTime())
@@ -811,7 +842,7 @@
         lines.push(ctx.line.badge({ label: "Status", text: "No usage data", color: "#a3a3a3" }))
       }
 
-      return { plan: plan, lines: lines }
+      return { plan: plan, lines: lines, metrics: structuredMetrics }
     }
 
     if (auth.OPENAI_API_KEY) {

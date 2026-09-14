@@ -20,7 +20,13 @@ describe("ProviderDetailPage", () => {
         resetTimerDisplayMode="relative"
         plugin={{
           meta: { id: "a", name: "Alpha", iconUrl: "", lines: [] },
-          data: { providerId: "a", displayName: "Alpha", iconUrl: "", lines: [] },
+          data: {
+            providerId: "a",
+            displayName: "Alpha",
+            iconUrl: "",
+            lines: [],
+            metrics: [{ key: "tokens.total", value: 10, unit: "tokens", source: "local-log" }],
+          },
           loading: false,
           error: null,
           lastManualRefreshAt: null,
@@ -29,6 +35,7 @@ describe("ProviderDetailPage", () => {
       />
     )
     expect(screen.getAllByText("Alpha").length).toBeGreaterThan(0)
+    expect(screen.getByLabelText("Usage evidence summary")).toHaveTextContent("1 verified")
   })
 
   it("renders when plugin data is null (still shows provider name)", () => {
