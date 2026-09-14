@@ -5,7 +5,7 @@ from __future__ import annotations
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
-from db.models import DirtEvent, MetricSnapshot, ProviderEntity
+from db.models import ActionEvent, DirtEvent, MetricSnapshot, ProviderEntity
 
 
 class EnatRepository:
@@ -40,6 +40,15 @@ class EnatRepository:
 
     def add_dirt_event(self, message: str, level: str = "INFO") -> DirtEvent:
         event = DirtEvent(message=message, level=level)
+        self._session.add(event)
+        return event
+
+    def list_action_events(self, limit: int = 100) -> list[ActionEvent]:
+        stmt = select(ActionEvent).order_by(desc(ActionEvent.occurred_at)).limit(min(max(limit, 1), 1000))
+        return list(self._session.scalars(stmt))
+
+    def add_action_event(self, **values: object) -> ActionEvent:
+        event = ActionEvent(**values)
         self._session.add(event)
         return event
 

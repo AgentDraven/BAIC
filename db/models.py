@@ -63,3 +63,22 @@ class DirtEvent(Base):
     level: Mapped[str] = mapped_column(String(16), default="INFO")
     message: Mapped[str] = mapped_column(Text)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ActionEvent(Base):
+    """Allow-listed committed user actions, including actions with no provider call."""
+
+    __tablename__ = "action_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    schema: Mapped[str] = mapped_column(String(64), default="merit.telemetry.action.v1")
+    event_type: Mapped[str] = mapped_column(String(128), index=True)
+    event_id: Mapped[str] = mapped_column(String(180), unique=True, index=True)
+    utility_id: Mapped[str] = mapped_column(String(64))
+    quantity: Mapped[float] = mapped_column(Float, default=1.0)
+    transport: Mapped[str] = mapped_column(String(16))
+    api_call_made: Mapped[bool] = mapped_column(Boolean, default=False)
+    outcome: Mapped[str] = mapped_column(String(16), default="committed")
+    cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
+    cost_source: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

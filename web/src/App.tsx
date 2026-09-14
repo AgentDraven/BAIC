@@ -5,6 +5,7 @@ import {
   fetchMeta,
   fetchModelFamilies,
   runOp,
+  postAction,
   type HubSummary,
   type ProviderConsole,
 } from "./api";
@@ -43,6 +44,7 @@ export default function App() {
   }, [loadHub]);
 
   const openProvider = async (id: string) => {
+    void postAction("provider.open", id, "api", true).catch(() => undefined);
     try {
       setConsole(await fetchConsole(id));
     } catch (e) {
@@ -51,6 +53,7 @@ export default function App() {
   };
 
   const handleAction = async (providerId: string, op: string) => {
+    void postAction(`provider.operation.${op}`, providerId, "api", true).catch(() => undefined);
     const res = await runOp(providerId, op);
     setToast(res.message ?? (res.ok ? "Done" : "Failed"));
     setTimeout(() => setToast(null), 4000);

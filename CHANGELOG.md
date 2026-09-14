@@ -1,5 +1,11 @@
 ﻿# CHANGELOG
 
+## [0.8.22] - 2026-09-13
+
+- Added MERIT V01 committed-action measurement with explicit API/local/no-call transport semantics.
+- Added idempotent SQLite action history at `/api/v1/actions` with privacy-safe fields and bounded reads.
+- Instrumented provider-open and provider-operation UI actions; separated interaction evidence from usage and cost evidence.
+
 ## [0.8.21] - 2026-06-21
 
 - Added AgentDraven SOTU report for MERIT foundation role and provider-consumer boundary

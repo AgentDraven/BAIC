@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from typing import Any
 
 from db.ports import DatabasePort
@@ -40,6 +41,20 @@ class XRayEventBody(BaseModel):
     message: str
     source: str = "ui"
     context: dict[str, Any] = Field(default_factory=dict)
+
+
+class ActionEventBody(BaseModel):
+    schema_name: str = Field(default="merit.telemetry.action.v1", alias="schema")
+    event_type: str = Field(min_length=2, max_length=128)
+    event_id: str = Field(min_length=2, max_length=180)
+    utility_id: str = Field(min_length=2, max_length=64)
+    quantity: float = Field(default=1.0, ge=0)
+    transport: str = Field(pattern="^(api|local|none)$")
+    api_call_made: bool = False
+    outcome: str = Field(default="committed", pattern="^(committed|failed|rejected)$")
+    cost_usd: float | None = Field(default=None, ge=0)
+    cost_source: str | None = Field(default=None, pattern="^(provider|estimated|local|none)$")
+    occurred_at: datetime | None = None
 
 
 class MatrixPatchBody(BaseModel):
@@ -215,6 +230,41 @@ def create_app(
     def xray_event(body: XRayEventBody) -> dict[str, Any]:
         xray.append(body.level, body.message, source=body.source, **body.context)
         return {"ok": True}
+
+    @app.post("/api/v1/actions")
+    def record_action(body: ActionEventBody) -> dict[str, Any]:
+        if body.schema_name != "merit.telemetry.action.v1":
+            raise HTTPException(status_code=422, detail="unsupported action schema")
+        if body.api_call_made != (body.transport == "api"):
+            raise HTTPException(status_code=422, detail="api_call_made must match transport=api")
+        with database.session() as session:
+            from db.repository import EnatRepository
+            from sqlalchemy.exc import IntegrityError
+
+            repo = EnatRepository(session)
+            values = body.model_dump(exclude_none=True, by_alias=True)
+            values.pop("schema", None)
+            values["occurred_at"] = body.occurred_at or datetime.now(UTC)
+            try:
+                repo.add_action_event(**values)
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+                return {"ok": True, "duplicate": True, "event_id": body.event_id}
+        return {"ok": True, "duplicate": False, "event_id": body.event_id}
+
+    @app.get("/api/v1/actions")
+    def list_actions(limit: int = 100) -> dict[str, Any]:
+        with database.session() as session:
+            from db.repository import EnatRepository
+            events = EnatRepository(session).list_action_events(limit)
+            return {"schema": "merit.telemetry.action.v1", "events": [
+                {"event_type": e.event_type, "event_id": e.event_id, "utility_id": e.utility_id,
+                 "quantity": e.quantity, "transport": e.transport, "api_call_made": e.api_call_made,
+                 "outcome": e.outcome, "cost_usd": e.cost_usd, "cost_source": e.cost_source,
+                 "occurred_at": e.occurred_at.isoformat()}
+                for e in events
+            ]}
 
     @app.get("/api/v1/config/scaffold-status")
     def scaffold_status() -> dict[str, Any]:

@@ -170,17 +170,27 @@ export async function fetchXRayRuntime(): Promise<XRayRuntime> {
   return r.json();
 }
 
-export async function postXRayEvent(level: string, message: string): Promise<void> {
+export async function postXRayEvent(level: string, message: string): Promise<void> {
   await fetch(`${API}/api/v1/xray/event`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ level, message, source: "ui" }),
   });
-}
+}
+
+export async function postAction(eventType: string, utilityId: string, transport: "api" | "local" | "none", apiCallMade: boolean): Promise<void> {
+  const occurredAt = new Date().toISOString();
+  const requestId = `${eventType}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+  await fetch(`${API}/api/v1/actions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ schema: "merit.telemetry.action.v1", event_type: eventType, event_id: requestId, utility_id: utilityId, quantity: 1, transport, api_call_made: apiCallMade, outcome: "committed", cost_usd: 0, cost_source: transport === "api" ? "provider" : "local", occurred_at: occurredAt }),
+  });
+}
 
 export async function fetchModelFamilies(): Promise<{ families: { family: string; models: string[] }[] }> {
   const r = await fetch(`${API}/api/v1/capability/families`);
   if (!r.ok) throw new Error("Families fetch failed");
   return r.json();
 }
-
+
