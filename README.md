@@ -52,6 +52,7 @@ Tokenmaxxing lives in your task bar and shows how much of each AI subscription y
 - **Acceptance boundary.** The [v01 completion matrix](docs/v01-completion-matrix.md) separates implemented local evidence from live-provider and adoption proof still required.
 - **Live benchmark runbook.** Use the [authenticated benchmark runbook](docs/live-benchmark-runbook.md) to collect comparable three-run samples without exposing provider credentials.
 - **Coverage audit.** Run `npm run metrics:coverage` to distinguish explicit structured-metric providers from runtime-derived quota coverage and line-only providers.
+- **Committed-action measurement.** See [BAIC cost and action measurement](BAIC%20docs/merit-cost-action-contract.md) for local/no-call interaction tracking and cost-source boundaries.
 - **[Proxy support](docs/proxy.md).** Route provider requests through SOCKS5 / HTTP.
 - **[Remote dashboard](remote/README.md).** Serve your usage to other machines.
 

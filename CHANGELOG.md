@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.7.16
+
+### MERIT committed-action measurement
+- Track committed manual/retry refresh actions even when no provider/API call occurs.
+- Separate interaction evidence, provider usage, and cost source with privacy-safe bounded local history.
+- Align BAIC with the shared MERIT L1 committed-action measurement rule.
+
 ## v0.7.15
 
 ### v01 measurement and routing

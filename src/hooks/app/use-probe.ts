@@ -11,6 +11,7 @@ import { useProbeAutoUpdate } from "@/hooks/app/use-probe-auto-update"
 import { useProbeRefreshActions } from "@/hooks/app/use-probe-refresh-actions"
 import { useProbeState } from "@/hooks/app/use-probe-state"
 import { useAppPreferencesStore } from "@/stores/app-preferences-store"
+import { buildUserActionEvent, recordUserAction } from "@/lib/action-events"
 
 type UseProbeArgs = {
   pluginSettings: PluginSettings | null
@@ -91,6 +92,23 @@ export function useProbe({
     const machineSettings = useAppPreferencesStore.getState().machineSettings
     const { localIds, remoteIds } = splitProbeIds(ids, machineSettings)
     const startedIds: string[] = []
+
+    if (pluginIds !== undefined && ids.length > 0) {
+      const remoteCallMade = machineSettings.mode === "remote" ||
+        (machineSettings.mode === "mixed" && remoteIds.length > 0)
+      const action = buildUserActionEvent({
+        eventType: "usage.refresh",
+        utilityId: "baic",
+        quantity: ids.length,
+        transport: remoteCallMade ? "api" : "local",
+        apiCallMade: remoteCallMade,
+        outcome: "committed",
+        costUsd: 0,
+        costSource: remoteCallMade ? "provider" : "local",
+        metricKeys: ["tokens", "requests", "dollars", "seconds"],
+      })
+      if (action) recordUserAction(action)
+    }
 
     if (remoteIds.length > 0) {
       try {
