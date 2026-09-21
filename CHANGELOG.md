@@ -1,5 +1,9 @@
 ﻿# CHANGELOG
 
+## [0.8.23] - 2026-09-21
+
+- ops: pin `MERIT_OPERATOR_CWD` to the BAIC repository root before forwarding to MERIT.
+
 ## [0.8.22] - 2026-09-13
 
 - Added MERIT V01 committed-action measurement with explicit API/local/no-call transport semantics.
