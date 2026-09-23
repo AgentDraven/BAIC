@@ -51,6 +51,7 @@ BAIC/
 ├── db/                     # Modular DatabasePort → SQLite
 ├── bridge/<provider>/      # Per-vendor integration
 ├── web/                    # React Hub + Spoke UI
+├── apps/tokenmaxxing/       # Consolidated Windows/Linux Tauri usage app
 ├── cfg/                    # config.json, provider_registry.json
 ├── tests/                  # pytest harness
 ├── scripts/merit.ps1       # Git lifecycle
@@ -68,3 +69,12 @@ flowchart LR
 ```
 
 See TECHNICAL_HLD_LLD.md for full diagrams.
+
+## Consolidated TokenMaxxing component
+
+`apps/tokenmaxxing/` contains the MIT-licensed Tokenmaxxing desktop application
+source consolidated from `falkoro/tokenmaxxing`. BAIC remains the Python/FastAPI
+control plane; the desktop app remains an isolated Rust/Tauri + React component.
+Its attribution, license, provider plugins, and independent build instructions
+are retained in that directory. This is a source consolidation, not a claim
+that BAIC and the desktop app share one runtime or one Vercel deployment.

@@ -1,5 +1,9 @@
 ﻿# CHANGELOG
 
+## [0.8.24] - 2026-09-23
+
+- consolidate: add the sanitized MIT-licensed Tokenmaxxing desktop component under `apps/tokenmaxxing/` with attribution and independent build boundaries.
+
 ## [0.8.23] - 2026-09-21
 
 - ops: pin `MERIT_OPERATOR_CWD` to the BAIC repository root before forwarding to MERIT.

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "v01",
+  "name": "BAIC tokenmaxxing benchmark suite",
+  "version": "0.1.0",
+  "rules": {
+    "sameRepository": true,
+    "samePrompt": true,
+    "record": [
+      "providerId",
+      "model",
+      "plan",
+      "taskClass",
+      "totalTokens",
+      "wallTimeMs",
+      "testsPassed",
+      "accepted",
+      "reworkTokens",
+      "costUsd"
+    ],
+    "report": ["median", "p90", "acceptanceRate", "testPassRate", "tokensPerAcceptedRun", "costPerAcceptedRunUsd"],
+    "minimumRunsPerCandidate": 3
+  },
+  "tasks": [
+    {
+      "id": "routine-small-edit",
+      "taskClass": "routine",
+      "prompt": "Add a focused validation test for the smallest existing utility that lacks direct coverage. Do not change production behavior outside the test.",
+      "acceptance": ["test added", "test passes", "diff is limited to the target test surface"]
+    },
+    {
+      "id": "routine-doc-update",
+      "taskClass": "routine",
+      "prompt": "Update one API or README section to document an existing behavior. Preserve headings and links.",
+      "acceptance": ["documentation is accurate", "links resolve", "no unrelated files changed"]
+    },
+    {
+      "id": "complex-bug-fix",
+      "taskClass": "complex",
+      "prompt": "Reproduce a supplied failing test, identify the smallest root-cause fix, implement it, and add a regression test.",
+      "acceptance": ["regression reproduces before fix", "targeted test passes after fix", "full relevant suite passes"]
+    },
+    {
+      "id": "complex-api-change",
+      "taskClass": "complex",
+      "prompt": "Add one backward-compatible API field, validate malformed input, update the contract documentation, and test both old and new shapes.",
+      "acceptance": ["old input remains valid", "invalid input is rejected", "new response is documented and tested"]
+    },
+    {
+      "id": "critical-security-review",
+      "taskClass": "critical",
+      "prompt": "Review a bounded authentication or data-handling change for security regressions and produce an actionable patch with tests.",
+      "acceptance": ["threat model stated", "negative cases tested", "no secrets exposed", "review findings addressed"]
+    },
+    {
+      "id": "critical-release-readiness",
+      "taskClass": "critical",
+      "prompt": "Audit a release candidate against its stated acceptance contract and produce a verified go/no-go report.",
+      "acceptance": ["each requirement has evidence", "unavailable checks are not marked pass", "blockers include recovery criteria"]
+    }
+  ]
+}

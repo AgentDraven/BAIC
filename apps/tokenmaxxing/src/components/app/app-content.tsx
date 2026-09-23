@@ -1,0 +1,176 @@
+import { lazy, Suspense } from "react"
+import { useShallow } from "zustand/react/shallow"
+import { OverviewPage } from "@/pages/overview"
+import { ProviderDetailPage } from "@/pages/provider-detail"
+
+const SettingsPage = lazy(() =>
+  import("@/pages/settings").then((m) => ({ default: m.SettingsPage }))
+)
+import type { DisplayPluginState } from "@/hooks/app/use-app-plugin-views"
+import type { SettingsPluginState } from "@/hooks/app/use-settings-plugin-list"
+import type { TraySettingsPreview } from "@/hooks/app/use-tray-icon"
+import { useAppPreferencesStore } from "@/stores/app-preferences-store"
+import { useAppUiStore } from "@/stores/app-ui-store"
+import type {
+  AutoUpdateIntervalMinutes,
+  DisplayMode,
+  GlobalShortcut,
+  MachineSettings,
+  MenubarIconStyle,
+  MenubarMetric,
+  ResetTimerDisplayMode,
+  ThemeMode,
+  TimeFormatMode,
+} from "@/lib/settings"
+
+type AppContentDerivedProps = {
+  displayPlugins: DisplayPluginState[]
+  settingsPlugins: SettingsPluginState[]
+  selectedPlugin: DisplayPluginState | null
+}
+
+export type AppContentActionProps = {
+  onRetryPlugin: (id: string) => void
+  onReorder: (orderedIds: string[]) => void
+  onToggle: (id: string) => void
+  onAutoUpdateIntervalChange: (value: AutoUpdateIntervalMinutes) => void
+  onThemeModeChange: (mode: ThemeMode) => void
+  onDisplayModeChange: (mode: DisplayMode) => void
+  onResetTimerDisplayModeChange: (mode: ResetTimerDisplayMode) => void
+  onResetTimerDisplayModeToggle: () => void
+  onTimeFormatModeChange: (mode: TimeFormatMode) => void
+  onMenubarIconStyleChange: (value: MenubarIconStyle) => void
+  onMenubarMetricChange: (value: MenubarMetric) => void
+  traySettingsPreview: TraySettingsPreview
+  onGlobalShortcutChange: (value: GlobalShortcut) => void
+  onMachineSettingsChange: (value: MachineSettings) => void
+  onStartOnLoginChange: (value: boolean) => void
+  onPanelStayOpenWhenPinnedChange: (value: boolean) => void
+  onPanelKeepOnTaskbarChange: (value: boolean) => void
+}
+
+export type AppContentProps = AppContentDerivedProps & AppContentActionProps
+
+export function AppContent({
+  displayPlugins,
+  settingsPlugins,
+  selectedPlugin,
+  onRetryPlugin,
+  onReorder,
+  onToggle,
+  onAutoUpdateIntervalChange,
+  onThemeModeChange,
+  onDisplayModeChange,
+  onResetTimerDisplayModeChange,
+  onResetTimerDisplayModeToggle,
+  onTimeFormatModeChange,
+  onMenubarIconStyleChange,
+  onMenubarMetricChange,
+  traySettingsPreview,
+  onGlobalShortcutChange,
+  onMachineSettingsChange,
+  onStartOnLoginChange,
+  onPanelStayOpenWhenPinnedChange,
+  onPanelKeepOnTaskbarChange,
+}: AppContentProps) {
+  const { activeView } = useAppUiStore(
+    useShallow((state) => ({
+      activeView: state.activeView,
+    }))
+  )
+
+  const {
+    displayMode,
+    resetTimerDisplayMode,
+    timeFormatMode,
+    menubarIconStyle,
+    menubarMetric,
+    autoUpdateInterval,
+    globalShortcut,
+    machineSettings,
+    themeMode,
+    startOnLogin,
+    panelStayOpenWhenPinned,
+    panelKeepOnTaskbar,
+  } = useAppPreferencesStore(
+    useShallow((state) => ({
+      displayMode: state.displayMode,
+      resetTimerDisplayMode: state.resetTimerDisplayMode,
+      timeFormatMode: state.timeFormatMode,
+      menubarIconStyle: state.menubarIconStyle,
+      menubarMetric: state.menubarMetric,
+      autoUpdateInterval: state.autoUpdateInterval,
+      globalShortcut: state.globalShortcut,
+      machineSettings: state.machineSettings,
+      themeMode: state.themeMode,
+      startOnLogin: state.startOnLogin,
+      panelStayOpenWhenPinned: state.panelStayOpenWhenPinned,
+      panelKeepOnTaskbar: state.panelKeepOnTaskbar,
+    }))
+  )
+
+  if (activeView === "home") {
+    return (
+      <OverviewPage
+        plugins={displayPlugins}
+        onRetryPlugin={onRetryPlugin}
+        displayMode={displayMode}
+        resetTimerDisplayMode={resetTimerDisplayMode}
+        timeFormatMode={timeFormatMode}
+        onResetTimerDisplayModeToggle={onResetTimerDisplayModeToggle}
+      />
+    )
+  }
+
+  if (activeView === "settings") {
+    return (
+      <Suspense fallback={null}>
+        <SettingsPage
+          plugins={settingsPlugins}
+          onReorder={onReorder}
+          onToggle={onToggle}
+          autoUpdateInterval={autoUpdateInterval}
+          onAutoUpdateIntervalChange={onAutoUpdateIntervalChange}
+          themeMode={themeMode}
+          onThemeModeChange={onThemeModeChange}
+          displayMode={displayMode}
+          onDisplayModeChange={onDisplayModeChange}
+          resetTimerDisplayMode={resetTimerDisplayMode}
+          onResetTimerDisplayModeChange={onResetTimerDisplayModeChange}
+          timeFormatMode={timeFormatMode}
+          onTimeFormatModeChange={onTimeFormatModeChange}
+          menubarIconStyle={menubarIconStyle}
+          onMenubarIconStyleChange={onMenubarIconStyleChange}
+          menubarMetric={menubarMetric}
+          onMenubarMetricChange={onMenubarMetricChange}
+          traySettingsPreview={traySettingsPreview}
+          globalShortcut={globalShortcut}
+          onGlobalShortcutChange={onGlobalShortcutChange}
+          machineSettings={machineSettings}
+          onMachineSettingsChange={onMachineSettingsChange}
+          startOnLogin={startOnLogin}
+          onStartOnLoginChange={onStartOnLoginChange}
+          panelStayOpenWhenPinned={panelStayOpenWhenPinned}
+          onPanelStayOpenWhenPinnedChange={onPanelStayOpenWhenPinnedChange}
+          panelKeepOnTaskbar={panelKeepOnTaskbar}
+          onPanelKeepOnTaskbarChange={onPanelKeepOnTaskbarChange}
+        />
+      </Suspense>
+    )
+  }
+
+  const handleRetry = selectedPlugin
+    ? () => onRetryPlugin(selectedPlugin.meta.id)
+    : /* v8 ignore next */ undefined
+
+  return (
+    <ProviderDetailPage
+      plugin={selectedPlugin}
+      onRetry={handleRetry}
+      displayMode={displayMode}
+      resetTimerDisplayMode={resetTimerDisplayMode}
+      timeFormatMode={timeFormatMode}
+      onResetTimerDisplayModeToggle={onResetTimerDisplayModeToggle}
+    />
+  )
+}

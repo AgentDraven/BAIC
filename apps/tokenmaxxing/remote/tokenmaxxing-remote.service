@@ -1,0 +1,21 @@
+[Unit]
+Description=Tokenmaxxing remote usage dashboard
+# Start after basic networking is available
+After=network.target
+
+[Service]
+# Run the Bun proxy that serves the dashboard and forwards /v1/usage to the app
+ExecStart=/usr/bin/bun /opt/tokenmaxxing/remote/serve.ts
+Environment=PORT=6737
+# Optional: protect the dashboard with a shared secret
+# Environment=DASH_TOKEN=your-secret-here
+# Optional: change bind address or upstream if needed
+# Environment=BIND=0.0.0.0
+# Environment=UPSTREAM=http://127.0.0.1:6736
+Restart=on-failure
+# DynamicUser=yes
+# ^ Uncomment for an unprivileged auto-created user. Left off by default so
+#   Bun can read files under /opt/tokenmaxxing without extra path permissions.
+
+[Install]
+WantedBy=multi-user.target

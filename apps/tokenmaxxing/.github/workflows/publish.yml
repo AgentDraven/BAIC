@@ -1,0 +1,116 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS legs removed for now: this fork has no Apple signing
+          # certificate, and macOS users are served by upstream OpenUsage.
+          # Restore the macos-latest entries (+ the Apple cert import step,
+          # see upstream publish.yml) once an Apple Developer cert exists.
+          - platform: windows-latest
+            args: ""
+          - platform: ubuntu-22.04
+            args: ""
+    runs-on: ${{ matrix.platform }}
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Install Tauri v2 Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libgtk-3-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "latest"
+      - run: bun install
+      - name: Bundle plugins
+        run: bun run bundle:plugins
+      - name: Verify bundled plugins
+        shell: bash
+        run: |
+          COUNT=$(find src-tauri/resources/bundled_plugins -maxdepth 2 -name plugin.json | wc -l | tr -d ' ')
+          if [[ "$COUNT" -lt 1 ]]; then
+            echo "No bundled plugins found under src-tauri/resources/bundled_plugins."
+            exit 1
+          fi
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          if [[ -z "$RELEASE_TAG" ]]; then
+            echo "Missing RELEASE_TAG (push a v* tag)."
+            exit 1
+          fi
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid RELEASE_TAG: $RELEASE_TAG (expected vMAJOR.MINOR.PATCH)"
+            exit 1
+          fi
+
+      - name: Validate app version matches tag
+        shell: bash
+        run: |
+          TAG_VERSION="${RELEASE_TAG#v}"
+
+          TAURI_CONF_VERSION=$(node -p 'require("./src-tauri/tauri.conf.json").version')
+          CARGO_VERSION=$(awk -F'"' '/^version =/ { print $2; exit }' ./src-tauri/Cargo.toml)
+          PKG_VERSION=$(node -p 'require("./package.json").version')
+
+          if [[ "$TAURI_CONF_VERSION" != "$TAG_VERSION" ]]; then
+            echo "src-tauri/tauri.conf.json version ($TAURI_CONF_VERSION) != tag version ($TAG_VERSION)"
+            exit 1
+          fi
+          if [[ "$CARGO_VERSION" != "$TAG_VERSION" ]]; then
+            echo "src-tauri/Cargo.toml version ($CARGO_VERSION) != tag version ($TAG_VERSION)"
+            exit 1
+          fi
+          if [[ "$PKG_VERSION" != "$TAG_VERSION" ]]; then
+            echo "package.json version ($PKG_VERSION) != tag version ($TAG_VERSION)"
+            exit 1
+          fi
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: ${{ env.RELEASE_TAG }}
+          releaseDraft: false
+          prerelease: false
+          includeUpdaterJson: true
+          args: ${{ matrix.args }}
+
+      - name: Verify updater assets uploaded
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ASSETS=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | tr -d '\r')
+
+          printf '%s\n' "$ASSETS" | grep -Fxq 'latest.json' || { echo "Missing updater manifest: latest.json"; exit 1; }
+          printf '%s\n' "$ASSETS" | grep -Eq '\.sig$' || { echo "Missing updater signatures (.sig)"; exit 1; }
