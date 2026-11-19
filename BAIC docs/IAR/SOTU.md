@@ -70,3 +70,7 @@ Default usage promo is `FREEASINTRO`; BAIC affiliate code is `BAIC`. This is a l
 - Keep BAIC's live integration state separate from local planning docs.
 - Future provider-consumer promotion requires explicit requester IAR evidence.
 - This SOTU is the executive review anchor for BAIC's current MERIT posture.
+
+## Estate validation - 2026-11-19
+
+MERIT E2E validation program: BAIC passes the standard runner end to end (pytest 42, test_baic.py, web build). Layer 2 wiring check: BAIC has no provider wiring in-repo (vault-registered only) - unchanged from the estate map.

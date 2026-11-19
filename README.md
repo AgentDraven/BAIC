@@ -70,6 +70,10 @@ flowchart LR
 
 See TECHNICAL_HLD_LLD.md for full diagrams.
 
+## Validation - MERIT E2E validation program (Nov 19, 2026)
+
+Standard runner: `Validate-Repo-v1.py BAIC` - **PASS** in the canonical clone `Z:\MApps\AgentDraven\BAIC`: requirements audit clean, web `npm ci` + `npm run build` PASS, pytest (pyproject testpaths) **42 passed**, and `python test_baic.py` PASS. The Nov 17 ENV-GAP (sqlalchemy, pydantic-settings, ruff, pytest-asyncio, pytest-cov missing from the shared estate venv) was closed in the program's Layer 0 by installing BAIC's declared minimums into the shared venv.
+
 ## Consolidated TokenMaxxing component
 
 `apps/tokenmaxxing/` contains the MIT-licensed Tokenmaxxing desktop application

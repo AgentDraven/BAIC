@@ -147,3 +147,7 @@ Admin grid+inspector surfaces use **`merit_workbench`** from meritutils **PAR CD
 ---
 
 MERIT closeout: `.\scripts\merit.ps1 mXin` after doc or cfg changes.
+
+## Validation (Nov 19, 2026)
+
+This repo validates under the estate standard runner (`Validate-Repo-v1.py BAIC`): pytest 42 passed + `python test_baic.py` PASS + web build PASS in the canonical Z:\MApps clone. See the README's validation section for the full record.
